@@ -1,0 +1,6 @@
+@Service.SnapFood.Api_HostAddress = http://localhost:5159
+
+GET {{Service.SnapFood.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
