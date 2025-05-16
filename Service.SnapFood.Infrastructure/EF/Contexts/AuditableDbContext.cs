@@ -61,7 +61,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException("Use SaveChangesAsync(Guid userId, Guid departmentId) instead");
+            throw new NotSupportedException("Use SaveChangesAsync(Guid userId) instead");
         }
 
         public virtual async Task<int> SaveChangesAsync(Guid userId, CancellationToken cancellationToken = default)

@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Service.SnapFood.Share.Query.Grid;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Service.SnapFood.Share
+namespace Service.SnapFood.Share.Interface.SQL
 {
     public interface IRepository<T> where T : class
     {
@@ -33,6 +34,7 @@ namespace Service.SnapFood.Share
         T Find(Expression<Func<T, bool>> predicate);
         IEnumerable<T> FindAll(Expression<Func<T, bool>> criteria);
 
+        IQueryable<T> FilterData(Func<IQueryable<T>, IQueryable<T>> filterFunc, GridRequest gridRequest, ref int totalRecords);
 
     }
 }
