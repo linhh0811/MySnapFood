@@ -71,7 +71,8 @@ namespace Service.SnapFood.Application.Service
                 q => q, // Bỏ hoàn toàn điều kiện Where
                 query.gridRequest,
                 ref totalRecords
-            )
+            );
+            var data = dataQuery.AsEnumerable()
             .Select((m, i) => new ProductDto
             {
                 Id = m.Id,
@@ -90,7 +91,7 @@ namespace Service.SnapFood.Application.Service
                 LastModifiedBy = m.LastModifiedBy,
             });
 
-            List<ProductDto> data = dataQuery.ToList();
+           
             DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
             dataTableJson.querytext = dataQuery.ToString();
             return dataTableJson;

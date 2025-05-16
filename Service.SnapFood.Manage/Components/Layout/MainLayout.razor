@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.FluentUI.AspNetCore.Components
 
 <div class="page">
     <div class="sidebar">
@@ -6,12 +7,16 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
         <article class="content px-4">
-            @Body
+            <!-- Bọc nội dung trong FluentLayout -->
+            <FluentLayout Style="height: 100%;">
+                <!-- Thêm Fluent UI providers -->
+                <FluentToastProvider MaxToastCount="10" Position="ToastPosition.BottomRight" />
+                <FluentDialogProvider />
+                <FluentTooltipProvider />
+
+                @Body
+            </FluentLayout>
         </article>
     </main>
 </div>
@@ -21,3 +26,30 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+<style>
+    /* CSS để đảm bảo tương thích */
+    .page {
+        display: flex;
+        height: 100vh;
+    }
+
+    .sidebar {
+        width: 250px;
+        background-color: #f8f9fa;
+    }
+
+    main {
+        flex: 1;
+        overflow: auto;
+    }
+
+    .content {
+        height: 100%;
+    }
+
+    /* Đảm bảo Fluent UI không bị ảnh hưởng bởi CSS khác */
+    fluent-provider {
+        height: 100%;
+    }
+</style>

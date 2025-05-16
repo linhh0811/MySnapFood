@@ -1,10 +1,20 @@
+using Microsoft.FluentUI.AspNetCore.Components;
 using Service.SnapFood.Manage.Components;
+using Service.SnapFood.Manage.Infrastructure.Services;
+using Service.SnapFood.Share.Interface.Extentions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddHttpClient<ICallServiceRegistry, CallServiceRegistry>();
+builder.Services.AddFluentUIComponents();
+builder.Services.AddHttpClient<ICallServiceRegistry, CallServiceRegistry>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7213");
+});
+builder.Services.AddFluentUIComponents(options => options.ValidateClassNames = false);
 
 var app = builder.Build();
 

@@ -1,0 +1,100 @@
+﻿@page "/manage/product"
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Icons
+@using Service.SnapFood.Manage.Dto.ProductDto;
+@namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
+
+
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
+	<h2>Danh sách sản phẩm</h2>
+
+	<FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+		<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+			<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd">Thêm mới</FluentButton>
+
+		</FluentStack>
+		<FluentSearch Placeholder="Nhập vào từ khóa"/>
+	</FluentStack>
+	<FluentGridItem Style="width:100%;">
+		<FluentDataGrid @ref="ProductGrid"
+		TGridItem="ProductDto"
+		ItemsProvider="@LoadProduct"
+		Pagination="@pagination"
+		ResizableColumns="false"
+		GridTemplateColumns="0.5fr 1.5fr 1.5fr 1.5fr 1.5fr 1.5fr  1.5fr"
+		RowSize="DataGridRowSize.Large"
+		ShowHover="true">
+
+
+			<TemplateColumn Title="#" Style="display:flex;align-items: center;">
+				<span style="cursor: pointer;">
+					@context.Index
+				</span>
+			</TemplateColumn>
+			<TemplateColumn Title="Tên" Style="display: flex;align-items: center;">
+				<span style="cursor: pointer; color: dodgerblue; ">
+					@context.ProductName
+				</span>
+			</TemplateColumn>
+			<TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;">
+				<img src="@context.ImageUrl" alt="Ảnh sản phẩm" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
+			</TemplateColumn>
+			<TemplateColumn Title="Dã bán" Style="display: flex;align-items: center;">
+				<span style="cursor: pointer; ">
+					@context.Quantity
+				</span>
+			</TemplateColumn>
+			<TemplateColumn Title="Miêu tả" Style="display: flex;align-items: center;">
+				<span style="cursor: pointer; ">
+					@if(@context.Description is null)
+					{
+						<span>Trống</span>
+					}
+					else
+					{
+						@context.Description
+					}				
+				</span>
+			</TemplateColumn>
+			<TemplateColumn Title="Trạng thái" Style="display: flex; align-items: center;">
+				<FluentBadge Appearance="@(context.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
+					@(context.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
+				</FluentBadge>
+			</TemplateColumn>
+			<TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:155px">
+				<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+					@if (context.ModerationStatus != 0)
+					{
+						<FluentButton Title="Sửa" Appearance="Appearance.Outline">
+							<FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
+						</FluentButton>
+					}
+
+					@if (context.ModerationStatus == 0)
+					{
+						<FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id))">
+							<FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())"  />
+						</FluentButton>
+					}
+					else
+					{
+						<FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id))">
+							<FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())"  />
+						</FluentButton>
+					}
+					@if (context.ModerationStatus != 0)
+					{
+						<FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteAsync(context.Id))">
+							<FluentIcon Value="@(new Icons.Regular.Size16.Delete())"  />
+						</FluentButton>
+
+						
+					}
+				</FluentStack>
+			</TemplateColumn>
+		</FluentDataGrid>
+   
+    <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefresData" /> 
+	</FluentGridItem>
+
+</FluentStack>

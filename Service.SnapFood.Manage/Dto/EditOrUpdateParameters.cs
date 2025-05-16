@@ -1,0 +1,13 @@
+﻿using Microsoft.AspNetCore.Components;
+using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
+
+namespace Service.SnapFood.Manage.Dto
+{
+    public class EditOrUpdateParameters
+    {
+        public Guid Id { get; set; }
+        public bool IsEditMode { get; set; }
+        public ApiRequestModel RequestApi { get; set; } = new ApiRequestModel();
+        public EventCallback OnRefresh { get; set; } = new EventCallback();
+    }
+}

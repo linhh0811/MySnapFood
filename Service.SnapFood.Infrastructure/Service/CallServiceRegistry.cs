@@ -27,51 +27,22 @@ namespace Service.SnapFood.Infrastructure.Service
         // DELETE method
         public async Task<ResultAPI> Delete(ApiRequestModel apiRequestModel)
         {
-            HandleTokenFromSession(apiRequestModel);
 
-            string endpoint = GetFullEndPoint(apiRequestModel);
-            HttpResponseMessage response = await _httpClient.DeleteAsync(endpoint);
+            HttpResponseMessage response = await _httpClient.DeleteAsync(apiRequestModel.Endpoint);
 
             return await HandleResponse(response);
         }
 
-        private string GetFullEndPoint(ApiRequestModel apiRequestModel)
-        {
-            /// <summary>
-            /// Lấy endpoint đầy đủ bao gồm base URL + endpoint + query params (nếu có).
-            /// </summary>
-            /// <returns>URL đầy đủ</returns>
-            /// <exception cref="KeyNotFoundException">Nếu service không tồn tại trong cấu hình</exception>
-            if (_configuration == null)
-                throw new InvalidOperationException("Configuration is not provided.");
-
-            // Lấy base URL của service từ cấu hình
-            string serviceBaseUrl = _configuration[$"ListService:{apiRequestModel.ApiService}"]
-                ?? throw new KeyNotFoundException($"Service {apiRequestModel.ApiService} not found in configuration.");
-
-            // Ghép URL
-            string fullUrl = $"{serviceBaseUrl}/api/v{apiRequestModel.Version}{apiRequestModel.Endpoint}";
-
-            // Nếu có query params, thêm vào URL
-            if (apiRequestModel.QueryParams != null && apiRequestModel.QueryParams.Any())
-            {
-                string queryString = string.Join("&", apiRequestModel.QueryParams.Select(q => $"{q.Key}={Uri.EscapeDataString(q.Value)}"));
-                fullUrl += "?" + queryString;
-            }
-
-            return fullUrl;
-        }
+      
 
 
         // PUT method
         public async Task<ResultAPI> Put(ApiRequestModel apiRequestModel, object? data = null)
         {
-            HandleTokenFromSession(apiRequestModel);
 
-            string endpoint = GetFullEndPoint(apiRequestModel);
             HttpResponseMessage response = data == null
-                ? await _httpClient.PutAsync(endpoint, null)
-                : await _httpClient.PutAsJsonAsync(endpoint, data);
+                ? await _httpClient.PutAsync(apiRequestModel.Endpoint, null)
+                : await _httpClient.PutAsJsonAsync(apiRequestModel.Endpoint, data);
 
             return await HandleResponse(response);
         }
@@ -79,10 +50,8 @@ namespace Service.SnapFood.Infrastructure.Service
         // GET method
         public async Task<ResultAPI> Get<T>(ApiRequestModel apiRequestModel)
         {
-            HandleTokenFromSession(apiRequestModel);
 
-            string endpoint = GetFullEndPoint(apiRequestModel);
-            HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+            HttpResponseMessage response = await _httpClient.GetAsync(apiRequestModel.Endpoint);
 
             return await HandleResponse<T>(response);
         }
@@ -90,10 +59,8 @@ namespace Service.SnapFood.Infrastructure.Service
         // POST method
         public async Task<ResultAPI> Post<T>(ApiRequestModel apiRequestModel, object data)
         {
-            HandleTokenFromSession(apiRequestModel);
 
-            string endpoint = GetFullEndPoint(apiRequestModel);
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(endpoint, data);
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(apiRequestModel.Endpoint, data);
 
             return await HandleResponse<T>(response);
         }
@@ -125,12 +92,7 @@ namespace Service.SnapFood.Infrastructure.Service
                     resultAPI.Message = "Thao tác thành công.";
                     resultAPI.Status = StatusCode.OK;
                     resultAPI.Data = string.IsNullOrWhiteSpace(content) ? default : JsonSerializer.Deserialize<T>(content, options);
-                }
-                else if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    resultAPI.Message = "Hết phiên đăng nhập.";
-                    resultAPI.Status = StatusCode.Forbidden;
-                }
+                }              
                 else
                 {
                     ResponseErrorAPI? error = JsonSerializer.Deserialize<ResponseErrorAPI>(content, options);
@@ -152,17 +114,6 @@ namespace Service.SnapFood.Infrastructure.Service
 
 
 
-        /// <summary>
-        /// Xử lý token từ session và thiết lập vào HttpClient
-        /// </summary>
-        private void HandleTokenFromSession(ApiRequestModel apiRequestModel)
-        {
-
-            if (apiRequestModel == null || string.IsNullOrEmpty(apiRequestModel.Token))
-            {
-                throw new UnauthorizedAccessException("Không lấy được token từ đầu vào.");
-            }
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiRequestModel.Token);
-        }
+       
     }
 }

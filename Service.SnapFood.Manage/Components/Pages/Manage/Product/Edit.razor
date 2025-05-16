@@ -1,0 +1,158 @@
+﻿@namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.ProductDto
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+
+<FluentDialog @ref="Dialog" Modal="true" TrapFocus="true" Style="width: 500px;">
+    <FluentDialogHeader>
+        <h3>@(Content.IsEditMode ? "Sửa sản phẩm" : "Thêm sản phẩm")</h3>
+    </FluentDialogHeader>
+
+    <EditForm Model="ProductModel" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error">
+                @ErrorMessage
+            </FluentMessageBar>
+        }
+        <FluentStack Orientation="Orientation.Vertical" Gap="15">
+
+            <FluentTextField Label="Tên sản phẩm" @bind-Value="ProductModel.ProductName" Style="width:100%;" />
+            <ValidationMessage style="color:red" For="@(() => ProductModel.ProductName)" />
+                <label>Ảnh</label>
+            <InputFile OnChange="FileSelect" accept=".jpg, .jpeg, .tiff"></InputFile>
+         
+          
+            <FluentNumberField Label="Giá" @bind-Value="ProductModel.BasePrice" Style="width:100%;" />
+            <ValidationMessage style="color:red" For="@(() => ProductModel.BasePrice)" />
+           @*  <FluentSelect Label="Phân loại" 
+             			  @bind-Value="PhanLoai" 
+             			  @onchange="OnPhanLoaiChanged" 
+             			  Items="Content.Enums" 
+             			  OptionText="@(x => x.Name)" 
+             			  OptionValue="@(x => x.PhanLoai)" 
+             			  Nullable="true" 
+             			  Style="width:100%;" 
+             			  Height="220px"> 
+            </FluentSelect>  *@
+            <FluentTextArea Label="Ghi chú" @bind-Value="ProductModel.Description" Style="width:100%" Rows="3" Resize="TextAreaResize.Both" />          
+            <ValidationMessage style="color:red" For="@(() => ProductModel.Description)" />
+
+            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
+                <FluentButton Appearance="Appearance.Neutral" @onclick="HideDialog" Disabled="@isSaving">Hủy</FluentButton>
+                <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span style="margin-left: 8px;">Đang lưu...</span>
+                    }
+                    else
+                    {
+                        <span>Lưu</span>
+                    }
+                </FluentButton>
+            </FluentStack>
+        </FluentStack>
+    </EditForm>
+</FluentDialog>
+@code{
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private ProductDto ProductModel { get; set; } = new ProductDto();
+    private string? ErrorMessage;
+    private bool isSaving = false;
+
+    private void FileSelect(InputFileChangeEventArgs e)
+    {
+        ProductModel.Image = e.File;
+    }
+
+    private async Task<bool> CreateModule(ProductDto createRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            requestRestAPI.Endpoint = "api/Product";
+            ResultAPI result = await CallApi.Post<ProductDto>(requestRestAPI, createRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Thêm sản phẩm thành công.");
+                return true;
+            }
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Thêm sản phẩm thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            isSaving = false;
+            ErrorMessage = "Thêm sản phẩm thất bại: " + ex.Message;
+            return false;
+        }
+    }
+
+    private async Task<bool> UpdateModule(Guid id, ProductDto updateRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            requestRestAPI.Endpoint = $"api/Product/{id}";
+            ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Sửa sản phẩm thành công.");
+                return true;
+            }
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Sửa sản phẩm thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            isSaving = false;
+            ErrorMessage = "Sửa sản phẩm thất bại: " + ex.Message;
+            return false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        bool result = false;
+
+        if (Content.IsEditMode)
+        {
+            result = await UpdateModule(Content.Id, ProductModel);
+        }
+        else
+        {
+            result = await CreateModule(ProductModel);
+        }
+
+        if (result)
+        {
+            await Dialog.CloseAsync();
+            await Content.OnRefresh.InvokeAsync();
+        }
+
+    }
+    private async Task HideDialog()
+    {
+        await Dialog.CloseAsync();
+    }
+}
