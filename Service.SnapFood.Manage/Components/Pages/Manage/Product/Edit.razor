@@ -28,7 +28,7 @@
 
             <FluentTextField Label="Tên sản phẩm" @bind-Value="ProductModel.ProductName" Style="width:100%;" />
             <ValidationMessage style="color:red" For="@(() => ProductModel.ProductName)" />
-            <InputFile OnChange="FileSelect" accept=".jpg, .jpeg, .tiff"></InputFile>
+            <InputFile OnChange="FileSelect" ></InputFile>
             @if (imagePreviewUrl != null)
             {
                 <img src="@imagePreviewUrl" style="max-width: 200px; margin-top: 10px;" />
