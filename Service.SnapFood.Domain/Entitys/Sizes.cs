@@ -13,7 +13,7 @@ namespace Service.SnapFood.Domain.Entitys
         public decimal AdditionalPrice { get; set; }
         public int DisplayOrder { get; set; }
         public Guid? ParentId { get; set; }
-        public virtual Product Product { get; set; } = null!;
+        public virtual List<Product> Product { get; set; } = null!;
         public virtual Sizes? Parent { get; set; }
 
     }

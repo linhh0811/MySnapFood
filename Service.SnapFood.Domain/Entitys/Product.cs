@@ -19,7 +19,7 @@ namespace Service.SnapFood.Domain.Entitys
         public decimal BasePrice { get; set; }
 
         public virtual Categories Category { get; set; } = null!;
-        public virtual Sizes Size { get; set; } = null!;
+        public virtual Sizes? Size { get; set; } = null!;
 
         public virtual List<CartItem> CartItemes { get; set; } = null!;
 

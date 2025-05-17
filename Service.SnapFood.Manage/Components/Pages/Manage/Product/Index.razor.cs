@@ -158,6 +158,30 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
                 ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
             }
         }
+
+        private async Task OpenModalUpdate(Guid id)
+        {
+            try
+            {
+                var parameters = new EditOrUpdateParameters
+                {
+                    Id = id,
+                    IsEditMode = true,
+                    OnRefresh = EventCallback.Factory.Create(this, RefreshDataAsync),
+                };
+                var dialog = await DialogService.ShowDialogAsync<Edit>(parameters, new DialogParameters
+                {
+                    Title = "Sửa sản phẩm",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true
+                });
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
+            }
+        }
         private async Task RefreshDataAsync()
         {
             await ProductGrid.RefreshDataAsync();
