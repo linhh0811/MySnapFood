@@ -1,0 +1,156 @@
+﻿@namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Category
+@using Service.SnapFood.Manage.Dto.SizeDto
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+
+<FluentDialog @ref="Dialog" Modal="true" TrapFocus="true" Style="width: 500px;">
+    <FluentDialogHeader>
+        <h3>@(Content.IsEditMode ? "Sửa phân loại" : "Thêm phân loại")</h3>
+    </FluentDialogHeader>
+
+    <EditForm Model="CategoryModel" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error">
+                @ErrorMessage
+            </FluentMessageBar>
+        }
+        <FluentStack Orientation="Orientation.Vertical" Gap="15">
+
+            <FluentTextField Label="Tên phân loại" @bind-Value="CategoryModel.CategoryName" Style="width:100%;" />
+            <ValidationMessage style="color:red" For="@(() => CategoryModel.CategoryName)" />
+
+            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
+                <FluentButton Appearance="Appearance.Neutral" @onclick="HideDialog" Disabled="@isSaving">Hủy</FluentButton>
+                <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span style="margin-left: 8px;">Đang lưu...</span>
+                    }
+                    else
+                    {
+                        <span>Lưu</span>
+                    }
+                </FluentButton>
+            </FluentStack>
+        </FluentStack>
+    </EditForm>
+</FluentDialog>
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private CategoryDto CategoryModel { get; set; } = new CategoryDto();
+    private string? ErrorMessage;
+    private bool isSaving = false;
+    protected override async Task OnInitializedAsync()
+    {
+       
+        await GetCategory();
+    }
+    private async Task GetCategory()
+    {
+        if (Content.IsEditMode)
+        {
+            requestRestAPI.Endpoint = $"api/Category/{Content.Id}";
+            ResultAPI result = await CallApi.Get<CategoryDto>(requestRestAPI);
+            if (result.Status == StatusCode.OK)
+            {
+                CategoryModel = result.Data as CategoryDto ?? new CategoryDto();
+            }
+        }
+    }
+
+    private async Task<bool> CreateModule(CategoryDto createRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            requestRestAPI.Endpoint = "api/Category";
+            ResultAPI result = await CallApi.Post<SizeDto>(requestRestAPI, createRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Thêm phân loại thành công.");
+                return true;
+            }
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Thêm phân loại thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            isSaving = false;
+            ErrorMessage = "Thêm phân loại thất bại: " + ex.Message;
+            return false;
+        }
+    }
+
+    private async Task<bool> UpdateModule(Guid id, CategoryDto updateRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            requestRestAPI.Endpoint = $"api/Category/{id}";
+            ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Sửa phân loại thành công.");
+                return true;
+            }
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Sửa phân loại thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            isSaving = false;
+            ErrorMessage = "Sửa phân loại thất bại: " + ex.Message;
+            return false;
+        }
+    }
+
+
+    private async Task HandleSubmit()
+    {
+        bool result = false;
+
+        if (Content.IsEditMode)
+        {
+            result = await UpdateModule(Content.Id, CategoryModel);
+        }
+        else
+        {
+            result = await CreateModule(CategoryModel);
+        }
+
+        if (result)
+        {
+            await Dialog.CloseAsync();
+            await Content.OnRefresh.InvokeAsync();
+        }
+
+    }
+    private async Task HideDialog()
+    {
+        await Dialog.CloseAsync();
+    }
+
+}

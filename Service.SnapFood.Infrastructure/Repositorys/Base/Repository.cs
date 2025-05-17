@@ -52,7 +52,7 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
 
 
 
-        public T Find(Expression<Func<T, bool>> predicate)
+        public T FirstOrDefault(Expression<Func<T, bool>> predicate)
         {
             return _context.Set<T>().FirstOrDefault(predicate) ?? throw new Exception("Bản ghi không tồn tại");
         }
@@ -103,7 +103,7 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             return entities;
         }
 
-        public IEnumerable<T> FindAll(Expression<Func<T, bool>> criteria)
+        public IEnumerable<T> FindWhere(Expression<Func<T, bool>> criteria)
         {
             return _context.Set<T>().Where(criteria).ToList();
         }

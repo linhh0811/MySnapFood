@@ -23,8 +23,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
         private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
         private async ValueTask<GridItemsProviderResult<ProductDto>> LoadProduct(GridItemsProviderRequest<ProductDto> request)
         {
-            //try
-            //{
+            try
+            {
                 var baseQuery = new BaseQuery
                 {
                     gridRequest = new GridRequest
@@ -56,12 +56,12 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
                 }
                 StateHasChanged();
                 return GridItemsProviderResult.From(new List<ProductDto>(), 0);
-            //}
-            //catch (Exception ex)
-            //{
-            //    ToastService.ShowError($"Lỗi khi tải danh sách sản phẩm: {ex.Message}");
-            //    return GridItemsProviderResult.From(new List<ProductDto>(), 0);
-            //}
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi tải danh sách sản phẩm: {ex.Message}");
+                return GridItemsProviderResult.From(new List<ProductDto>(), 0);
+            }
 
         }
         private async Task RefresData(int value)
@@ -155,7 +155,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
             }
             catch (Exception ex)
             {
-                ToastService.ShowError($"Lỗi khi mở modal thêm đơn vị vào ngoid dùng: {ex.Message}");
+                ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
             }
         }
         private async Task RefreshDataAsync()

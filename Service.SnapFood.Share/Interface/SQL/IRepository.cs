@@ -31,8 +31,8 @@ namespace Service.SnapFood.Share.Interface.SQL
         void SaveChanges();
         Task SaveChangesAsync();
 
-        T Find(Expression<Func<T, bool>> predicate);
-        IEnumerable<T> FindAll(Expression<Func<T, bool>> criteria);
+        T FirstOrDefault(Expression<Func<T, bool>> predicate);
+        IEnumerable<T> FindWhere(Expression<Func<T, bool>> criteria);
 
         IQueryable<T> FilterData(Func<IQueryable<T>, IQueryable<T>> filterFunc, GridRequest gridRequest, ref int totalRecords);
 

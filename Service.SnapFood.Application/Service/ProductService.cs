@@ -103,22 +103,22 @@ namespace Service.SnapFood.Application.Service
         {
             try
             {
-                if (item.Image != null && item.Image.Length > 0)
-                {
-                    var imageUrl = SaveImage(item.Image);
-                    if (!string.IsNullOrEmpty(imageUrl))
-                    {
-                        item.ImageUrl = imageUrl;
-                    }
-                }
-                else
-                {
-                    throw new Exception("Ảnh không hợp lệ");
-                }
+                //if (item.Image != null && item.Image.Length > 0)
+                //{
+                //    var imageUrl = SaveImage(item.Image);
+                //    if (!string.IsNullOrEmpty(imageUrl))
+                //    {
+                //        item.ImageUrl = imageUrl;
+                //    }
+                //}
+                //else
+                //{
+                //    throw new Exception("Ảnh không hợp lệ");
+                //}
                 Product product = new Product
                 {
                     CategoryId = item.CategoryId,
-                    SizeId = item.SizeId,
+                    SizeId = item.SizeId ,
                     ImageUrl = item.ImageUrl,
                     ProductName = item.ProductName,
                     Description = item.Description,
@@ -158,20 +158,20 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Không tìm thấy sản phẩm");
                 }
-                if (item.Image != null && item.Image.Length > 0)
-                {
-                    var imageUrl = SaveImage(item.Image);
-                    if (!string.IsNullOrEmpty(imageUrl))
-                    {
-                        item.ImageUrl = imageUrl;
-                    }
-                }
-                else
-                {
-                    throw new Exception("Ảnh không hợp lệ");
-                }
+                //if (item.Image != null && item.Image.Length > 0)
+                //{
+                //    var imageUrl = SaveImage(item.Image);
+                //    if (!string.IsNullOrEmpty(imageUrl))
+                //    {
+                //        item.ImageUrl = imageUrl;
+                //    }
+                //}
+                //else
+                //{
+                //    throw new Exception("Ảnh không hợp lệ");
+                //}
                 product.CategoryId= item.CategoryId;
-                product.SizeId= item.SizeId;
+                product.SizeId= item.SizeId??Guid.Empty;
                 product.ProductName= item.ProductName;
                 product.ImageUrl= item.ImageUrl;
                 product.Description= item.Description;
@@ -182,10 +182,10 @@ namespace Service.SnapFood.Application.Service
                 return true;
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
-                throw;
+                throw new Exception(ex.Message) ;
             }
            
 

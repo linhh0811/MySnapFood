@@ -1,0 +1,196 @@
+﻿@namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.SizeDto
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+
+<FluentDialog @ref="Dialog" Modal="true" TrapFocus="true" Style="width: 500px;">
+    <FluentDialogHeader>
+        <h3>@(Content.IsEditMode ? "Sửa size" : "Thêm size")</h3>
+    </FluentDialogHeader>
+
+    <EditForm Model="SizeModel" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error">
+                @ErrorMessage
+            </FluentMessageBar>
+        }
+        <FluentStack Orientation="Orientation.Vertical" Gap="15">
+
+            <FluentTextField Label="Tên size" @bind-Value="SizeModel.SizeName" Style="width:100%;" />
+            <ValidationMessage style="color:red" For="@(() => SizeModel.SizeName)" />
+            <FluentSelect Label="Size cha"
+            @bind-Value="parentId"
+            Items="Items"
+            OptionText="@(x => x.SizeName)"
+            OptionValue="@(x => x.Id)"
+            Nullable="true"
+            Style="width:100%;"
+            Height="220px"
+            Position="SelectPosition.Below">
+            </FluentSelect>
+
+            @if (!string.IsNullOrEmpty(parentId))
+            {
+                <FluentNumberField Label="Bổ sung giá" @bind-Value="SizeModel.AdditionalPrice" Style="width:100%;" />
+            }
+
+            <FluentNumberField Label="Vị trí" @bind-Value="SizeModel.DisplayOrder" Style="width:100%;" />
+
+
+            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
+                <FluentButton Appearance="Appearance.Neutral" @onclick="HideDialog" Disabled="@isSaving">Hủy</FluentButton>
+                <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span style="margin-left: 8px;">Đang lưu...</span>
+                    }
+                    else
+                    {
+                        <span>Lưu</span>
+                    }
+                </FluentButton>
+            </FluentStack>
+        </FluentStack>
+    </EditForm>
+</FluentDialog>
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private SizeDto SizeModel { get; set; } = new SizeDto();
+    private string? ErrorMessage;
+    private bool isSaving = false;
+    private List<SizeTreeDto> Items = new List<SizeTreeDto>();
+    private string parentId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Reset Items trước
+        Items = new List<SizeTreeDto>();
+
+        if (Content.Data is List<SizeTreeDto> sizeParent)
+        {
+            // Tạo bản sao mới bằng cách sao chép từng phần tử
+            Items = sizeParent.Select(x => new SizeTreeDto
+                {
+                    Id = x.Id,
+                    SizeName = x.SizeName,
+                // Copy tất cả các thuộc tính khác nếu có
+                }).ToList();
+
+            Items.Insert(0, new SizeTreeDto
+                {
+                    SizeName = "Không có size cha"
+                });
+
+        }
+        await GetSize();
+    }
+    private async Task GetSize()
+    {
+        if (Content.IsEditMode)
+        {
+            requestRestAPI.Endpoint = $"api/Size/{Content.Id}";
+            ResultAPI result = await CallApi.Get<SizeDto>(requestRestAPI);
+            if (result.Status == StatusCode.OK)
+            {
+                SizeModel = result.Data as SizeDto ?? new SizeDto();
+                parentId = SizeModel.ParentId.ToString()??string.Empty;
+            }
+        }
+    }
+
+    private async Task<bool> CreateModule(SizeDto createRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            createRequest.ParentId = string.IsNullOrEmpty(parentId) ? null : Guid.Parse(parentId);
+            isSaving = true;
+            requestRestAPI.Endpoint = "api/Size";
+            ResultAPI result = await CallApi.Post<SizeDto>(requestRestAPI, createRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Thêm size thành công.");
+                return true;
+            }
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Thêm size thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            isSaving = false;
+            ErrorMessage = "Thêm size thất bại: " + ex.Message;
+            return false;
+        }
+    }
+
+    private async Task<bool> UpdateModule(Guid id, SizeDto updateRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            requestRestAPI.Endpoint = $"api/Size/{id}";
+            ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Sửa size thành công.");
+                return true;
+            }
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Sửa size thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            isSaving = false;
+            ErrorMessage = "Sửa size thất bại: " + ex.Message;
+            return false;
+        }
+    }
+
+
+    private async Task HandleSubmit()
+    {
+        bool result = false;
+
+        if (Content.IsEditMode)
+        {
+            result = await UpdateModule(Content.Id, SizeModel);
+        }
+        else
+        {
+            result = await CreateModule(SizeModel);
+        }
+
+        if (result)
+        {
+            await Dialog.CloseAsync();
+            await Content.OnRefresh.InvokeAsync();
+        }
+
+    }
+    private async Task HideDialog()
+    {
+        await Dialog.CloseAsync();
+    }
+
+}

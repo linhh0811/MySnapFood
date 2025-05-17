@@ -18,6 +18,8 @@ namespace Service.SnapFood.Application
         {
 
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<ISizeService, SizeService>();
+            services.AddScoped<ICategoryService, CategoryService>();
             services.AddSingleton<IJwtService, JwtService>();
 
             return services;

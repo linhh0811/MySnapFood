@@ -10,9 +10,9 @@ namespace Service.SnapFood.Manage.Dto.ProductDto
         public Guid Id { get; set; }
         [Required(ErrorMessage = "Phân loại sản phẩm không để trống.")]
 
-        public Guid CategoryId { get; set; }
+        public string? CategoryId { get; set; }
 
-        public Guid SizeId { get; set; }
+        public string? SizeId { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Tên sản phẩm không để trống.")]

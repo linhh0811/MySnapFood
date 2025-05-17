@@ -10,7 +10,7 @@ namespace Service.SnapFood.Domain.Entitys
     public class Product : BaseDomainEntity
     {
         public Guid CategoryId { get; set; }
-        public Guid SizeId { get; set; }
+        public Guid? SizeId { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
 
         public string ProductName { get; set; } = string.Empty;
