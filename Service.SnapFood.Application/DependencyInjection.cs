@@ -16,7 +16,7 @@ namespace Service.SnapFood.Application
     {
         public static IServiceCollection AddServicesDependencies(this IServiceCollection services)
         {
-
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ISizeService, SizeService>();
             services.AddScoped<ICategoryService, CategoryService>();
