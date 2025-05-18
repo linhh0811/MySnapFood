@@ -4,6 +4,7 @@
 @using Service.SnapFood.Manage.Dto.Category
 @using Service.SnapFood.Manage.Dto.ProductDto
 @using Service.SnapFood.Manage.Dto.SizeDto
+@using Service.SnapFood.Manage.Infrastructure.Services
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.SQL
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
@@ -33,6 +34,12 @@
             {
                 <img src="@imagePreviewUrl" style="max-width: 200px; margin-top: 10px;" />
             }
+            else
+            {
+                <span>Ảnh trống!</span>
+            }
+            <ValidationMessage style="color:red" For="@(() => ProductModel.ImageUrl)" />
+
 
             <FluentNumberField Label="Giá" @bind-Value="ProductModel.BasePrice" Style="width:100%;" />
             <ValidationMessage style="color:red" For="@(() => ProductModel.BasePrice)" />
@@ -46,6 +53,8 @@
             Height="220px"
             Position="SelectPosition.Below">
             </FluentSelect>
+            <ValidationMessage style="color:red" For="@(() => ProductModel.CategoryId)" />
+
             <FluentSelect Label="Kích cỡ"
             @bind-Value="ProductModel.SizeId"
             Items="SizeList"
@@ -78,6 +87,7 @@
 @code{
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private ImageService ImageUploadService { get; set; } = default!;
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
     [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
@@ -89,12 +99,13 @@
     private bool isSaving = false;
 
     private string imagePreviewUrl = string.Empty;
+    private IBrowserFile ImageFile { get; set; } = default!;
 
 
     private async Task FileSelect(InputFileChangeEventArgs e)
     {
-        ProductModel.Image = e.File;
-
+        ImageFile = e.File;
+        ProductModel.ImageUrl = "A";
         var format = "image/jpeg";
         using var imageFile = e.File.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024); // Giới hạn 5MB
         var memoryStream = new MemoryStream();
@@ -108,6 +119,10 @@
     {
         await GetCategory();
         await GetSize();
+        if (Content.IsEditMode)
+        {
+            await GetProduct();
+        }
     }
 
     private async Task GetCategory()
@@ -119,6 +134,7 @@
         {
             CategoryList = result.Data as List<CategoryDto> ?? new List<CategoryDto>();
             CategoryList = CategoryList.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
+            ProductModel.CategoryId = CategoryList.First().Id;
         }
     }
     private async Task GetSize()
@@ -137,12 +153,27 @@
 
             });
     }
+
+    private async Task GetProduct()
+    {
+
+        requestRestAPI.Endpoint = $"api/Product/{Content.Id}";
+        ResultAPI result = await CallApi.Get<ProductDto>(requestRestAPI);
+        if (result.Status == StatusCode.OK)
+        {
+            ProductModel = result.Data as ProductDto ?? new ProductDto();
+            imagePreviewUrl = ProductModel.ImageUrl;
+        }
+        
+    }
     private async Task<bool> CreateModule(ProductDto createRequest)
     {
         ErrorMessage = null;
         try
         {
             isSaving = true;
+            var fileName = await ImageUploadService.SaveImageAsync(ImageFile);
+            createRequest.ImageUrl = ImageUploadService.GetImageUrl(fileName);
             requestRestAPI.Endpoint = "api/Product";
             ResultAPI result = await CallApi.Post<ProductDto>(requestRestAPI, createRequest);
             if (result.Status == StatusCode.OK)
@@ -171,6 +202,12 @@
         try
         {
             isSaving = true;
+            if (ImageFile is not null)
+            {
+                var fileName = await ImageUploadService.SaveImageAsync(ImageFile);
+                updateRequest.ImageUrl = ImageUploadService.GetImageUrl(fileName);
+            }
+           
             requestRestAPI.Endpoint = $"api/Product/{id}";
             ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
             if (result.Status == StatusCode.OK)

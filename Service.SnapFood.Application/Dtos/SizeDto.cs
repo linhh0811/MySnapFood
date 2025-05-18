@@ -9,7 +9,7 @@ namespace Service.SnapFood.Application.Dtos
 {
     public class SizeDto
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
         public string SizeName { get; set; } = string.Empty;
         public decimal AdditionalPrice { get; set; }
         public int DisplayOrder { get; set; }
