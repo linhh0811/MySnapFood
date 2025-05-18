@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Service.SnapFood.Api.AppStart;
 using Service.SnapFood.Application;
 using Service.SnapFood.Infrastructure;
 
@@ -24,6 +25,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseMiddleware<GlobalErrorHandlingMiddleware>();
 
 app.MapControllers();
 

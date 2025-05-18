@@ -10,11 +10,10 @@ namespace Service.SnapFood.Application.Dtos
 {
     public class CategoryDto
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
         public int Index { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
-        public IFormFile? Image { get; set; } = default!;
         public ModerationStatus ModerationStatus { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }

@@ -96,7 +96,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
             {
                 var item = new TreeViewItemDto
                 {
-                    Text = x.SizeName+" "+$"(+ {x.AdditionalPrice:0}đ)",
+                    Text = x.SizeName+" "+$"(+ {x.AdditionalPrice.ToString("N0")} đ)",
                     ModerationStatus =Convert.ToInt32(x.ModerationStatus),
                     Id = x.Id.ToString(),
                     Items = x.Children != null && x.Children.Any() ? ConvertToTreeItems(x.Children).ToList() : null,

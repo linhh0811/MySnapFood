@@ -41,7 +41,7 @@ namespace Service.SnapFood.Api.Controllers
             return Ok(sizeTree);
         }
         [HttpPost()]
-        public async Task<IActionResult> Create(SizeDto item)
+        public async Task<IActionResult> Create([FromBody] SizeDto item)
         {
             if (item is null) return BadRequest();
             var id = await _sizeService.CreateAsync(item);
