@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -195,7 +196,7 @@ namespace Service.SnapFood.Application.Service
             var sizes = _unitOfWork.SizesRepo.GetById(id);
             if (sizes is not null)
             {
-                var sizeChild = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == sizes.Id && x.ModerationStatus == ModerationStatus.Approved);
+                var sizeChild = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == sizes.Id && x.ModerationStatus == ModerationStatus.Approved).OrderBy(x=>x.DisplayOrder);
                 var nameSize = sizes.SizeName + "(" + string.Join(", ", sizeChild.Select(x => x.SizeName)) + ")";
                 return nameSize;
             }

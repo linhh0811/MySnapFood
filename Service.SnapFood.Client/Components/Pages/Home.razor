@@ -1,7 +1,114 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<style>
+    .carousel-item img {
+    width: 100%;
+    height: auto; /* Đảm bảo tỷ lệ ảnh */
+    max-height: 400px; /* Giới hạn chiều cao tối đa */
+    object-fit: cover; /* Cắt ảnh nếu cần để lấp đầy */
+    }
+</style>
 
-<h1>Hello, world!</h1>
+<div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        @for (int i = 0; i < slides.Count; i++)
+        {
+            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="@i"
+            class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : null)" aria-label="Slide @(i + 1)"></button>
+        }
+    </div>
+    <div class="carousel-inner">
+        @foreach (var slide in slides)
+        {
+            <div class="carousel-item @(slides.IndexOf(slide) == 0 ? "active" : "")">
+                <img src="@slide.imgurl" class="d-block w-100" alt="Slide @(slides.IndexOf(slide) + 1)">
 
-Welcome to your new app.
+            </div>
+        }
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+<div class="container my-4">
+    <h2 class="fw-bold">DANH MỤC MÓN ĂN</h2>
+    <hr>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        <!-- Danh mục 1 -->
+        <div class="col">
+            <div class="card">
+                <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#uudai">
+                    <img src="https://static.kfcvietnam.com.vn/images/category/lg/KHUYEN%20MAI.jpg?v=LEDZN3" style="height:200px" class="card-img-top" alt="Ưu Đãi">
+                </a>
+                <div class="card-body text-center">
+                    <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#uudai"> Ưu Đãi &gt;</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh mục 2 -->
+        <div class="col">
+            <div class="card">
+                <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#sanpham">
+                    <img src="https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/222278_4.png.webp" style="height:200px" class="card-img-top" alt="Combo 1 Người">
+                </a>
+
+                <div class="card-body text-center">
+                    <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#sanpham"> Gà rán &gt;</a>                  
+                </div>
+            </div>
+        </div>
+        <!-- Danh mục 3 -->
+        <div class="col">
+            <div class="card">
+                <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#burger">
+                    <img src="https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_bulgogi_4.png.webp" style="height:200px" class="card-img-top" alt="Combo 1 Người">
+                </a>
+                <div class="card-body text-center">
+                    <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#burger"> Burger &gt;</a>
+                </div>
+            </div>
+        </div>
+        <!-- Danh mục 4 -->
+        <div class="col">
+            <div class="card">
+                <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#combo">
+                    <img src="https://www.lotteria.vn/media/catalog/product/c/o/combo_update_bulgogi_1.jpg" style="height:200px" class="card-img-top" alt="Combo Nhóm">
+                </a>
+                <div class="card-body text-center">
+                    <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#combo"> Combo &gt;</a>              
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+<div class="container my-4">
+    <h2 class="fw-bold">CÓ THỂ BẠN THÍCH MÓN NÀY</h2>
+    <hr>
+
+</div>
+
+@code{
+    public class SlideModel
+    {
+        public string imgurl { get; set; }
+    }
+    List<SlideModel> slides = new List<SlideModel>();
+    protected override async Task OnInitializedAsync()
+    {
+        slides = new List<SlideModel>
+        {
+            new SlideModel { imgurl = "https://inan2h.vn/wp-content/uploads/2022/12/in-banner-quang-cao-do-an-10-1.jpg" },
+            new SlideModel { imgurl = "https://inan2h.vn/wp-content/uploads/2022/12/in-banner-quang-cao-do-an-11-1.jpg" },
+            new SlideModel { imgurl = "https://inan2h.vn/wp-content/uploads/2022/12/in-banner-quang-cao-do-an-7-1.jpg" }
+        };
+    }
+
+}
