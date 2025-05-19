@@ -1,31 +1,23 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Xin chào bạn!</a>
-    </div>
-</div>
+﻿@using Microsoft.FluentUI.AspNetCore.Components
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<FluentStack Orientation="Orientation.Horizontal" Style="width:250px">
+    <FluentNavMenu Title="Databound">
+        <!-- Nhóm Bán hàng -->
+        <FluentNavGroup Id="Group1" Title="Bán hàng" Icon="@(new Icons.Regular.Size24.ShoppingBag())" Expanded="true">
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.ShoppingBag())">Đặt hàng</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.DocumentCheckmark())">Đơn hàng</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.Chat())">Tin nhắn</FluentNavLink>
+        </FluentNavGroup>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>  
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Quan-Ly/San-Pham">
-                <span class="bi bi-box" aria-hidden="true"></span> Sản phẩm
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Quan-Ly/Size-PhanLoai">
-                <span class="bi bi-gear" aria-hidden="true"></span> Quản lý chung
-            </NavLink>
-
-        </div>
-       
-    </nav>
-</div>
+        <!-- Nhóm Quản lý -->
+        <FluentNavGroup Id="Group2" Title="Quản lý" Icon="@(new Icons.Regular.Size24.Settings())">
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.Box())" Href="/Quan-Ly/San-Pham">Sản phẩm</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.AppsList())">Combo</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.DocumentCheckmark())">Đơn hàng</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.People())">Khách hàng</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.PersonStar())">Nhân viên</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.Settings())" Href="/Quan-Ly/Size-PhanLoai">QL chung</FluentNavLink>
+        </FluentNavGroup>
+    </FluentNavMenu>
+</FluentStack>
 
