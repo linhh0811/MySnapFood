@@ -2,7 +2,7 @@
 
 namespace Service.SnapFood.Client.Components.Layout
 {
-    public partial class MainLayout : ComponentBase
-    {
-    }
+    //public partial class MainLayout : ComponentBase
+    //{
+    //}
 }

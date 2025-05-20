@@ -32,6 +32,7 @@ namespace Service.SnapFood.Application.Service
                 Categories category = new Categories
                 {
                     CategoryName = item.CategoryName,
+                    ImageUrl=item.ImageUrl,
                   
                 };
                 _unitOfWork.CategoriesRepo.Add(category);
@@ -60,6 +61,7 @@ namespace Service.SnapFood.Application.Service
 
 
                 category.CategoryName = item.CategoryName;
+                category.ImageUrl = item.ImageUrl;
                 _unitOfWork.CategoriesRepo.Update(category);
                 await _unitOfWork.CompleteAsync();
                 return true;
@@ -111,6 +113,7 @@ namespace Service.SnapFood.Application.Service
                 Id = m.Id,
                 Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
                 CategoryName = m.CategoryName,
+                ImageUrl = m.ImageUrl,
                 Created = m.Created,
                 LastModified = m.LastModified,
                 ModerationStatus = m.ModerationStatus,
