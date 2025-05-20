@@ -30,5 +30,8 @@ namespace Service.SnapFood.Application.Dtos
         public Guid CreatedBy { get;  set; }
 
         public Guid LastModifiedBy { get;  set; }
+
+
+
     }
 }
