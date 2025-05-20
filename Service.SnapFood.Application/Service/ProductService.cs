@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -66,35 +67,46 @@ namespace Service.SnapFood.Application.Service
 
         public DataTableJson GetPaged(BaseQuery query)
         {
-            int totalRecords = 0;
-            var dataQuery = _unitOfWork.ProductRepo.FilterData(
-                q => q, // Bỏ hoàn toàn điều kiện Where
-                query.gridRequest,
-                ref totalRecords
-            );
-            var data = dataQuery.AsEnumerable()
-            .Select((m, i) => new ProductDto
+            try
             {
-                Id = m.Id,
-                Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
-                CategoryId = m.CategoryId,
-                SizeId = m.SizeId,
-                ImageUrl = m.ImageUrl,
-                ProductName = m.ProductName,
-                Description = m.Description,
-                Quantity = m.Quantity,
-                BasePrice = m.BasePrice,
-                Created = m.Created,
-                LastModified = m.LastModified,
-                ModerationStatus = m.ModerationStatus,
-                CreatedBy = m.CreatedBy,
-                LastModifiedBy = m.LastModifiedBy,
-            });
+                int totalRecords = 0;
+                var dataQuery = _unitOfWork.ProductRepo.FilterData(
+                    q => q, // Bỏ hoàn toàn điều kiện Where
+                    query.gridRequest,
+                    ref totalRecords
+                );
+                var data = dataQuery.ToList()
+                .Select((m, i) => new ProductDto
+                {
+                    Id = m.Id,
+                    Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
+                    CategoryId = m.CategoryId,
+                    SizeId = m.SizeId,
+                    ImageUrl = m.ImageUrl,
+                    ProductName = m.ProductName,
+                    Description = m.Description,
+                    Quantity = m.Quantity,
+                    BasePrice = m.BasePrice,
+                    Created = m.Created,
+                    LastModified = m.LastModified,
+                    ModerationStatus = m.ModerationStatus,
+                    CreatedBy = m.CreatedBy,
+                    LastModifiedBy = m.LastModifiedBy,
+                    SizeName = GetSizeNameById(m.SizeId ?? Guid.Empty) ?? null,
+                    CategoryName =GetCategoryNameById(m.CategoryId),
+                });
 
-           
-            DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
-            dataTableJson.querytext = dataQuery.ToString();
-            return dataTableJson;
+
+                DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
+                dataTableJson.querytext = dataQuery.ToString();
+                return dataTableJson;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+
+            }
+            
         }
         #endregion
 
@@ -103,18 +115,24 @@ namespace Service.SnapFood.Application.Service
         {
             try
             {
-                //if (item.Image != null && item.Image.Length > 0)
-                //{
-                //    var imageUrl = SaveImage(item.Image);
-                //    if (!string.IsNullOrEmpty(imageUrl))
-                //    {
-                //        item.ImageUrl = imageUrl;
-                //    }
-                //}
-                //else
-                //{
-                //    throw new Exception("Ảnh không hợp lệ");
-                //}
+                if (item is null) throw new Exception("Sản phẩm trống");
+
+                if (string.IsNullOrEmpty(item.ProductName))
+                {
+                    throw new Exception("Tên sản phẩm trống");
+                }
+
+                if (item.BasePrice <=0)
+                {
+                    throw new Exception("Giá sản phẩm nhỏ hơn 0");
+                }
+
+                if (string.IsNullOrEmpty(item.ImageUrl))
+                {
+                    throw new Exception("Ảnh sản phẩm trống");
+                }
+
+
                 Product product = new Product
                 {
                     CategoryId = item.CategoryId,
@@ -153,25 +171,31 @@ namespace Service.SnapFood.Application.Service
         {
             try
             {
+                if (item is null) throw new Exception("Sản phẩm trống");
+
+                if (item.ProductName is null)
+                {
+                    throw new Exception("Tên sản phẩm trống");
+                }
+
+                if (item.BasePrice <= 0)
+                {
+                    throw new Exception("Giá sản phẩm nhỏ hơn 0");
+                }
+
+                if (item.ImageUrl is null)
+                {
+                    throw new Exception("Ảnh sản phẩm trống");
+                }
+
                 var product = await _unitOfWork.ProductRepo.GetByIdAsync(id);
                 if (product is null)
                 {
                     throw new Exception("Không tìm thấy sản phẩm");
                 }
-                //if (item.Image != null && item.Image.Length > 0)
-                //{
-                //    var imageUrl = SaveImage(item.Image);
-                //    if (!string.IsNullOrEmpty(imageUrl))
-                //    {
-                //        item.ImageUrl = imageUrl;
-                //    }
-                //}
-                //else
-                //{
-                //    throw new Exception("Ảnh không hợp lệ");
-                //}
+               
                 product.CategoryId= item.CategoryId;
-                product.SizeId= item.SizeId??Guid.Empty;
+                product.SizeId= item.SizeId;
                 product.ProductName= item.ProductName;
                 product.ImageUrl= item.ImageUrl;
                 product.Description= item.Description;
@@ -191,28 +215,30 @@ namespace Service.SnapFood.Application.Service
 
         }
         #endregion
-        private string? SaveImage(IFormFile imageFile)
+        private string GetCategoryNameById(Guid id)
         {
-            if (imageFile != null && imageFile.Length > 0)
+
+           var category = _unitOfWork.CategoriesRepo.GetById(id);
+            return category.CategoryName;
+        }
+        private string? GetSizeNameById(Guid id)
+        {
+            if (id == Guid.Empty)
             {
-                var dataProjectPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "Service.SnapFood.Share", "Images");
-
-                if (!Directory.Exists(dataProjectPath))
-                {
-                    Directory.CreateDirectory(dataProjectPath);
-                }
-
-                var fileName = Path.GetFileName(imageFile.FileName);
-                var filePath = Path.Combine(dataProjectPath, fileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    imageFile.CopyTo(fileStream);
-                }
-
-                return $"/images/{fileName}";
+                return null;
             }
-            return null;
+            var sizes = _unitOfWork.SizesRepo.GetById(id);
+            if (sizes is not null)
+            {
+                var sizeChild = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == sizes.Id && x.ModerationStatus == ModerationStatus.Approved).OrderBy(x=>x.DisplayOrder);
+                var nameSize = sizes.SizeName + "(" + string.Join(", ", sizeChild.Select(x => x.SizeName)) + ")";
+                return nameSize;
+            }
+            else
+            {
+                return null;
+            }
+            
         }
     }
 }

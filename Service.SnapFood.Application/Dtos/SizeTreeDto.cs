@@ -11,7 +11,7 @@ namespace Service.SnapFood.Application.Dtos
     {
         public Guid Id { get; set; }
         public Guid? ParentId { set; get; }
-        public decimal? AdditionalPrice { get; set; }
+        public decimal AdditionalPrice { get; set; }
 
         public string SizeName { set; get; } = string.Empty;
         public int DisplayOrder { get; set; }

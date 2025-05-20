@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Share.Model.SQL;
 using System;
 using System.Collections.Generic;
@@ -20,7 +22,8 @@ namespace Service.SnapFood.Application.Dtos
         public string? Description { get; set; }
         public int Quantity { get; set; }
         public decimal BasePrice { get; set; }
-        //public IFormFile? Image { get; set; } = default!;
+        public string CategoryName { get; set; }= string.Empty;
+        public string? SizeName { get; set; } 
         public ModerationStatus ModerationStatus { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }

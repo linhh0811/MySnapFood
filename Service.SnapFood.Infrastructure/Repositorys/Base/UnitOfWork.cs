@@ -15,7 +15,7 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
-        private IDbContextTransaction _transaction;
+        private IDbContextTransaction? _transaction;
         public IProductRepository ProductRepo { get; private set; }
 
         public IComboRepository ComboRepo { get; private set; }

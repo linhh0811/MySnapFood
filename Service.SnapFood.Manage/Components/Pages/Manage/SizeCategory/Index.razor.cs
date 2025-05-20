@@ -28,6 +28,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
         private List<SizeTreeDto> sizeParent = new List<SizeTreeDto>();
         private bool isLoading = true;
         private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+        private string KeySearchCategory { get; set; } = string.Empty;
 
         protected FluentDataGrid<CategoryDto> CategoryGrid { get; set; } = default!;
 
@@ -96,7 +97,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
             {
                 var item = new TreeViewItemDto
                 {
-                    Text = x.SizeName+" "+$"(+ {x.AdditionalPrice:0}đ)",
+                    Text = x.SizeName+" "+$"(+ {x.AdditionalPrice.ToString("N0")} đ)",
                     ModerationStatus =Convert.ToInt32(x.ModerationStatus),
                     Id = x.Id.ToString(),
                     Items = x.Children != null && x.Children.Any() ? ConvertToTreeItems(x.Children).ToList() : null,
@@ -253,6 +254,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
             {
                 var baseQuery = new BaseQuery
                 {
+                    SearchIn= new List<string> { "CategoryName" },
+                    Keyword=KeySearchCategory,
                     gridRequest = new GridRequest
                     {
                         page = (request.StartIndex / pagination.ItemsPerPage) + 1,
@@ -273,7 +276,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
                 if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
                 {
                     var items = JsonSerializer.Deserialize<List<CategoryDto>>(dataTable.Data.GetRawText(),
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CategoryDto>(); ;
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CategoryDto>();
 
 
 

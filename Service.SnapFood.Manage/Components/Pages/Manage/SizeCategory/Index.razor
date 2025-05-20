@@ -85,7 +85,7 @@
 						<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAddCategory" Disabled="isLoading">Thêm mới</FluentButton>
 
 					</FluentStack>
-					<FluentSearch Placeholder="Nhập vào từ ..." />
+					<FluentSearch @bind-Value="KeySearchCategory" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ ..." />
 				</FluentStack>
 				<FluentGridItem Style="width:100%;">
 					<FluentDataGrid @ref="CategoryGrid"
@@ -109,7 +109,7 @@
 							</span>
 						</TemplateColumn>
 						<TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;">
-							<img src="@context.ImageUrl"  style="max-height: 40px; max-width: 60px; object-fit: contain;" />
+							<img src="@context.ImageUrl" alt="Ảnh" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
 						</TemplateColumn>
 
 						<TemplateColumn Title="Trạng thái" Style="display: flex; align-items: center;">
