@@ -18,8 +18,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
         [Inject] private IDialogService DialogService { get; set; } = default!;
         private ApiRequestModel requestRestAPI = new ApiRequestModel();
         protected FluentDataGrid<ProductDto> ProductGrid { get; set; } = default!;
-        protected string? SearchKeyword { get; set; } = string.Empty;
-        private bool IsLoadingSync { get; set; } = false;
+        protected string SearchKeyword { get; set; } = string.Empty;
         private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
         private async ValueTask<GridItemsProviderResult<ProductDto>> LoadProduct(GridItemsProviderRequest<ProductDto> request)
         {
@@ -27,6 +26,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
             {
                 var baseQuery = new BaseQuery
                 {
+                    SearchIn = new List<string> { "ProductName" },
+                    Keyword = SearchKeyword,
                     gridRequest = new GridRequest
                     {
                         page = (request.StartIndex / pagination.ItemsPerPage) + 1,

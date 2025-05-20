@@ -10,10 +10,10 @@
 
 	<FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
 		<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
-			<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd">Thêm mới</FluentButton>
+			<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd" >Thêm mới</FluentButton>
 
 		</FluentStack>
-		<FluentSearch Placeholder="Nhập vào từ khóa"/>
+		<FluentSearch @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
 	</FluentStack>
 	<FluentGridItem Style="width:100%;">
 		<FluentDataGrid @ref="ProductGrid"

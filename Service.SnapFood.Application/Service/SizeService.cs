@@ -74,6 +74,27 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Không tìm thấy size");
                 }
+
+                if (item is null)
+                {
+                    throw new Exception("Size trống");
+                }
+
+                if (string.IsNullOrEmpty(item.SizeName))
+                {
+                    throw new Exception("Tên size trống");
+                }
+
+                if (item.AdditionalPrice<0)
+                {
+                    throw new Exception("Giá nhỏ hơn 0");
+                }
+
+                if (item.DisplayOrder < 0)
+                {
+                    throw new Exception("Vị trí nhỏ hơn 0");
+                }
+
                 size.SizeName = item.SizeName;
                 size.AdditionalPrice = item.AdditionalPrice;
                 size.DisplayOrder = item.DisplayOrder;
@@ -91,6 +112,26 @@ namespace Service.SnapFood.Application.Service
         {
             try
             {
+                if (item is null)
+                {
+                    throw new Exception("Size trống");
+                }
+
+                if (string.IsNullOrEmpty(item.SizeName))
+                {
+                    throw new Exception("Tên size trống");
+                }
+
+                if (item.AdditionalPrice < 0)
+                {
+                    throw new Exception("Giá nhỏ hơn 0");
+                }
+
+                if (item.DisplayOrder < 0)
+                {
+                    throw new Exception("Vị trí nhỏ hơn 0");
+                }
+
                 Sizes size = new Sizes
                 {
                     SizeName = item.SizeName,
