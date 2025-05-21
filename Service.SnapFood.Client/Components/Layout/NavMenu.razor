@@ -1,0 +1,59 @@
+﻿@using Service.SnapFood.Client.Components.Pages.Auth
+<nav class="navbar navbar-expand-sm navbar-light bg-white fixed-top shadow-sm" style="z-index:1">
+    <div class="container">
+        <!-- Logo hoặc tiêu đề -->
+        <a class="navbar-brand" href="#">Snap Food</a>
+
+        <!-- Nút ba gạch ngang -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menu -->
+        <div class="collapse navbar-collapse fs-4" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="OrderHome">Đặt hàng</a>
+                </li>
+
+            </ul>
+            <!-- Nút Login -->
+
+            <ul class="navbar-nav navbar-right">
+                <li class="nav-item">
+                    <FluentButton Appearance="Appearance.Accent"
+                                  Class="rounded-pill"
+                                  OnClick="OpenModalAuth">
+                        Đăng nhập/Đăng ký
+                    </FluentButton>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+@code {
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+
+    private async Task OpenModalAuth()
+    {
+        try
+        {
+            var dialog = await DialogService.ShowDialogAsync<AuthDialog>(new DialogParameters
+                {
+                    Title = null,
+                    PreventScroll = true,
+
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal: {ex.Message}");
+        }
+    }
+
+}
