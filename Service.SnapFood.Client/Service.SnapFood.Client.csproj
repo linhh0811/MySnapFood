@@ -12,4 +12,8 @@
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.11.9" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Service.SnapFood.Share\Service.SnapFood.Share.csproj" />
+  </ItemGroup>
+
 </Project>

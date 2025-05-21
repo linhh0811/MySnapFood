@@ -121,6 +121,8 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
 
             return query;
         }
+#pragma warning disable CS8603 // Possible null reference return.
+#pragma warning disable CS8604 // Possible null reference argument.
         private IQueryable<T> GetByGridRequest<C, O, N, G>(IQueryable<T> source, GridRequest request, ref int totalRecords)
         {
             Expression methodCallExpression = source.Expression;
@@ -335,6 +337,7 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             }
             return result;
         }
+
         private Expression GetExpresionByType(Type typeField, MemberExpression express, string strValue, string strPhuongThuc)
         {
             if (typeField == typeof(Int64)
@@ -477,5 +480,8 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             else
                 return Equals;
         }
+#pragma warning restore CS8603 // Possible null reference return.
+#pragma warning restore CS8604 // Possible null reference argument.
+
     }
 }

@@ -115,6 +115,23 @@ namespace Service.SnapFood.Application.Service
         {
             try
             {
+                if (item is null) throw new Exception("Sản phẩm trống");
+
+                if (string.IsNullOrEmpty(item.ProductName))
+                {
+                    throw new Exception("Tên sản phẩm trống");
+                }
+
+                if (item.BasePrice <=0)
+                {
+                    throw new Exception("Giá sản phẩm nhỏ hơn 0");
+                }
+
+                if (string.IsNullOrEmpty(item.ImageUrl))
+                {
+                    throw new Exception("Ảnh sản phẩm trống");
+                }
+
 
                 Product product = new Product
                 {
@@ -154,6 +171,23 @@ namespace Service.SnapFood.Application.Service
         {
             try
             {
+                if (item is null) throw new Exception("Sản phẩm trống");
+
+                if (item.ProductName is null)
+                {
+                    throw new Exception("Tên sản phẩm trống");
+                }
+
+                if (item.BasePrice <= 0)
+                {
+                    throw new Exception("Giá sản phẩm nhỏ hơn 0");
+                }
+
+                if (item.ImageUrl is null)
+                {
+                    throw new Exception("Ảnh sản phẩm trống");
+                }
+
                 var product = await _unitOfWork.ProductRepo.GetByIdAsync(id);
                 if (product is null)
                 {

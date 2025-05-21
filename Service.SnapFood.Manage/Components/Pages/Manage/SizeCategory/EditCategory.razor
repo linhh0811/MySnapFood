@@ -3,6 +3,7 @@
 @using Service.SnapFood.Manage.Dto
 @using Service.SnapFood.Manage.Dto.Category
 @using Service.SnapFood.Manage.Dto.SizeDto
+@using Service.SnapFood.Manage.Infrastructure.Services
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 
@@ -28,6 +29,18 @@
             <FluentTextField Label="Tên phân loại" @bind-Value="CategoryModel.CategoryName" Style="width:100%;" />
             <ValidationMessage style="color:red" For="@(() => CategoryModel.CategoryName)" />
 
+            <InputFile OnChange="FileSelect"></InputFile>
+            @if (!string.IsNullOrEmpty(imagePreviewUrl))
+            {
+                <img src="@imagePreviewUrl" style="max-width: 200px; margin-top: 10px;" />
+            }
+            else
+            {
+                <span>Ảnh trống!</span>
+            }
+            <ValidationMessage style="color:red" For="@(() => CategoryModel.ImageUrl)" />
+
+
             <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
                 <FluentButton Appearance="Appearance.Neutral" @onclick="HideDialog" Disabled="@isSaving">Hủy</FluentButton>
                 <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
@@ -47,16 +60,33 @@
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private ImageService ImageUploadService { get; set; } = default!;
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
     [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private CategoryDto CategoryModel { get; set; } = new CategoryDto();
     private string? ErrorMessage;
     private bool isSaving = false;
+    private string imagePreviewUrl = string.Empty;
+    private IBrowserFile ImageFile { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
        
         await GetCategory();
+    }
+
+    private async Task FileSelect(InputFileChangeEventArgs e)
+    {
+        ImageFile = e.File;
+        CategoryModel.ImageUrl = "A";
+        var format = "image/jpeg";
+        using var imageFile = e.File.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024); // Giới hạn 5MB
+        var memoryStream = new MemoryStream();
+
+        await imageFile.CopyToAsync(memoryStream);
+
+        imagePreviewUrl = $"data:{format};base64,{Convert.ToBase64String(memoryStream.ToArray())}";
     }
     private async Task GetCategory()
     {
@@ -67,18 +97,22 @@
             if (result.Status == StatusCode.OK)
             {
                 CategoryModel = result.Data as CategoryDto ?? new CategoryDto();
+                imagePreviewUrl = CategoryModel.ImageUrl;
+
             }
         }
     }
 
-    private async Task<bool> CreateModule(CategoryDto createRequest)
+    private async Task<bool> CreateCategory(CategoryDto createRequest)
     {
         ErrorMessage = null;
         try
         {
             isSaving = true;
+            var fileName = await ImageUploadService.SaveImageAsync(ImageFile);
+            createRequest.ImageUrl = ImageUploadService.GetImageUrl(fileName);  
             requestRestAPI.Endpoint = "api/Category";
-            ResultAPI result = await CallApi.Post<SizeDto>(requestRestAPI, createRequest);
+            ResultAPI result = await CallApi.Post<CategoryDto>(requestRestAPI, createRequest);
             if (result.Status == StatusCode.OK)
             {
                 ToastService.ShowSuccess("Thêm phân loại thành công.");
@@ -99,12 +133,17 @@
         }
     }
 
-    private async Task<bool> UpdateModule(Guid id, CategoryDto updateRequest)
+    private async Task<bool> UpdateCategory(Guid id, CategoryDto updateRequest)
     {
         ErrorMessage = null;
         try
         {
             isSaving = true;
+            if (ImageFile is not null)
+            {
+                var fileName = await ImageUploadService.SaveImageAsync(ImageFile);
+                updateRequest.ImageUrl = ImageUploadService.GetImageUrl(fileName);
+            }
             requestRestAPI.Endpoint = $"api/Category/{id}";
             ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
             if (result.Status == StatusCode.OK)
@@ -134,11 +173,11 @@
 
         if (Content.IsEditMode)
         {
-            result = await UpdateModule(Content.Id, CategoryModel);
+            result = await UpdateCategory(Content.Id, CategoryModel);
         }
         else
         {
-            result = await CreateModule(CategoryModel);
+            result = await CreateCategory(CategoryModel);
         }
 
         if (result)
