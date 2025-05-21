@@ -11,87 +11,124 @@ namespace Service.SnapFood.Api.Controllers
     [ApiController]
     public class StaffController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IStaffService _staffService;
 
-        public StaffController(IUserService userService)
+        public StaffController(IStaffService staffService)
         {
-            _userService = userService;
+            _staffService = staffService;
         }
 
         [HttpPost("GetPaged")]
-        public IActionResult GetPage(BaseQuery query)
+        public IActionResult GetPage([FromBody] BaseQuery query)
         {
-            var result = _userService.GetPaged(query);
-            return Ok(result);
+            try
+            {
+                var result = _staffService.GetPaged(query);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var users = await _userService.GetAllAsync();
+            var users = await _staffService.GetAllAsync();
             return Ok(users);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
-            var user = await _userService.GetByIdAsync(id);
-            if (user == null)
+            try
             {
-                return NotFound("Không tìm thấy người dùng");
+                var user = await _staffService.GetByIdAsync(id);
+                return Ok(user);
             }
-            return Ok(user);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateAsync([FromBody] UserDto item)
         {
-            var result = await _userService.CreateAsync(item);
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = result }, item);
+            try
+            {
+                var result = await _staffService.CreateAsync(item);
+                return CreatedAtAction(nameof(GetByIdAsync), new { id = result }, item);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UserDto item)
         {
-            var result = await _userService.UpdateAsync(id, item);
-            if (!result)
+            try
             {
-                return BadRequest("Cập nhật không thành công");
+                var result = await _staffService.UpdateAsync(id, item);
+                if (!result)
+                    return BadRequest("Cập nhật không thành công");
+                return NoContent();
             }
-            return NoContent();
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
-            var result = await _userService.DeleteAsync(id);
-            if (!result)
+            try
             {
-                return BadRequest("Xóa không thành công");
+                var result = await _staffService.DeleteAsync(id);
+                if (!result)
+                    return BadRequest("Xóa không thành công");
+                return NoContent();
             }
-            return NoContent();
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}/Approve")]
         public async Task<IActionResult> Approve(Guid id)
         {
-            var result = await _userService.ApproveAsync(id);
-            if (!result)
+            try
             {
-                return BadRequest("Duyệt không thành công");
+                var result = await _staffService.ApproveAsync(id);
+                if (!result)
+                    return BadRequest("Duyệt không thành công");
+                return NoContent();
             }
-            return NoContent();
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}/Reject")]
         public async Task<IActionResult> RejectAsync(Guid id)
         {
-            var result = await _userService.RejectAsync(id);
-            if (!result)
+            try
             {
-                return BadRequest("Hủy duyệt không thành công");
+                var result = await _staffService.RejectAsync(id);
+                if (!result)
+                    return BadRequest("Hủy duyệt không thành công");
+                return NoContent();
             }
-            return NoContent();
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

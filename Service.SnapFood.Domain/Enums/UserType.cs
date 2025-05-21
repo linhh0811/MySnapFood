@@ -9,6 +9,6 @@ namespace Service.SnapFood.Domain.Enums
     public enum UserType
     {
         User,
-        Store,
+        Staff,
     }
 }
