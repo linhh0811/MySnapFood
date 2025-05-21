@@ -1,4 +1,4 @@
-﻿namespace Service.SnapFood.Client.Dto
+﻿namespace Service.SnapFood.Client.Dto.Auth
 {
     public class AuthModelDto
     {
