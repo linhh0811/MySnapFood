@@ -1,4 +1,5 @@
 ﻿using Service.SnapFood.Share.Model.SQL;
+using System.ComponentModel.DataAnnotations;
 
 namespace Service.SnapFood.Manage.Dto.Combo
 {
@@ -7,9 +8,11 @@ namespace Service.SnapFood.Manage.Dto.Combo
         public int Index { get; set; }
         public Guid Id { get; set; }
 
-        public Guid CategoryId { get; set; }
+        public string? CategoryId { get; set; }
 
+        [Required(ErrorMessage ="Tên combo không được để trống")]
         public string ComboName { get; set; } = string.Empty;
+        [Required(ErrorMessage ="Ảnh không được để trống")]
         public string ImageUrl { get; set; } = string.Empty;
         public decimal BasePrice { get; set; }
         public string? Description { get; set; }
@@ -21,6 +24,6 @@ namespace Service.SnapFood.Manage.Dto.Combo
         public Guid CreatedBy { get; set; }
 
         public Guid LastModifiedBy { get; set; }
-        public List<ComboProductDto> Products { get; set; } = new();
+        public List<ComboProductDto> ComboItems { get; set; } = new();
     }
 }

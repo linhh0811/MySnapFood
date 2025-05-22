@@ -26,6 +26,6 @@ namespace Service.SnapFood.Application.Dtos
         public Guid CreatedBy { get; set; }
 
         public Guid LastModifiedBy { get; set; }
-        public List<ComboProductDto> Products { get; set; } = new();
+        public List<ComboProductDto> ComboItems { get; set; } = new();
     }
 }

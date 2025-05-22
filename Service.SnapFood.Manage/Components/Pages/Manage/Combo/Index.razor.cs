@@ -65,6 +65,34 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
 
         }
 
+        private async Task OpenModalAdd()
+        {
+            try
+            {
+                var parameters = new EditOrUpdateParameters
+                {
+                    IsEditMode = false,
+                    OnRefresh = EventCallback.Factory.Create(this, RefreshDataAsync),
+                };
+                var dialog = await DialogService.ShowDialogAsync<Edit>(parameters, new DialogParameters
+                {
+                    PreventDismissOnOverlayClick = true,
+                    Title = null,
+                    ShowDismiss =false,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "1350px",
+                });
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi mở modal thêm combo: {ex.Message}");
+            }
+        }
+        private async Task RefreshDataAsync()
+        {
+            await ComboGrid.RefreshDataAsync();
+        }
         private async Task RefresData(int value)
         {
             try
