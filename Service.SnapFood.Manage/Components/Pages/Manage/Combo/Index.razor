@@ -6,11 +6,11 @@
 
 
 <FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
-	<h2>Danh sách sản phẩm</h2>
+	<h2>Danh sách Combo</h2>
 
 	<FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
 		<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
-			<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" >Thêm mới</FluentButton>
+			<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd">Thêm mới</FluentButton>
 
 		</FluentStack>
 		<FluentSearch  Placeholder="Nhập vào từ khóa" />
@@ -21,7 +21,7 @@
 						ItemsProvider="@LoadCombo"
 						Pagination="@pagination"
 						ResizableColumns="false"
-						GridTemplateColumns="0.5fr 1.5fr 1.0fr 2.0fr 1.5fr 1.5fr 1.0fr  1.0fr 1.0fr"
+						GridTemplateColumns="0.5fr 1.5fr 1.0fr 1.5fr 1.0fr 1.0fr 1.0fr  "
 						RowSize="DataGridRowSize.Large"
 						ShowHover="true">
 
@@ -38,6 +38,14 @@
 			</TemplateColumn>
 			<TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;">
 				<img src="@context.ImageUrl" alt="Ảnh sản phẩm" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
+			</TemplateColumn>
+			<TemplateColumn Title="Sản phẩm" Style="display: flex; align-items: center;">
+                @foreach (var item in context.ComboItems)
+                {
+                    <span style="cursor: pointer; color: dodgerblue; ">
+                        @item.ProductName
+                    </span>         
+                })
 			</TemplateColumn>
 		
 			

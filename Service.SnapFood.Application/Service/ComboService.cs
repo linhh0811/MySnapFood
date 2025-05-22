@@ -20,6 +20,7 @@ namespace Service.SnapFood.Application.Service
         {
             _unitOfWork = unitOfWork;
         }
+        #region Duyệt, hủy duyệt
         public async Task<bool> ApproveAsync(Guid id)
         {
             var combo = _unitOfWork.ComboRepo.GetById(id);
@@ -44,8 +45,9 @@ namespace Service.SnapFood.Application.Service
             }
             return false;
         }
-
-         public async Task<List<Combo>> GetAllAsync()
+        #endregion
+        #region Get dữ liệu
+        public async Task<List<Combo>> GetAllAsync()
         {
             var combo = await _unitOfWork.ComboRepo.GetAllAsync();
             return combo.ToList();
@@ -81,6 +83,8 @@ namespace Service.SnapFood.Application.Service
                 ModerationStatus = m.ModerationStatus,
                 CreatedBy = m.CreatedBy,
                 LastModifiedBy = m.LastModifiedBy,
+                ComboItems = GetComboItems(m.Id)
+
             });
 
 
@@ -88,8 +92,22 @@ namespace Service.SnapFood.Application.Service
             dataTableJson.querytext = dataQuery.ToString();
             return dataTableJson;
         }
+        private List<ComboProductDto> GetComboItems(Guid id)
+        {
+            var productsDto = _unitOfWork.ProductComboRepo
+                .FindWhere(x => x.ComboId == id)
+                .Select(x => new ComboProductDto
+                {
+                    ProductId = x.ProductId,
+                    Quantity = x.Quantity,
+                    ProductName =x.Quantity + _unitOfWork.ProductRepo.GetById(id).ProductName,
+                })
+                .ToList();
 
-
+            return productsDto;
+        }
+        #endregion
+        #region Thêm, sửa, xóa
         public async Task<Guid> CreateAsync(ComboDto item)
         {
             try
@@ -104,10 +122,10 @@ namespace Service.SnapFood.Application.Service
                     Description = item.Description,
                     CreteDate = item.CreteDate
                 };
-                if (item.Products != null)
+                if (item.ComboItems != null)
                 {
                     
-                foreach (var comboProductDto in item.Products)
+                foreach (var comboProductDto in item.ComboItems)
                 {
                     combo.ProductComboes.Add(new ProductCombo
                     {
@@ -140,7 +158,7 @@ namespace Service.SnapFood.Application.Service
             var combo = await _unitOfWork.ComboRepo.GetByIdAsync(id);
             if (combo is null)
             {
-                throw new Exception("Không tìm thấy sản phẩm");
+                throw new Exception("Không tìm thấy combo");
             }
             _unitOfWork.ComboRepo.Delete(combo);
             await _unitOfWork.CompleteAsync();
@@ -155,7 +173,7 @@ namespace Service.SnapFood.Application.Service
                 var combo = await _unitOfWork.ComboRepo.GetByIdAsync(id);
                 if (combo is null)
                 {
-                    throw new Exception("Không tìm thấy sản phẩm");
+                    throw new Exception("Không tìm thấy combo");
                 }
               
                 combo.CategoryId = item.CategoryId;
@@ -177,5 +195,6 @@ namespace Service.SnapFood.Application.Service
             }
 
         }
+        #endregion
     }
 }
