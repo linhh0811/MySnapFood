@@ -75,7 +75,6 @@
            
         </FluentStack>
 
-        <!-- Cột bên phải 60% (tạm để trống) -->
         <FluentStack Style="width:65%;">
 			<FluentCard Style="height: calc(100vh - 200px); overflow-y: auto;">
                 <h4>Quản lý phân loại</h4>
@@ -121,26 +120,26 @@
 							<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
 								@if (context.ModerationStatus != 0)
 								{
-									<FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(()=> OpenModalUpdateCategory(context.Id))">
+									<FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(()=> OpenModalUpdateCategory(context.Id??string.Empty))">
 										<FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
 									</FluentButton>
 								}
 
 								@if (context.ModerationStatus == 0)
 								{
-									<FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectCategoryAsync(context.Id))">
+									<FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectCategoryAsync(context.Id??string.Empty))">
 										<FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
 									</FluentButton>
 								}
 								else
 								{
-									<FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveCategoryAsync(context.Id))">
+									<FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveCategoryAsync(context.Id??string.Empty))">
 										<FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())"  />
 									</FluentButton>
 								}
 								@if (context.ModerationStatus != 0)
 								{
-									<FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteCategoryAsync(context.Id))">
+									<FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteCategoryAsync(context.Id??string.Empty))">
 										<FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
 									</FluentButton>
 

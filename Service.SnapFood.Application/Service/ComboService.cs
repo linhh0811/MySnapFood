@@ -54,7 +54,7 @@ namespace Service.SnapFood.Application.Service
             return combo.ToList();
         }
 
-        public async Task<ComboDto> GetByIdAsync(Guid id)
+        public async Task<ComboDto?> GetByIdAsync(Guid id)
         {
             var combo = await _unitOfWork.ComboRepo.GetByIdAsync(id);
 

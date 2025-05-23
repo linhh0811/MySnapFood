@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Service.SnapFood.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class updatedatabase : Migration
+    public partial class Updatedatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
