@@ -50,6 +50,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 0,
                 ParentId = null,
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=1
             },
             new Sizes
             {
@@ -58,6 +59,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 0,
                 ParentId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=1
             }, new Sizes
             {
                 Id = Guid.NewGuid(),
@@ -65,6 +67,8 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 4000,
                 ParentId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=2
+
             }, new Sizes
             {
                 Id = Guid.NewGuid(),
@@ -72,6 +76,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 7000,
                 ParentId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=3
             },
             new Sizes
             {
@@ -80,6 +85,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 0,
                 ParentId = null,
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=2
             },
             new Sizes
             {
@@ -88,6 +94,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 0,
                 ParentId = Guid.Parse("0d41a8fd-f372-4c77-b5a3-63368e3994bb"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=1
             }, new Sizes
             {
                 Id = Guid.NewGuid(),
@@ -95,6 +102,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 7000,
                 ParentId = Guid.Parse("0d41a8fd-f372-4c77-b5a3-63368e3994bb"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=2
             }, new Sizes
             {
                 Id = Guid.NewGuid(),
@@ -102,6 +110,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 15000,
                 ParentId = Guid.Parse("0d41a8fd-f372-4c77-b5a3-63368e3994bb"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=3
             },
             new Sizes
             {
@@ -110,6 +119,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 0,
                 ParentId = null,
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=3
             },
             new Sizes
             {
@@ -118,6 +128,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 0,
                 ParentId = Guid.Parse("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=1
             },
             new Sizes
             {
@@ -126,6 +137,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 10000,
                 ParentId = Guid.Parse("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=2
             },
             new Sizes
             {
@@ -134,6 +146,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 25000,
                 ParentId = Guid.Parse("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=3
             },
             new Sizes
             {
@@ -142,6 +155,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 0,
                 ParentId = null,
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=4
             },
             new Sizes
             {
@@ -150,6 +164,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 0,
                 ParentId = Guid.Parse("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=1
             },
             new Sizes
             {
@@ -158,6 +173,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 12000,
                 ParentId = Guid.Parse("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=2
             },
             new Sizes
             {
@@ -166,6 +182,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 AdditionalPrice = 25000,
                 ParentId = Guid.Parse("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"),
                 ModerationStatus = ModerationStatus.Approved,
+                DisplayOrder=3
             }
             );
             builder.Entity<Categories>().HasData(new Categories
