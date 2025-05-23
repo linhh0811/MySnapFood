@@ -13,7 +13,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20250517124827_update-database")]
-    partial class updatedatabase
+    partial class Updatedatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

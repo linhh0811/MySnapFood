@@ -3,6 +3,7 @@ using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
+using Service.SnapFood.Share.Model.SQL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,11 +23,21 @@ namespace Service.SnapFood.Application.Service
         public async Task AddComboToCartAsync(Guid userId, Guid comboId, int quantity)
         {
             var cart = await GetCartByIdUserAsync(userId);
-
+            if (cart is null)
+            {
+                throw new Exception("Không lấy được giỏ hàng");
+            }
             var combo = await _unitOfWork.ComboRepo.GetByIdAsync(comboId);
             if (combo == null)
-                throw new Exception("Combo not found");
+            {
+                throw new Exception("Combo không còn tồn tại trên hệ thốngop");
+            }
+                
 
+            if (combo.ModerationStatus != ModerationStatus.Approved)
+            {
+                throw new Exception("Combo chưa được duyệt");
+            }
             var existingItem = cart.CartItems
                 .FirstOrDefault(ci => ci.ItemType == ItemType.Combo && ci.Combo != null && ci.Combo.Id == comboId);
             if (existingItem != null)
@@ -50,9 +61,17 @@ namespace Service.SnapFood.Application.Service
         public async Task AddProductToCartAsync(Guid userId, Guid productId, int quantity)
         {
             var cart = await GetCartByIdUserAsync(userId);
-
-            var product = await _unitOfWork.ProductRepo.GetByIdAsync(productId)
-                          ?? throw new KeyNotFoundException("Product not found");
+            if (cart is null)
+            {
+                throw new Exception("Không lấy được giỏ hàng");
+            }
+            var product = await _unitOfWork.ProductRepo.GetByIdAsync(productId);
+            if (product == null)
+                throw new Exception("Sản phẩm không còn tồn tại trên hệ thống");
+            if (product.ModerationStatus!= ModerationStatus.Approved)
+            {
+                throw new Exception("Sản phẩm chưa được duyệt");
+            }
 
             var existingItem = cart.CartItems
                 .FirstOrDefault(ci => ci.ItemType == ItemType.Product && ci.ProductId == productId);
@@ -152,7 +171,7 @@ namespace Service.SnapFood.Application.Service
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task<Cart?> GetCartByIdUserAsync(Guid userId)
+        public async Task<Cart> GetCartByIdUserAsync(Guid userId)
         {
             var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsyncByUserId(userId);
 

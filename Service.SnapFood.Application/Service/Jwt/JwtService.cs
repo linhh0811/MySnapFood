@@ -15,8 +15,8 @@ namespace Service.SnapFood.Application.Service.Jwt
         public JwtService(IConfiguration configuration)
         {
             var jwtSettings = configuration.GetSection("JwtSettings");
-            _secretKey = jwtSettings["SecretKey"];
-            _expiresInMinutes = int.Parse(jwtSettings["ExpiresInMinutes"]);
+            _secretKey = jwtSettings["SecretKey"]??string.Empty;
+            _expiresInMinutes = int.Parse(jwtSettings["ExpiresInMinutes"] ?? string.Empty);
         }
 
         // Tạo JWT Token
