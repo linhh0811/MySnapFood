@@ -77,6 +77,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
                 ToastService.ShowError($"Lỗi khi tải danh sách: {ex.Message}");
             }
         }
+        #region duyệt, hủy duyệt, xóa
         public async Task RejectAsync(Guid id)
         {
             requestRestAPI.Endpoint = $"api/Product/{id}/Reject";
@@ -137,6 +138,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
             }
 
         }
+        #endregion
         private async Task OpenModalAdd()
         {
             try
