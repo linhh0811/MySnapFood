@@ -134,7 +134,7 @@
         {
             CategoryList = result.Data as List<CategoryDto> ?? new List<CategoryDto>();
             CategoryList = CategoryList.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
-            ProductModel.CategoryId = CategoryList.First().Id;
+            ProductModel.CategoryId = CategoryList.First().Id??string.Empty;
         }
     }
     private async Task GetSize()
