@@ -1,4 +1,5 @@
-﻿using Service.SnapFood.Application.Dtos;
+﻿using Microsoft.EntityFrameworkCore;
+using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
@@ -53,63 +54,104 @@ namespace Service.SnapFood.Application.Service
             return combo.ToList();
         }
 
-        public async Task<Combo> GetByIdAsync(Guid id)
+        public async Task<ComboDto> GetByIdAsync(Guid id)
         {
             var combo = await _unitOfWork.ComboRepo.GetByIdAsync(id);
-            return combo;
+
+            if (combo is not null)
+            {
+                // Get combo items
+                var comboItems = _unitOfWork.ProductComboRepo
+                    .FindWhere(x => x.ComboId == id)
+                    .Select(x => new ComboProductDto
+                    {
+                        ProductId = x.ProductId,
+                        Quantity = x.Quantity,
+                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId).ProductName
+                    })
+                    .ToList();
+
+                // Get category name
+                var category = _unitOfWork.CategoriesRepo.GetById(combo.CategoryId);
+
+                var comboDto = new ComboDto
+                {
+                    Id = combo.Id,
+                    CategoryId = combo.CategoryId,
+                    CategoryName = category.CategoryName,
+                    ComboName = combo.ComboName,
+                    ImageUrl = combo.ImageUrl,
+                    BasePrice = combo.BasePrice,
+                    Description = combo.Description,
+                    Quantity = combo.Quantity,
+                    Created = combo.Created,
+                    LastModified = combo.LastModified,
+                    ModerationStatus = combo.ModerationStatus,
+                    CreatedBy = combo.CreatedBy,
+                    LastModifiedBy = combo.LastModifiedBy,
+                    ComboItems = comboItems
+                };
+                return comboDto;
+            }
+            return null;
         }
 
-         public DataTableJson GetPaged(BaseQuery query)
+        public DataTableJson GetPaged(BaseQuery query)
         {
             int totalRecords = 0;
             var dataQuery = _unitOfWork.ComboRepo.FilterData(
                 q => q, // Bỏ hoàn toàn điều kiện Where
                 query.gridRequest,
                 ref totalRecords
-            );
+            ).Include(x=>x.Category);
+
+            // Lấy danh sách ID combo để tối ưu truy vấn
+            var comboIds = dataQuery.Select(m => m.Id).ToList();
+
+            // Lấy tất cả combo items một lần duy nhất
+            var allComboItems = _unitOfWork.ProductComboRepo
+                .FindWhere(x => comboIds.Contains(x.ComboId))
+                .GroupBy(x => x.ComboId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => new ComboProductDto
+                    {
+                        ProductId = x.ProductId,
+                        Quantity = x.Quantity,
+                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId).ProductName
+                    }).ToList()
+                );
+
             var data = dataQuery.AsEnumerable()
-            .Select((m, i) => new ComboDto
-            {
-                Id = m.Id,
-                Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
-                CategoryId = m.CategoryId,
-                ComboName = m.ComboName,
-                ImageUrl = m.ImageUrl,
-                BasePrice = m.BasePrice,
-                Description = m.Description,
-                CreteDate = m.CreteDate,
-                Created = m.Created,
-                LastModified = m.LastModified,
-                ModerationStatus = m.ModerationStatus,
-                CreatedBy = m.CreatedBy,
-                LastModifiedBy = m.LastModifiedBy,
-                ComboItems = GetComboItems(m.Id)
-
-            });
-
+                .Select((m, i) => new ComboDto
+                {
+                    Id = m.Id,
+                    Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
+                    CategoryId = m.CategoryId,
+                    CategoryName = m.Category.CategoryName,
+                    ComboName = m.ComboName,
+                    ImageUrl = m.ImageUrl,
+                    BasePrice = m.BasePrice,
+                    Description = m.Description,
+                    Quantity = m.Quantity,
+                    Created = m.Created,
+                    LastModified = m.LastModified,
+                    ModerationStatus = m.ModerationStatus,
+                    CreatedBy = m.CreatedBy,
+                    LastModifiedBy = m.LastModifiedBy,
+                    ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>()
+                });
 
             DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
             dataTableJson.querytext = dataQuery.ToString();
             return dataTableJson;
         }
-        private List<ComboProductDto> GetComboItems(Guid id)
-        {
-            var productsDto = _unitOfWork.ProductComboRepo
-                .FindWhere(x => x.ComboId == id)
-                .Select(x => new ComboProductDto
-                {
-                    ProductId = x.ProductId,
-                    Quantity = x.Quantity,
-                    ProductName =x.Quantity + _unitOfWork.ProductRepo.GetById(id).ProductName,
-                })
-                .ToList();
-
-            return productsDto;
-        }
+      
         #endregion
         #region Thêm, sửa, xóa
         public async Task<Guid> CreateAsync(ComboDto item)
         {
+            _unitOfWork.BeginTransaction();
             try
             {
                 
@@ -120,34 +162,32 @@ namespace Service.SnapFood.Application.Service
                     ImageUrl = item.ImageUrl,
                     BasePrice = item.BasePrice,
                     Description = item.Description,
-                    CreteDate = item.CreteDate
                 };
-                if (item.ComboItems != null)
-                {
-                    
-                foreach (var comboProductDto in item.ComboItems)
-                {
-                    combo.ProductComboes.Add(new ProductCombo
-                    {
-                        ProductId = comboProductDto.ProductId,
-                        Quantity = comboProductDto.Quantity,
-                        Combo = combo 
-                    });
-                }
-                }
-
-
-               
-
                 _unitOfWork.ComboRepo.Add(combo);
-                await _unitOfWork.CommitAsync();
+                await _unitOfWork.CompleteAsync();
+                if (item.ComboItems != null && item.ComboItems.Any())
+                {
+                    foreach (var comboItem in item.ComboItems)
+                    {
+                        var productCombo = new ProductCombo
+                        {
+                            ComboId = combo.Id,
+                            ProductId = comboItem.ProductId,
+                            Quantity = comboItem.Quantity,
+                        };
 
+                        _unitOfWork.ProductComboRepo.Add(productCombo);
+                    }
+
+                    await _unitOfWork.CompleteAsync();
+                }
+                await _unitOfWork.CommitAsync();
                 return combo.Id;
             }
             catch (Exception ex)
             {
-                var innerMsg = ex.InnerException?.Message ?? "";
-                throw new Exception("Lỗi khi tạo combo: " + ex.Message + " | Inner: " + innerMsg);
+                await _unitOfWork.CommitAsync();
+                throw new Exception("Lỗi khi tạo combo: " + ex.Message);
             }
         }
 
@@ -181,7 +221,6 @@ namespace Service.SnapFood.Application.Service
                 combo.ImageUrl = item.ImageUrl;
                 combo.BasePrice = item.BasePrice;
                 combo.Description = item.Description;
-                combo.CreteDate = item.CreteDate;
 
                 _unitOfWork.ComboRepo.Update(combo);
                 await _unitOfWork.CompleteAsync();

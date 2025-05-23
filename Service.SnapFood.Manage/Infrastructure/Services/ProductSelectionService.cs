@@ -86,6 +86,19 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
                 allProduct.Quantity = newQuantity > 0 ? newQuantity : 1;
             }
         }
+        // Method mới để khởi tạo với danh sách đã chọn sẵn (cho trường hợp edit)
+        public void InitializeWithSelected(List<ProductDto> selectedProducts)
+        {
+            _selectedProducts = selectedProducts?.Select(p => new ProductDto
+            {
+                Id = p.Id,
+                ProductName = p.ProductName,
+                ImageUrl = p.ImageUrl,
+                BasePrice = p.BasePrice,
+                Quantity = p.Quantity > 0 ? p.Quantity : 1,
+                IsSelected = true
+            }).ToList() ?? new List<ProductDto>();
+        }
 
         public IReadOnlyList<ProductDto> SelectedProducts => _selectedProducts;
     }

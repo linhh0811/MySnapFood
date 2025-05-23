@@ -21,7 +21,8 @@
 						ItemsProvider="@LoadCombo"
 						Pagination="@pagination"
 						ResizableColumns="false"
-						GridTemplateColumns="0.5fr 1.5fr 1.0fr 1.5fr 1.0fr 1.0fr 1.0fr  "
+						MultiLine="true"
+						GridTemplateColumns="0.5fr 1.5fr 1.0fr 1.5fr 1.0fr 1.0fr 1.0fr 1.0fr 1.0fr  "
 						RowSize="DataGridRowSize.Large"
 						ShowHover="true">
 
@@ -39,16 +40,20 @@
 			<TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;">
 				<img src="@context.ImageUrl" alt="Ảnh sản phẩm" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
 			</TemplateColumn>
-			<TemplateColumn Title="Sản phẩm" Style="display: flex; align-items: center;">
-                @foreach (var item in context.ComboItems)
-                {
-                    <span style="cursor: pointer; color: dodgerblue; ">
-                        @item.ProductName
-                    </span>         
-                })
+			<TemplateColumn Title="Sản phẩm">
+				<div style="display: flex; flex-direction: column; gap: 4px;">
+					@foreach (var item in context.ComboItems)
+					{
+						<div style="cursor: pointer;">@item.ProductName</div>
+					}
+				</div>
 			</TemplateColumn>
 		
-			
+			<TemplateColumn Title="Phân loại" Style="display: flex;align-items: center;">
+				<span style="cursor: pointer; ">
+					@context.CategoryName
+				</span>
+			</TemplateColumn>
 			<TemplateColumn Title="Giá bán" Style="display: flex;align-items: center;">
 				<span style="cursor: pointer; ">
 					@context.BasePrice.ToString("N0") đ
@@ -56,7 +61,7 @@
 			</TemplateColumn>
 			<TemplateColumn Title="Đã bán" Style="display: flex;align-items: center;">
 				<span style="cursor: pointer; ">
-					
+					@context.Quantity
 				</span>
 			</TemplateColumn>
 
@@ -69,26 +74,26 @@
 				<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
 					@if (context.ModerationStatus != 0)
 					{
-						<FluentButton Title="Sửa" Appearance="Appearance.Outline">
+						<FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(() => OpenModalUpdate(context.Id))">
 							<FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
 						</FluentButton>
 					}
 
 					@if (context.ModerationStatus == 0)
 					{
-						<FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" >
-							<FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
+						<FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id))">
+							<FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())"  />
 						</FluentButton>
 					}
 					else
 					{
-						<FluentButton Title="Duyệt" Appearance="Appearance.Outline" >
-							<FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
+						<FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id))">
+							<FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())"  />
 						</FluentButton>
 					}
 					@if (context.ModerationStatus != 0)
 					{
-						<FluentButton Title="Xóa" Appearance="Appearance.Outline" >
+						<FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteAsync(context.Id))">
 							<FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
 						</FluentButton>
 

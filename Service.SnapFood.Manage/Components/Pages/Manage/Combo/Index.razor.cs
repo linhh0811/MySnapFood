@@ -7,6 +7,7 @@ using Service.SnapFood.Share.Query.Grid;
 using Service.SnapFood.Share.Query;
 using System.Text.Json;
 using Service.SnapFood.Manage.Dto;
+using Service.SnapFood.Manage.Components.Share;
 
 namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
 {
@@ -64,7 +65,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             }
 
         }
-
+        #region oppen dialog
         private async Task OpenModalAdd()
         {
             try
@@ -81,7 +82,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                     ShowDismiss =false,
                     PreventScroll = true,
                     Modal = true,
-                    Width = "1350px",
+                    Width = "1400px",
                 });
             }
             catch (Exception ex)
@@ -89,6 +90,34 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                 ToastService.ShowError($"Lỗi khi mở modal thêm combo: {ex.Message}");
             }
         }
+        private async Task OpenModalUpdate(Guid id)
+        {
+            try
+            {
+                var parameters = new EditOrUpdateParameters
+                {
+                    Id=id,
+                    IsEditMode = true,
+                    OnRefresh = EventCallback.Factory.Create(this, RefreshDataAsync),
+                };
+                var dialog = await DialogService.ShowDialogAsync<Edit>(parameters, new DialogParameters
+                {
+                    PreventDismissOnOverlayClick = true,
+                    Title = null,
+                    ShowDismiss = false,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "1400px",
+                });
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi mở modal thêm combo: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region RefresData
         private async Task RefreshDataAsync()
         {
             await ComboGrid.RefreshDataAsync();
@@ -105,5 +134,69 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                 ToastService.ShowError($"Lỗi khi tải danh sách: {ex.Message}");
             }
         }
+        #endregion
+
+        #region duyệt, hủy duyệt, xóa
+        public async Task RejectAsync(Guid id)
+        {
+            requestRestAPI.Endpoint = $"api/Combo/{id}/Reject";
+            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Huỷ duyệt combo thành công");
+                await ComboGrid.RefreshDataAsync();
+            }
+            else
+            {
+                ToastService.ShowError("Huỷ duyệt combo thất bại!  " + result.Message);
+            }
+
+        }
+        public async Task ApproveAsync(Guid id)
+        {
+            requestRestAPI.Endpoint = $"api/Combo/{id}/Approve";
+            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Duyệt combo thành công");
+                await ComboGrid.RefreshDataAsync();
+
+            }
+            else
+            {
+                ToastService.ShowError("Duyệt combo thất bại!  " + result.Message);
+            }
+
+        }
+        private async Task DeleteAsync(Guid id)
+        {
+            try
+            {
+                var dialog = await DialogService.ShowDialogAsync<ModalConfirm>(new DialogParameters());
+                var resultDialog = await dialog.Result;
+                if (resultDialog.Cancelled == false && resultDialog.Data is bool success && success)
+                {
+                    requestRestAPI.Endpoint = $"api/Combo/{id}";
+                    ResultAPI result = await CallApi.Delete(requestRestAPI);
+                    if (result.Status == StatusCode.OK)
+                    {
+                        ToastService.ShowSuccess("Xóa combo thành công");
+                        await ComboGrid.RefreshDataAsync();
+
+                    }
+                    else
+                    {
+                        ToastService.ShowError("Xóa combo thất bại: " + result.Message);
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError("Xóa thất bại: " + ex.Message);
+            }
+
+        }
+        #endregion
     }
 }

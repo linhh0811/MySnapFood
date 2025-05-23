@@ -7,8 +7,11 @@ namespace Service.SnapFood.Manage.Dto.Combo
     {
         public int Index { get; set; }
         public Guid Id { get; set; }
+        [Required(ErrorMessage = "Phân loại không được để trống")]
 
-        public string? CategoryId { get; set; }
+        public string CategoryId { get; set; } = string.Empty;
+        public string CategoryName { get; set; } = string.Empty;
+
 
         [Required(ErrorMessage ="Tên combo không được để trống")]
         public string ComboName { get; set; } = string.Empty;
@@ -16,6 +19,8 @@ namespace Service.SnapFood.Manage.Dto.Combo
         public string ImageUrl { get; set; } = string.Empty;
         public decimal BasePrice { get; set; }
         public string? Description { get; set; }
+        public int Quantity { get; set; }
+
         public DateTime CreteDate { get; set; }
 
         public ModerationStatus ModerationStatus { get; set; }

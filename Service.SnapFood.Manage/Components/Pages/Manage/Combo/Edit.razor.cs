@@ -53,10 +53,15 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
         protected override async Task OnInitializedAsync()
         {
             await GetCategory();
+            if (Content.IsEditMode)
+            {
+                await GetCombo();
+            }
             _productSelectionManager.Initialize(new List<ProductDto>());
+           
         }
-
-
+       
+        #region get dữ liệu
         private async Task GetCategory()
         {
 
@@ -66,12 +71,57 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             {
                 CategoryList = result.Data as List<CategoryDto> ?? new List<CategoryDto>();
                 CategoryList = CategoryList.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
-                ComboModel.CategoryId = CategoryList.First().Id;
+                ComboModel.CategoryId = CategoryList.First().Id??string.Empty;
             }
         }
+        private async Task GetCombo()
+        {
 
+            requestRestAPI.Endpoint = $"api/Combo/{Content.Id}";
+            ResultAPI result = await CallApi.Get<ComboDto>(requestRestAPI);
+            if (result.Status == StatusCode.OK)
+            {
+                ComboModel = result.Data as ComboDto ?? new ComboDto();
+                imagePreviewUrl = ComboModel.ImageUrl;
+                if (ComboModel.ComboItems?.Any() == true)
+                {
+                    await LoadComboItems();
+                }
+            }
+            _productSelectionManager.Initialize(new List<ProductDto>());
 
+        }
+        private async Task LoadComboItems()
+        {
+            try
+            {
+                // Load thông tin chi tiết các sản phẩm trong combo
+                var productIds = ComboModel.ComboItems.Select(ci => ci.ProductId).ToList();
 
+                foreach (var comboItem in ComboModel.ComboItems)
+                {
+                    requestRestAPI.Endpoint = $"api/Product/{comboItem.ProductId}";
+                    ResultAPI result = await CallApi.Get<ProductDto>(requestRestAPI);
+
+                    if (result.Status == StatusCode.OK && result.Data is ProductDto product)
+                    {
+                        product.Quantity = comboItem.Quantity;
+                        product.IsSelected = true;
+                        productDtos.Add(product);
+                    }
+                }
+
+                // Cập nhật ProductSelectionService với dữ liệu đã load
+                _productSelectionManager.InitializeWithSelected(productDtos);
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi tải dữ liệu combo: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region create
         private async Task<bool> CreateCombo(ComboDto createRequest)
         {
             ErrorMessage = null;
@@ -80,7 +130,13 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                 isSaving = true;
                 var fileName = await ImageUploadService.SaveImageAsync(ImageFile);
                 createRequest.ImageUrl = ImageUploadService.GetImageUrl(fileName);
-                requestRestAPI.Endpoint = "api/Product";
+                createRequest.ComboItems = productDtos.Select(p => new ComboProductDto
+                {
+                    ProductId = p.Id,
+                    Quantity = p.Quantity
+                }).ToList();
+                createRequest.BasePrice = TotalPrice;   
+                requestRestAPI.Endpoint = "api/Combo";
                 ResultAPI result = await CallApi.Post<ComboDto>(requestRestAPI, createRequest);
                 if (result.Status == StatusCode.OK)
                 {
@@ -101,7 +157,9 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                 return false;
             }
         }
+        #endregion
 
+        #region update
         private async Task<bool> UpdateCombo(Guid id, ComboDto updateRequest)
         {
             ErrorMessage = null;
@@ -114,28 +172,39 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                     updateRequest.ImageUrl = ImageUploadService.GetImageUrl(fileName);
                 }
 
-                requestRestAPI.Endpoint = $"api/Product/{id}";
+                // Cập nhật combo items
+                updateRequest.ComboItems = productDtos.Select(p => new ComboProductDto
+                {
+                    ProductId = p.Id,
+                    Quantity = p.Quantity
+                }).ToList();
+
+                updateRequest.BasePrice = TotalPrice;
+
+                // Fixed: Sử dụng đúng endpoint cho Combo thay vì Product
+                requestRestAPI.Endpoint = $"api/Combo/{id}";
                 ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
+
                 if (result.Status == StatusCode.OK)
                 {
-                    ToastService.ShowSuccess("Sửa sản phẩm thành công.");
+                    ToastService.ShowSuccess("Sửa combo thành công.");
                     return true;
                 }
                 else
                 {
                     isSaving = false;
-                    ErrorMessage = "Sửa sản phẩm thất bại: " + result.Message;
+                    ErrorMessage = "Sửa combo thất bại: " + result.Message;
                     return false;
                 }
             }
             catch (Exception ex)
             {
                 isSaving = false;
-                ErrorMessage = "Sửa sản phẩm thất bại: " + ex.Message;
+                ErrorMessage = "Sửa combo thất bại: " + ex.Message;
                 return false;
             }
         }
-
+        #endregion
         private async Task HandleSubmit()
         {
 

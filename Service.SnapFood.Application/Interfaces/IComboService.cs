@@ -14,7 +14,7 @@ namespace Service.SnapFood.Application.Interfaces
     {
         DataTableJson GetPaged(BaseQuery query);
         Task<List<Combo>> GetAllAsync();
-        Task<Combo> GetByIdAsync(Guid id);
+        Task<ComboDto> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(ComboDto item);
         Task<bool> UpdateAsync(Guid id, ComboDto item);
 
