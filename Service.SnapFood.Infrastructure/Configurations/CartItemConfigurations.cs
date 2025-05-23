@@ -25,12 +25,12 @@ namespace Service.SnapFood.Infrastructure.Configurations
             builder.HasOne(x => x.Product)
                 .WithMany(x => x.CartItemes)
                 .HasForeignKey(x => x.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(x => x.Combo)
                 .WithMany(x => x.CartItemes)
                 .HasForeignKey(x => x.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
 

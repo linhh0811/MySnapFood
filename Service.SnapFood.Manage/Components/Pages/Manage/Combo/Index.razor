@@ -41,7 +41,7 @@
 				<img src="@context.ImageUrl" alt="Ảnh sản phẩm" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
 			</TemplateColumn>
 			<TemplateColumn Title="Sản phẩm">
-				<div style="display: flex; flex-direction: column; gap: 4px;">
+				<div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
 					@foreach (var item in context.ComboItems)
 					{
 						<div style="cursor: pointer;">@item.ProductName</div>

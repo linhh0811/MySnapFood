@@ -154,7 +154,26 @@ namespace Service.SnapFood.Application.Service
             _unitOfWork.BeginTransaction();
             try
             {
-                
+                if (item.CategoryId == Guid.Empty)
+                {
+                    throw new Exception("Phân loại trống");
+                }
+                if (string.IsNullOrEmpty(item.ComboName))
+                {
+                    throw new Exception("Tên combo trống");
+                }
+                if (string.IsNullOrEmpty(item.ImageUrl))
+                {
+                    throw new Exception("Ảnh trống");
+                }
+                if (item.Quantity<=0)
+                {
+                    throw new Exception("Giá nhỏ hơn 0");
+                }
+                if (item.ComboItems is null || !item.ComboItems.Any())
+                {
+                    throw new Exception("Sản phẩm trống");
+                }
                 Combo combo = new Combo
                 {
                     CategoryId = item.CategoryId,
@@ -186,7 +205,7 @@ namespace Service.SnapFood.Application.Service
             }
             catch (Exception ex)
             {
-                await _unitOfWork.CommitAsync();
+                await _unitOfWork.RollbackAsync();
                 throw new Exception("Lỗi khi tạo combo: " + ex.Message);
             }
         }
@@ -208,6 +227,7 @@ namespace Service.SnapFood.Application.Service
 
         public async Task<bool> UpdateAsync(Guid id, ComboDto item)
         {
+            _unitOfWork.BeginTransaction();
             try
             {
                 var combo = await _unitOfWork.ComboRepo.GetByIdAsync(id);
@@ -215,7 +235,27 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Không tìm thấy combo");
                 }
-              
+                if (item.CategoryId == Guid.Empty)
+                {
+                    throw new Exception("Phân loại trống");
+                }
+                if (string.IsNullOrEmpty(item.ComboName))
+                {
+                    throw new Exception("Tên combo trống");
+                }
+                if (string.IsNullOrEmpty(item.ImageUrl))
+                {
+                    throw new Exception("Ảnh trống");
+                }
+                if (item.BasePrice <= 0)
+                {
+                    throw new Exception("Giá nhỏ hơn 0");
+                }
+                if (item.ComboItems is null || !item.ComboItems.Any())
+                {
+                    throw new Exception("Sản phẩm trống");
+                }
+
                 combo.CategoryId = item.CategoryId;
                 combo.ComboName = item.ComboName;
                 combo.ImageUrl = item.ImageUrl;
@@ -224,12 +264,39 @@ namespace Service.SnapFood.Application.Service
 
                 _unitOfWork.ComboRepo.Update(combo);
                 await _unitOfWork.CompleteAsync();
+
+                var productComboDelete = _unitOfWork.ProductComboRepo.FindWhere(x => x.ComboId == id);
+                _unitOfWork.ProductComboRepo.DeleteRange(productComboDelete);
+                await _unitOfWork.CompleteAsync();
+
+                if (item.ComboItems != null && item.ComboItems.Any())
+                {
+                    foreach (var comboItem in item.ComboItems)
+                    {
+                        if (comboItem.Quantity<=0)
+                        {
+                            throw new Exception($"Số lượng của sản phẩm: {comboItem.ProductName} nhỏ hơn 0");
+                        }
+                        var productCombo = new ProductCombo
+                        {
+                            ComboId = combo.Id,
+                            ProductId = comboItem.ProductId,
+                            Quantity = comboItem.Quantity,
+                        };
+
+                        _unitOfWork.ProductComboRepo.Add(productCombo);
+                    }
+                    await _unitOfWork.CompleteAsync();
+
+                }
+                await _unitOfWork.CommitAsync();
+
                 return true;
 
             }
             catch (Exception ex)
             {
-
+                await _unitOfWork.RollbackAsync();
                 throw new Exception(ex.Message);
             }
 

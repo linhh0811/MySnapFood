@@ -81,14 +81,23 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             ResultAPI result = await CallApi.Get<ComboDto>(requestRestAPI);
             if (result.Status == StatusCode.OK)
             {
-                ComboModel = result.Data as ComboDto ?? new ComboDto();
+                var ComboModelResult = result.Data as ComboDto ?? new ComboDto();
+               
+                ComboModel.ComboName = ComboModelResult.ComboName;
+                ComboModel.CategoryId = ComboModelResult.CategoryId;
+                ComboModel.Description = ComboModelResult.Description;
+                ComboModel.ComboItems = ComboModelResult.ComboItems;
+                ComboModel.ImageUrl = ComboModelResult.ImageUrl;
                 imagePreviewUrl = ComboModel.ImageUrl;
+
                 if (ComboModel.ComboItems?.Any() == true)
                 {
                     await LoadComboItems();
                 }
+
             }
             _productSelectionManager.Initialize(new List<ProductDto>());
+            await ProductGrid.RefreshDataAsync();
 
         }
         private async Task LoadComboItems()
@@ -181,7 +190,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
 
                 updateRequest.BasePrice = TotalPrice;
 
-                // Fixed: Sử dụng đúng endpoint cho Combo thay vì Product
+                
                 requestRestAPI.Endpoint = $"api/Combo/{id}";
                 ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
 
