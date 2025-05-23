@@ -76,7 +76,7 @@
                             </TemplateColumn>
                             <TemplateColumn Title="Số lượng" Style="width:auto; display: flex;align-items: center;">
                                 <FluentNumberField @bind-Value="@context.Quantity"
-                                                   @onchange="@((e) => HandleQuantityChange(context, Convert.ToInt32(e.Value)))"></FluentNumberField>
+                                                   @onchange="@((e) => HandleQuantityChange(context, Convert.ToInt32(e.Value)))" Min="1"></FluentNumberField>
                             </TemplateColumn>
                             <TemplateColumn Align="Align.Start">
                                 <FluentButton Title="Gỡ bỏ"
@@ -143,7 +143,7 @@
                                 </TemplateColumn>
                                 <TemplateColumn Title="Số lượng" Style="display: flex;align-items: center;">
                                     <FluentNumberField @bind-Value="@context.Quantity"
-                                                       @onchange="@((e) => HandleQuantityChange(context, Convert.ToInt32(e.Value)))"></FluentNumberField>
+                                                       @onchange="@((e) => HandleQuantityChange(context, Convert.ToInt32(e.Value)))" Min="1"></FluentNumberField>
                                 </TemplateColumn>
                                 <TemplateColumn Style="display: flex; align-items: center;">
                                     <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
