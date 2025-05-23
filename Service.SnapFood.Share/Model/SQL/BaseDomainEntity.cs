@@ -15,7 +15,7 @@ namespace Service.SnapFood.Share.Model.SQL
         /// ID cho bản ghi
         /// </summary>
         [Key]
-        public Guid Id { get; protected init; }
+        public Guid Id { get; set; }
         /// <summary>
         /// Thời gian tạo cho bản ghi 
         /// </summary>
@@ -46,7 +46,7 @@ namespace Service.SnapFood.Share.Model.SQL
         /// <summary>
         /// ID cho bản ghi
         /// </summary>
-        public Guid Id { get; protected init; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// Thời gian tạo cho bản ghi 
