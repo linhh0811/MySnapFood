@@ -13,11 +13,15 @@ namespace Service.SnapFood.Application.Dtos
         public Guid Id { get; set; }
 
         public Guid CategoryId { get; set; }
-  
+        public string CategoryName { get; set; } = string.Empty;
+
+
         public string ComboName { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
         public decimal BasePrice { get; set; }
         public string? Description { get; set; }
+        public int Quantity { get; set; }
+
         public DateTime CreteDate { get; set; }
 
         public ModerationStatus ModerationStatus { get; set; }

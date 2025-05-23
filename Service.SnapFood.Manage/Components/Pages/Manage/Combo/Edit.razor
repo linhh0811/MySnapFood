@@ -23,7 +23,7 @@
         }
         <FluentGrid Spacing="2" Style="padding: 4px">
             <FluentGridItem md="5">
-                <FluentCard>
+                <FluentCard Style="padding:13px">
                     <h4>Thông tin combo</h4>
                     <FluentStack Orientation="Orientation.Vertical" Gap="15">
                         <FluentTextField Label="Tên Combo" @bind-Value="ComboModel.ComboName" Style="width:100%;" />
@@ -74,7 +74,7 @@
                                     @context.BasePrice.ToString("N0") đ
                                 </span>
                             </TemplateColumn>
-                            <TemplateColumn Title="Số lượng" Style="display: flex;align-items: center;">
+                            <TemplateColumn Title="Số lượng" Style="width:auto; display: flex;align-items: center;">
                                 <FluentNumberField @bind-Value="@context.Quantity"
                                                    @onchange="@((e) => HandleQuantityChange(context, Convert.ToInt32(e.Value)))"></FluentNumberField>
                             </TemplateColumn>
@@ -102,7 +102,7 @@
             </FluentGridItem>
 
             <FluentGridItem md="7">
-                <FluentCard>
+                <FluentCard Style="padding:13px">
                     <FluentStack Orientation="Orientation.Vertical">
                         <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
                             <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">

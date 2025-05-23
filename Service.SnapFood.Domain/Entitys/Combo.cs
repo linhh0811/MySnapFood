@@ -14,7 +14,7 @@ namespace Service.SnapFood.Domain.Entitys
         public string ImageUrl { get; set; } = string.Empty;
         public decimal BasePrice { get; set; }
         public string? Description { get; set; }
-        public DateTime CreteDate { get; set; }
+        public int Quantity { get; set; }
         public virtual Categories Category { get; set; } = null!;
         public virtual List<ProductCombo> ProductComboes { get; set; } = null!;
         public virtual List<CartItem> CartItemes { get; set; } = null!;
