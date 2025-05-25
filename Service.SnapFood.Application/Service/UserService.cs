@@ -130,31 +130,72 @@ namespace Service.SnapFood.Application.Service
             return user;
         }
 
+        //public async Task<Guid> RegisterAsync(RegisterDto item)
+        //{
+        //    if (item == null)
+        //        throw new ArgumentNullException(nameof(item), "Thông tin đăng ký không được để trống");
+
+        //    // Validate input
+        //    ValidateRegisterInput(item);
+
+        //    var users = await _unitOfWork.UserRepo.GetAllAsync();
+        //    if (users.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
+        //        throw new Exception("Email đã tồn tại");
+
+        //    var user = new User
+        //    {
+        //        FullName = item.FullName,
+        //        Email = item.Email,
+        //        Password = BCrypt.Net.BCrypt.HashPassword(item.Password),
+        //        UserType = UserType.User // Mặc định là User
+        //    };
+        //    user.FillDataForInsert(Guid.NewGuid());
+
+        //    _unitOfWork.UserRepo.Add(user);
+        //    await _unitOfWork.CompleteAsync();
+        //    return user.Id;
+        //}
         public async Task<Guid> RegisterAsync(RegisterDto item)
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item), "Thông tin đăng ký không được để trống");
 
-            // Validate input
+           
             ValidateRegisterInput(item);
 
+       
             var users = await _unitOfWork.UserRepo.GetAllAsync();
-            if (users.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
-                throw new Exception("Email đã tồn tại");
+            //if (users.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
+            //    throw new Exception("Email đã tồn tại");
 
+        
+            var userId = Guid.NewGuid();
             var user = new User
             {
+                Id = userId,
                 FullName = item.FullName,
                 Email = item.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(item.Password),
-                UserType = UserType.User // Mặc định là User
+                UserType = UserType.User 
             };
-            user.FillDataForInsert(Guid.NewGuid());
 
             _unitOfWork.UserRepo.Add(user);
+
+         
+            var cart = new Cart
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+               
+            };
+            _unitOfWork.CartRepo.Add(cart);
+
+            
             await _unitOfWork.CompleteAsync();
-            return user.Id;
+
+            return userId;
         }
+
         #endregion
         #region Duyệt, hủy duyệt
         private void ValidateUserInput(UserDto item)
@@ -171,18 +212,18 @@ namespace Service.SnapFood.Application.Service
 
         private void ValidateRegisterInput(RegisterDto item)
         {
-            if (string.IsNullOrWhiteSpace(item.FullName))
-                throw new ArgumentException("Họ tên không được để trống");
+            //if (string.IsNullOrWhiteSpace(item.FullName))
+            //    throw new ArgumentException("Họ tên không được để trống");
             if (string.IsNullOrWhiteSpace(item.Email))
                 throw new ArgumentException("Email không được để trống");
             if (!IsValidEmail(item.Email))
                 throw new ArgumentException("Email không hợp lệ");
             if (string.IsNullOrWhiteSpace(item.Password))
                 throw new ArgumentException("Mật khẩu không được để trống");
-            if (item.Password.Length < 6)
-                throw new ArgumentException("Mật khẩu phải có ít nhất 6 ký tự");
-            if (!IsStrongPassword(item.Password))
-                throw new ArgumentException("Mật khẩu phải chứa ít nhất một chữ cái in hoa, một chữ cái thường và một số");
+            //if (item.Password.Length < 6)
+            //    throw new ArgumentException("Mật khẩu phải có ít nhất 6 ký tự");
+            //if (!IsStrongPassword(item.Password))
+            //    throw new ArgumentException("Mật khẩu phải chứa ít nhất một chữ cái in hoa, một chữ cái thường và một số");
         }
 
         private bool IsValidEmail(string email)
