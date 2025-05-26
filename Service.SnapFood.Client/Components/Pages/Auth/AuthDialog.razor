@@ -1,5 +1,12 @@
-﻿@using Service.SnapFood.Client.Dto
+﻿
+@using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Auth
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+
+
+
+
 @implements IDialogContentComponent<AuthModelDto>
 
     <body>
@@ -11,57 +18,63 @@
                 <input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab">Đăng Ký</label>
                 <div class="login-form">
                     <div class="sign-in-htm">
-
-                        <form asp-controller="User" asp-action="Login" method="post">
-
-                            <div class="group">
-                                <label class="form-label"></label>
-                                <input class="form-control">
-                            </div>
-
-                            <div class="group">
-                                <label class="form-label">Mật khẩu</label>
-                                <input class="form-control" data-type="password">
-                                <span class="text-danger"></span>
-                            </div>
-
-                            <div class="group">
-                                <button type="submit" class="btn btn-primary">Đăng nhập</button>
-                            </div>
-
-                        </form>
-
-
-
-                    </div>
-                    <div class="sign-up-htm">
-
-                        <form asp-controller="User" asp-action="Register" method="post">
-                            <div class="group">
-                                <label class="form-label">Họ và tên</label>
-                                <input class="form-control">
-                            </div>
+                        <EditForm Model="loginModel" >
+                            
+                            <DataAnnotationsValidator />
 
                             <div class="group">
                                 <label class="form-label">Email</label>
-                                <input class="form-control">
+                                <InputText class="form-control" @bind-Value="loginModel.Email" />
                             </div>
 
                             <div class="group">
                                 <label class="form-label">Mật khẩu</label>
-                                <input class="form-control" data-type="password">
+                                <InputText class="form-control" type="password" @bind-Value="loginModel.Password" />
+                            </div>
+
+                            <div class="group">
+                                @if (!string.IsNullOrWhiteSpace(loginError))
+                                {
+                                    <span class="text-danger">@loginError</span>
+                                }
+                            </div>
+
+                            <div class="group">
+                                <button type="submit" class="btn btn-primary" disabled="@isLoggingIn">Đăng nhập</button>
+                            </div>
+                        </EditForm>
+                    </div>
+
+                    <div class="sign-up-htm">
+                        <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+                            <DataAnnotationsValidator />
+
+                            <div class="group">
+                                <label class="form-label">Email</label>
+                                <InputText class="form-control" @bind-Value="registerModel.Email" />
+                            </div>
+
+                            <div class="group">
+                                <label class="form-label">Mật khẩu</label>
+                                <InputText class="form-control" type="password" @bind-Value="registerModel.Password" />
                             </div>
 
                             <div class="group">
                                 <label class="form-label">Nhập lại mật khẩu</label>
-                                <input class="form-control" data-type="password">
-                                <span class="text-danger"></span>
+                                <InputText class="form-control" type="password" @bind-Value="registerModel.ConfirmPassword" />
                             </div>
 
                             <div class="group">
-                                <button type="submit" class="btn btn-primary">Đăng ký</button>
+                                @if (!string.IsNullOrWhiteSpace(registerError))
+                                {
+                                    <span class="text-danger">@registerError</span>
+                                }
                             </div>
-                        </form>
+
+                            <div class="group">
+                                <button type="submit" class="btn btn-primary" disabled="@isRegistering">Đăng ký</button>
+                            </div>
+                        </EditForm>
                     </div>
                 </div>
             </div>
@@ -275,8 +288,67 @@
     }
 </style>
 
-
 @code {
     [Parameter] public AuthModelDto Content { get; set; } = new();
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private AuthModelDto registerModel = new();
+    private LoginModel loginModel = new();
+
+    private string registerError = "";
+    private string loginError = "";
+
+    private bool isRegistering = false;
+    private bool isLoggingIn = false;
+
+
+    [Inject] private NavigationManager manager { get; set; } = default!;
+
+    private async Task HandleRegister()
+    {
+        registerError = "";
+        isRegistering = true;
+        requestRestAPI.Endpoint = "api/User/Register";
+        ResultAPI result = await CallApi.Post<AuthModelDto>(requestRestAPI, registerModel);
+
+        if (result.Status == StatusCode.OK)
+        {
+            ToastService.ShowSuccess("Thêm sản phẩm thành công.");
+
+        }
+        else
+        {
+            isRegistering = false;
+            registerError = "Thêm sản phẩm thất bại: " + result.Message;
+           
+        }
+
+      
+    }
+
+    // private async Task HandleLogin()
+    // {
+    //     loginError = "";
+    //     isLoggingIn = true;
+
+    //     var user = await UserService.LoginAsync(new LoginDto
+    //         {
+    //             Email = loginModel.Email,
+    //             Password = loginModel.Password
+    //         });
+
+    //     if (user != null)
+    //     {
+    //         Dialog.Hide();
+    //         manager.NavigateTo("/");
+    //     }
+    //     else
+    //     {
+    //         loginError = "Email hoặc mật khẩu không đúng.";
+    //     }
+
+    //     isLoggingIn = false;
+    // }
 }
