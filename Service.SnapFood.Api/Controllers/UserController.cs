@@ -39,7 +39,7 @@ namespace Service.SnapFood.Api.Controllers
             try
             {
                 var result = await _userService.RegisterAsync(item);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = result }, item);
+                return Ok();
             }
             catch (Exception ex)
             {
