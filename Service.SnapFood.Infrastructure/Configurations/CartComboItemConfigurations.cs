@@ -9,28 +9,25 @@ using System.Threading.Tasks;
 
 namespace Service.SnapFood.Infrastructure.Configurations
 {
-    public class CartItemConfigurations : IEntityTypeConfiguration<CartItem>
+    public class CartComboItemConfigurations : IEntityTypeConfiguration<CartComboItem>
     {
-        public void Configure(EntityTypeBuilder<CartItem> builder)
+        public void Configure(EntityTypeBuilder<CartComboItem> builder)
         {
-            builder.ToTable("CartItems");
+            builder.ToTable("CartComboItems");
 
             builder.HasKey(x => x.Id);
 
             builder.HasOne(x => x.Cart)
-                .WithMany(x => x.CartItems)
+                .WithMany(x => x.CartComboItems)
                 .HasForeignKey(x => x.CartId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(x => x.Product)
-                .WithMany(x => x.CartItemes)
-                .HasForeignKey(x => x.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             builder.HasOne(x => x.Combo)
                 .WithMany(x => x.CartItemes)
-                .HasForeignKey(x => x.ProductId)
+                .HasForeignKey(x => x.ComboId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+         
 
         }
 

@@ -11,6 +11,8 @@ namespace Service.SnapFood.Domain.Entitys
     {
         public Guid UserId { get; set; }
         public virtual User User { get; set; } = null!;
-        public virtual List<CartItem> CartItems { get; set; } = null!;
+        public virtual List<CartProductItem> CartProductItems { get; set; } = null!;
+        public virtual List<CartComboItem> CartComboItems { get; set; } = null!;
+
     }
 }
