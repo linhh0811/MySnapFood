@@ -22,13 +22,13 @@ namespace Service.SnapFood.Infrastructure.Repositorys
         public async Task<Cart?> GetCartWithItemsAsync(Guid cartId)
         {
             return await _context
-                .Carts.Include(c => c.CartItems)
+                .Carts.Include(c => c.CartProductItems)
                 .FirstOrDefaultAsync(c => c.Id == cartId);
         }
         public async Task<Cart?> GetCartWithItemsAsyncByUserId(Guid userId)
         {
             return await _context.Carts
-                .Include(c => c.CartItems)
+                .Include(c => c.CartProductItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
     }

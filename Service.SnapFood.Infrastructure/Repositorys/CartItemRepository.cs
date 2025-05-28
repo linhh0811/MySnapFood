@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Service.SnapFood.Infrastructure.Repositorys
 {
-    public class CartItemRepository : Repository<CartItem>, ICartItemRepository
+    public class CartItemRepository : Repository<CartProductItem>, ICartItemRepository
     {
         private readonly AppDbContext _context;
         public CartItemRepository(AppDbContext context) : base(context)

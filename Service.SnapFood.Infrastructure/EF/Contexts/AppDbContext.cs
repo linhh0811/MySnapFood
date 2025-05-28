@@ -21,25 +21,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.ApplyConfiguration(new CartConfigurations());
-            builder.ApplyConfiguration(new CartItemConfigurations());
-            builder.ApplyConfiguration(new BillConfigurations());
-            builder.ApplyConfiguration(new BillDetailsConfigurations());
-            builder.ApplyConfiguration(new ComboConfigurations());
-            builder.ApplyConfiguration(new ProductComboConfigurations());
-            builder.ApplyConfiguration(new ProductConfigurations());
-            builder.ApplyConfiguration(new AddressConfigurations());
-            builder.ApplyConfiguration(new UserConfigurations());
-            builder.ApplyConfiguration(new BillDeliveryConfigurations());
-            builder.ApplyConfiguration(new BillNotesConfigurations());
-            builder.ApplyConfiguration(new BillPaymentConfigurations());
-            builder.ApplyConfiguration(new ComboItemsArchiveConfigurations());
-            builder.ApplyConfiguration(new UserRoleConfigurations());
-            builder.ApplyConfiguration(new RoleConfigurations());
-            builder.ApplyConfiguration(new SizesConfigurations());
-            builder.ApplyConfiguration(new CategoriesConfigurations());
-            builder.ApplyConfiguration(new StoreConfigurations());
-
+           
 
             builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
             base.OnModelCreating(builder);
@@ -560,7 +542,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             }
         }
         public DbSet<Cart> Carts { get; set; }
-        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<CartProductItem> CartItems { get; set; }
         public DbSet<Bill> Bill { get; set; }
         public DbSet<BillDetails> BillDetailses { get; set; }
         public DbSet<Combo> Combos { get; set; }
