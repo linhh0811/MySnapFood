@@ -4,6 +4,11 @@ using System.Net;
 using System.Text.Json;
 using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
+using System.Net.Http;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace Service.SnapFood.Manage.Infrastructure.Services
 {
@@ -11,28 +16,31 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
     {
         private readonly HttpClient _httpClient;
 
-        public CallServiceRegistry(HttpClient httpClient, IConfiguration configuration)
+        private readonly ProtectedLocalStorage _localStorage;
+        public CallServiceRegistry(HttpClient httpClient, IConfiguration configuration, ProtectedLocalStorage localStorage)
         {
             _httpClient = httpClient;
-
+            _localStorage = localStorage;
 
         }
 
         // DELETE method
         public async Task<ResultAPI> Delete(ApiRequestModel apiRequestModel)
         {
+            await SetAuthorizeHeader();
             HttpResponseMessage response = await _httpClient.DeleteAsync(apiRequestModel.Endpoint);
 
             return await HandleResponse(response);
         }
 
-       
+
 
         // PUT method
         public async Task<ResultAPI> Put(ApiRequestModel apiRequestModel, object? data = null)
         {
 
-           
+            await SetAuthorizeHeader();
+
             HttpResponseMessage response = data == null
                 ? await _httpClient.PutAsync(apiRequestModel.Endpoint, null)
                 : await _httpClient.PutAsJsonAsync(apiRequestModel.Endpoint, data);
@@ -43,6 +51,8 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
         // GET method
         public async Task<ResultAPI> Get<T>(ApiRequestModel apiRequestModel)
         {
+            await SetAuthorizeHeader();
+
 
             HttpResponseMessage response = await _httpClient.GetAsync(apiRequestModel.Endpoint);
 
@@ -53,6 +63,7 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
         public async Task<ResultAPI> Post<T>(ApiRequestModel apiRequestModel, object data)
         {
 
+            await SetAuthorizeHeader();
 
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(apiRequestModel.Endpoint, data);
 
@@ -86,7 +97,7 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
                     resultAPI.Message = "Thao tác thành công.";
                     resultAPI.Status = StatusCode.OK;
                     resultAPI.Data = string.IsNullOrWhiteSpace(content) ? default : JsonSerializer.Deserialize<T>(content, options);
-                }            
+                }
                 else
                 {
                     ResponseErrorAPI? error = JsonSerializer.Deserialize<ResponseErrorAPI>(content, options);
@@ -106,7 +117,15 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
             return resultAPI;
         }
 
+        public async Task SetAuthorizeHeader()
+        {
 
+            var token = (await _localStorage.GetAsync<Dto.Auth.AuthResponseDto>("sessionState")).Value;
+            if (token is not null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            }
 
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.FluentUI.AspNetCore.Components.Icons
+@using Service.SnapFood.Client.Components.Pages.Category
 <style>
     .carousel-item img {
     width: 100%;
@@ -39,56 +40,7 @@
 <div class="container my-4">
     <h2 class="fw-bold">DANH MỤC MÓN ĂN</h2>
     <hr>
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-        <!-- Danh mục 1 -->
-        <div class="col">
-            <div class="card">
-                <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#uudai">
-                    <img src="https://static.kfcvietnam.com.vn/images/category/lg/KHUYEN%20MAI.jpg?v=LEDZN3" style="height:200px" class="card-img-top" alt="Ưu Đãi">
-                </a>
-                <div class="card-body text-center">
-                    <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#uudai"> Ưu Đãi &gt;</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Danh mục 2 -->
-        <div class="col">
-            <div class="card">
-                <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#sanpham">
-                    <img src="https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/222278_4.png.webp" style="height:200px" class="card-img-top" alt="Combo 1 Người">
-                </a>
-
-                <div class="card-body text-center">
-                    <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#sanpham"> Gà rán &gt;</a>                  
-                </div>
-            </div>
-        </div>
-        <!-- Danh mục 3 -->
-        <div class="col">
-            <div class="card">
-                <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#burger">
-                    <img src="https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_bulgogi_4.png.webp" style="height:200px" class="card-img-top" alt="Combo 1 Người">
-                </a>
-                <div class="card-body text-center">
-                    <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#burger"> Burger &gt;</a>
-                </div>
-            </div>
-        </div>
-        <!-- Danh mục 4 -->
-        <div class="col">
-            <div class="card">
-                <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#combo">
-                    <img src="https://www.lotteria.vn/media/catalog/product/c/o/combo_update_bulgogi_1.jpg" style="height:200px" class="card-img-top" alt="Combo Nhóm">
-                </a>
-                <div class="card-body text-center">
-                    <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#combo"> Combo &gt;</a>              
-                </div>
-            </div>
-        </div>
-
-
-    </div>
+    <CategoryHome></CategoryHome>
 </div>
 <div class="container my-4">
     <h2 class="fw-bold">CÓ THỂ BẠN THÍCH MÓN NÀY</h2>

@@ -1,0 +1,121 @@
+﻿@using Service.SnapFood.Manage.Dto.Login
+@using Service.SnapFood.Manage.Infrastructure.Services
+
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using System.Net.Http.Json
+@using Blazored.LocalStorage    
+@using Microsoft.AspNetCore.Components.Authorization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthenticationStateProvider
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập</title>
+    <style>
+        body {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #3498db, #8e44ad);
+        margin: 0;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <FluentCard Style="padding:30px">
+            <FluentLabel Typo="Typography.H2" Style="padding-bottom:10px">Đăng nhập hệ thống</FluentLabel>
+            <EditForm Model="loginDto" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error" Style="margin-bottom: 1rem;">
+                        @ErrorMessage
+                    </FluentMessageBar>
+                }
+
+                <FluentStack Orientation="Orientation.Vertical" Style="gap: 1rem;">
+                    <FluentStack Orientation="Orientation.Vertical">
+                        <FluentLabel Weight="FontWeight.Bold">Email:</FluentLabel>
+                        <FluentTextField @bind-Value="loginDto.Email" Placeholder="Nhập email" Style="width: 100%;" />
+                        <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Email)" />
+                    </FluentStack>
+
+                    <FluentStack Orientation="Orientation.Vertical">
+                        <FluentLabel Weight="FontWeight.Bold">Mật khẩu:</FluentLabel>
+                        <FluentTextField @bind-Value="loginDto.Password" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu" Style="width: 100%;" />
+                        <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Password)" />
+                    </FluentStack>
+
+                    <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
+                        Đăng nhập
+                    </FluentButton>
+                </FluentStack>
+            </EditForm>
+        </FluentCard>
+    </div>
+</body>
+</html>
+
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+
+    private ApiRequestModel requestRestAPI = new ApiRequestModel();
+
+    private LoginDto loginDto = new LoginDto();
+    private bool loading = false;
+    private string? ErrorMessage;
+
+    private async Task<bool> LoginNhanVien(LoginDto loginDto)
+    {
+        ErrorMessage = null;
+        try
+        {
+            loading = true;
+            requestRestAPI.Endpoint = "api/Auth/Login";
+            ResultAPI response = await CallApi.Post<Dto.Auth.AuthResponseDto>(requestRestAPI, loginDto);
+            if (response.Status == StatusCode.OK)
+            {
+                var result = response.Data as Dto.Auth.AuthResponseDto;
+                if (result?.Token != null)
+                {
+                    await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(result);
+                    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                }
+                ToastService.ShowSuccess("Đăng nhập thành công.");
+                return true;
+            }
+            else
+            {
+                loading = false;
+                ErrorMessage = "Thông tin không chính xác";
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            loading = false;
+            ErrorMessage = ex.Message;
+            return false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        bool result = await LoginNhanVien(loginDto);
+        if (result)
+        {
+            ToastService.ShowSuccess("Đăng nhập thành công!");
+        }
+    }
+}

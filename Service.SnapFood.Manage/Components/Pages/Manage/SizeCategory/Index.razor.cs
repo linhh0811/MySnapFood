@@ -22,6 +22,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
         [Inject] private IDialogService DialogService { get; set; } = default!;
         [Inject] private IToastService ToastService { get; set; } = default!;
         private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+        private ApiRequestModel requestRestAPISize = new ApiRequestModel() { };
+
         private ITreeViewItem? selectedItem;
         private IEnumerable<ITreeViewItem> Items = new List<ITreeViewItem>();
         private List<SizeTreeDto>? sizeTree;
@@ -41,8 +43,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
         #region size
         public async Task GetSizeTree()
         {
-            requestRestAPI.Endpoint = $"api/Size/Tree";
-            ResultAPI result = await CallApi.Get<List<SizeTreeDto>>(requestRestAPI);
+            requestRestAPISize.Endpoint = $"api/Size/Tree";
+            ResultAPI result = await CallApi.Get<List<SizeTreeDto>>(requestRestAPISize);
             if (result.Status == StatusCode.OK)
             {
                 sizeTree = result.Data as List<SizeTreeDto>??new List<SizeTreeDto>();
@@ -111,8 +113,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
         }
         public async Task RejectSizeAsync(string id)
         {
-            requestRestAPI.Endpoint = $"api/Size/{id}/Reject";
-            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+            requestRestAPISize.Endpoint = $"api/Size/{id}/Reject";
+            ResultAPI result = await CallApi.Put(requestRestAPISize, new object());
             if (result.Status == StatusCode.OK)
             {
                 ToastService.ShowSuccess("Huỷ duyệt size thành công");
@@ -126,8 +128,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
         }
         public async Task ApproveSizeAsync(string id)
         {
-            requestRestAPI.Endpoint = $"api/Size/{id}/Approve";
-            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+            requestRestAPISize.Endpoint = $"api/Size/{id}/Approve";
+            ResultAPI result = await CallApi.Put(requestRestAPISize, new object());
             if (result.Status == StatusCode.OK)
             {
                 ToastService.ShowSuccess("Duyệt size thành công");
@@ -148,8 +150,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
                 var resultDialog = await dialog.Result;
                 if (resultDialog.Cancelled == false && resultDialog.Data is bool success && success)
                 {
-                    requestRestAPI.Endpoint = $"api/Size/{id}";
-                    ResultAPI result = await CallApi.Delete(requestRestAPI);
+                    requestRestAPISize.Endpoint = $"api/Size/{id}";
+                    ResultAPI result = await CallApi.Delete(requestRestAPISize);
                     if (result.Status == StatusCode.OK)
                     {
                         ToastService.ShowSuccess("Xóa size thành công");

@@ -103,7 +103,9 @@ namespace Service.SnapFood.Client.Infrastructure.Service
             return resultAPI;
         }
 
-
-
+        public Task SetAuthorizeHeader()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

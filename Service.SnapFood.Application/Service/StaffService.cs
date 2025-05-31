@@ -1,10 +1,15 @@
 ﻿using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
+using Service.SnapFood.Application.Interfaces.Jwt;
+using Service.SnapFood.Application.Service.Jwt;
 using Service.SnapFood.Domain.Entitys;
+using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.SQL;
 using Service.SnapFood.Share.Query;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 
 namespace Service.SnapFood.Application.Service
@@ -12,10 +17,12 @@ namespace Service.SnapFood.Application.Service
     public class StaffService : IStaffService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IJwtService _jwtService;
 
-        public StaffService(IUnitOfWork unitOfWork)
+        public StaffService(IUnitOfWork unitOfWork,IJwtService jwtService)
         {
             _unitOfWork = unitOfWork;
+            _jwtService = jwtService;
         }
 
         #region Lấy dữ liệu
@@ -201,6 +208,50 @@ namespace Service.SnapFood.Application.Service
         {
             return Regex.IsMatch(password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$");
         }
+
+
         #endregion
+        public AuthResponseDto? Login(LoginDto loginDto)
+        {
+            var user = _unitOfWork.UserRepo.FirstOrDefault(u => u.Email == loginDto.Email                      
+                        && u.UserType == UserType.Store);
+            if (user is not null)
+            {
+                if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
+                {
+                    return null;
+                }
+                if (user.ModerationStatus != ModerationStatus.Approved)
+                {
+                    return null;
+                }
+                AuthDto authDto = new AuthDto()
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                };
+                var roleIds = _unitOfWork.UserRoleRepo.FindWhere(ur => ur.UserId == user.Id)
+                    .Select(ur => ur.RoleId).ToList();
+                var roles = _unitOfWork.RolesRepo
+                   .FindWhere(r => roleIds.Contains(r.Id)) 
+                   .ToList();
+                authDto.Roles = roles.Select(role => new AuthRoleDto
+                {
+                    EnumRole = role.EnumRole,
+                    RoleName = role.RoleName
+                }).ToList();
+                return new AuthResponseDto
+                {
+                    Token = _jwtService.GenerateToken(authDto)
+                };
+            }
+            else
+            {
+                return null;
+            }
+               
+
+        }
     }
 }

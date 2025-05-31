@@ -52,9 +52,9 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
 
 
 
-        public T FirstOrDefault(Expression<Func<T, bool>> predicate)
+        public T? FirstOrDefault(Expression<Func<T, bool>> predicate)
         {
-            return _context.Set<T>().FirstOrDefault(predicate) ?? throw new Exception("Bản ghi không tồn tại");
+            return _context.Set<T>().FirstOrDefault(predicate);
         }
 
         public IEnumerable<T> GetAll()
@@ -67,14 +67,14 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             return await _context.Set<T>().ToListAsync();
         }
 
-        public T GetById(Guid id)
+        public T? GetById(Guid id)
         {
-            return _context.Set<T>().Find(id) ?? throw new Exception("Bản ghi không tồn tại");
+            return _context.Set<T>().Find(id);
         }
 
-        public async Task<T> GetByIdAsync(Guid id)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
-            return await _context.Set<T>().FindAsync(id) ?? throw new Exception("Bản ghi không tồn tại");
+            return await _context.Set<T>().FindAsync(id);
         }
 
         public void Add(T entity)
