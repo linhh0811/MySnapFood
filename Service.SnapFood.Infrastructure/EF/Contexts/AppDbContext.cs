@@ -474,6 +474,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"),
                 RoleName = "Admin",
+                EnumRole=EnumRole.Admin,
                 Description = "Quản trị viên",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -481,6 +482,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d2e"),
                 RoleName = "Quản lý",
+                EnumRole = EnumRole.Manager,
                 Description = "Quản trị viên",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -488,6 +490,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
                 RoleName = "Nhân viên",
+                EnumRole = EnumRole.Staff,
                 Description = "Nhân viên",
                 ModerationStatus = ModerationStatus.Approved,
             });

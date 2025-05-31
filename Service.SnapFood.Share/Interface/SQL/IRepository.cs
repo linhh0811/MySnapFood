@@ -13,8 +13,8 @@ namespace Service.SnapFood.Share.Interface.SQL
         IEnumerable<T> GetAll();
         Task<IEnumerable<T>> GetAllAsync();
 
-        T GetById(Guid id);
-        Task<T> GetByIdAsync(Guid id);
+        T? GetById(Guid id);
+        Task<T?> GetByIdAsync(Guid id);
 
         void Add(T entity);
         Task<T> AddAsync(T entity);
@@ -31,7 +31,7 @@ namespace Service.SnapFood.Share.Interface.SQL
         void SaveChanges();
         Task SaveChangesAsync();
 
-        T FirstOrDefault(Expression<Func<T, bool>> predicate);
+        T? FirstOrDefault(Expression<Func<T, bool>> predicate);
         IEnumerable<T> FindWhere(Expression<Func<T, bool>> criteria);
 
         IQueryable<T> FilterData(Func<IQueryable<T>, IQueryable<T>> filterFunc, GridRequest gridRequest, ref int totalRecords);

@@ -1,0 +1,70 @@
+﻿@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.Category
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+@using Service.SnapFood.Share.Query.Grid
+@using System.Text.Json
+<FluentHorizontalScroll Style="width: 100%; padding: 10px 0;">
+    @foreach (var category in categoryDtos)
+    {
+        <FluentCard style="width: 300px; margin: 0 10px; display: inline-block; vertical-align: top;">
+            <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#uudai">
+                <img src="@category.ImageUrl"
+                style="height:200px; width: 100%; object-fit: cover;"
+                alt="@category.CategoryName">
+            </a>
+            <div style="text-align: center; padding: 10px;">
+                <a class="nav-link text-muted fw-bold fs-5 active">
+                    @category.CategoryName &gt;
+                </a>
+            </div>
+        </FluentCard>
+    }
+</FluentHorizontalScroll>
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private List<CategoryDto> categoryDtos = new List<CategoryDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategory();
+    }
+    private async Task LoadCategory()
+    {
+     
+        try
+        {
+            var baseQuery = new BaseQuery
+                {
+
+                    gridRequest = new GridRequest
+                    {
+                        page =  1,
+                        pageSize = int.MaxValue,
+                    }
+                };
+            requestRestAPI.Endpoint = "api/Category/GetPaged";
+
+            ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
+            if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+            {
+                var items = JsonSerializer.Deserialize<List<CategoryDto>>(dataTable.Data.GetRawText(),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CategoryDto>();
+
+
+                categoryDtos = items.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
+
+            }
+            StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách phân loại: {ex.Message}");
+        }
+    }
+}
