@@ -29,7 +29,7 @@ namespace Service.SnapFood.Application.Service
             return sizes.ToList();
         }
 
-        public async Task<Sizes> GetByIdAsync(Guid id)
+        public async Task<Sizes?> GetByIdAsync(Guid id)
         {
            var size =await _unitOfWork.SizesRepo.GetByIdAsync(id);
             return size;

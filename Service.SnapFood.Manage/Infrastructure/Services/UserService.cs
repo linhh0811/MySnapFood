@@ -10,7 +10,6 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
     public interface IUserService
     {
         Task<CurrentUser> GetCurrentUserAsync();
-        Task SignOutUserAsync();
     }
 
     public class UserService : IUserService
@@ -66,9 +65,6 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
 
        
 
-        public async Task SignOutUserAsync()
-        {
-            
-        }
+       
     }
 }
