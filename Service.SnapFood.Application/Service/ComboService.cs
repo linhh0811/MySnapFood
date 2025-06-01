@@ -67,31 +67,35 @@ namespace Service.SnapFood.Application.Service
                     {
                         ProductId = x.ProductId,
                         Quantity = x.Quantity,
-                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId).ProductName
+                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName
                     })
                     .ToList();
 
                 // Get category name
                 var category = _unitOfWork.CategoriesRepo.GetById(combo.CategoryId);
-
-                var comboDto = new ComboDto
+                if (category is not null)
                 {
-                    Id = combo.Id,
-                    CategoryId = combo.CategoryId,
-                    CategoryName = category.CategoryName,
-                    ComboName = combo.ComboName,
-                    ImageUrl = combo.ImageUrl,
-                    BasePrice = combo.BasePrice,
-                    Description = combo.Description,
-                    Quantity = combo.Quantity,
-                    Created = combo.Created,
-                    LastModified = combo.LastModified,
-                    ModerationStatus = combo.ModerationStatus,
-                    CreatedBy = combo.CreatedBy,
-                    LastModifiedBy = combo.LastModifiedBy,
-                    ComboItems = comboItems
-                };
-                return comboDto;
+                    var comboDto = new ComboDto
+                    {
+                        Id = combo.Id,
+                        CategoryId = combo.CategoryId,
+                        CategoryName = category.CategoryName,
+                        ComboName = combo.ComboName,
+                        ImageUrl = combo.ImageUrl,
+                        BasePrice = combo.BasePrice,
+                        Description = combo.Description,
+                        Quantity = combo.Quantity,
+                        Created = combo.Created,
+                        LastModified = combo.LastModified,
+                        ModerationStatus = combo.ModerationStatus,
+                        CreatedBy = combo.CreatedBy,
+                        LastModifiedBy = combo.LastModifiedBy,
+                        ComboItems = comboItems
+                    };
+                    return comboDto;
+                }
+
+               
             }
             return null;
         }
@@ -118,7 +122,7 @@ namespace Service.SnapFood.Application.Service
                     {
                         ProductId = x.ProductId,
                         Quantity = x.Quantity,
-                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId).ProductName
+                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName
                     }).ToList()
                 );
 
