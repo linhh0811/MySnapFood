@@ -33,7 +33,8 @@ namespace Service.SnapFood.Application.Service
                 {
                     CategoryName = item.CategoryName,
                     ImageUrl=item.ImageUrl,
-                  
+                    DisplayOrder = item.DisplayOrder,
+
                 };
                 _unitOfWork.CategoriesRepo.Add(category);
                 await _unitOfWork.CommitAsync();
@@ -62,6 +63,7 @@ namespace Service.SnapFood.Application.Service
 
                 category.CategoryName = item.CategoryName;
                 category.ImageUrl = item.ImageUrl;
+                category.DisplayOrder = item.DisplayOrder;
                 _unitOfWork.CategoriesRepo.Update(category);
                 await _unitOfWork.CompleteAsync();
                 return true;
@@ -93,7 +95,7 @@ namespace Service.SnapFood.Application.Service
             return categories.ToList();
         }
 
-        public async Task<Categories> GetByIdAsync(Guid id)
+        public async Task<Categories?> GetByIdAsync(Guid id)
         {
             var category =await _unitOfWork.CategoriesRepo.GetByIdAsync(id);
             return category;
@@ -114,6 +116,7 @@ namespace Service.SnapFood.Application.Service
                 Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
                 CategoryName = m.CategoryName,
                 ImageUrl = m.ImageUrl,
+                DisplayOrder = m.DisplayOrder,
                 Created = m.Created,
                 LastModified = m.LastModified,
                 ModerationStatus = m.ModerationStatus,

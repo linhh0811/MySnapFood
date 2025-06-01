@@ -18,7 +18,7 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
                 var user = new ClaimsPrincipal(identity);
                 return new AuthenticationState(user);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await MarkUserAsLoggedOut();
                 var identity = new ClaimsIdentity();

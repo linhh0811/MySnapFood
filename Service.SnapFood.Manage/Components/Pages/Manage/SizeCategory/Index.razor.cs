@@ -254,6 +254,13 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
         {
             try
             {
+                var uiSorts = request.GetSortByProperties()
+                  .Select(s => new Sort
+                  {
+                      field = s.PropertyName,
+                      dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
+                  })
+                  .ToList();
                 var baseQuery = new BaseQuery
                 {
                     SearchIn= new List<string> { "CategoryName" },
@@ -264,12 +271,10 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
                         pageSize = pagination.ItemsPerPage,
                         skip = request.StartIndex,
                         take = pagination.ItemsPerPage,
-                        sort = request.GetSortByProperties()
-                             .Select(s => new Sort
-                             {
-                                 field = s.PropertyName,
-                                 dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
-                             }).ToList()
+                        sort = uiSorts.Any() ? uiSorts : new List<Sort>
+                        {
+                            new Sort { field = "DisplayOrder", dir = "asc" }
+                        }
                     }
                 };
                 requestRestAPI.Endpoint = "api/Category/GetPaged";

@@ -171,6 +171,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
                 CategoryName = "Đồ uống",
+                DisplayOrder = 5,
                 ImageUrl = "https://www.lotteria.vn/media/catalog/tmp/category/MENU_DAT_HANG_THU_C_UO_NG_new_3.jpg",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -178,6 +179,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
                 CategoryName = "Gà sốt cay",
+                DisplayOrder = 1,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/web-07.png",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -185,6 +187,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("90dc4303-d8e3-4e08-99cd-fbfe73b5ef00"),
                 CategoryName = "Mỳ ý",
+                DisplayOrder = 2,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/web-06.png",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -192,6 +195,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"),
                 CategoryName = "Combo gà",
+                DisplayOrder=7,
                 ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/222278_4.png.webp",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -199,6 +203,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),
                 CategoryName = "Gà rán",
+                DisplayOrder = 3,
                 ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0001_4.png.webp",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -206,6 +211,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
                 CategoryName = "Hamburger",
+                DisplayOrder = 4,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/cat_burger_1.png",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -213,6 +219,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),
                 CategoryName = "Phần ăn phụ",
+                DisplayOrder = 6,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/phananphu.png",
                 ModerationStatus = ModerationStatus.Approved,
             }
