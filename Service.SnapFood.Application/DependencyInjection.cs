@@ -25,7 +25,7 @@ namespace Service.SnapFood.Application
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IComboService, ComboService>();
             services.AddSingleton<IJwtService, JwtService>();
-
+            services.AddScoped<IRoleService, RoleService>();
             return services;
         }
     }
