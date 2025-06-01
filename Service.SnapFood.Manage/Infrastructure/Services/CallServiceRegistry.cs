@@ -120,7 +120,7 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
         public async Task SetAuthorizeHeader()
         {
 
-            var token = (await _localStorage.GetAsync<Dto.Auth.AuthResponseDto>("sessionState")).Value;
+            var token = (await _localStorage.GetAsync<Dto.Auth.AuthResponseDto>("sessionManager")).Value;
             if (token is not null)
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);

@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Service.SnapFood.Client.Dto.Auth;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Service.SnapFood.Manage.Dto.Auth;
 
-namespace Service.SnapFood.Manage.Infrastructure.Services
+namespace Service.SnapFood.Client.Infrastructure.Service
 {
     public class CustomAuthenticationStateProvider(ProtectedLocalStorage localStorage) : AuthenticationStateProvider
     {
@@ -13,7 +12,7 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
         {
             try
             {
-                var sessionModel = (await localStorage.GetAsync<AuthResponseDto>("sessionManager")).Value;
+                var sessionModel = (await localStorage.GetAsync<AuthResponseDto>("sessionUser")).Value;
                 var identity = sessionModel == null ? new ClaimsIdentity() : GetClaimsIdentity(sessionModel.Token);
                 var user = new ClaimsPrincipal(identity);
                 return new AuthenticationState(user);
@@ -29,7 +28,7 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
 
         public async Task MarkUserAsAuthenticated(AuthResponseDto model)
         {
-            await localStorage.SetAsync("sessionManager", model);
+            await localStorage.SetAsync("sessionUser", model);
             var identity = GetClaimsIdentity(model.Token);
             var user = new ClaimsPrincipal(identity);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
@@ -45,7 +44,7 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
 
         public async Task MarkUserAsLoggedOut()
         {
-            await localStorage.DeleteAsync("sessionManager");
+            await localStorage.DeleteAsync("sessionUser");
             var identity = new ClaimsIdentity();
             var user = new ClaimsPrincipal(identity);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));

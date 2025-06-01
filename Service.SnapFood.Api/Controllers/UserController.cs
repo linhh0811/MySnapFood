@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
+using Service.SnapFood.Application.Service;
 using System;
 using System.Threading.Tasks;
 
@@ -20,17 +21,13 @@ namespace Service.SnapFood.Api.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginDto item)
         {
-            try
+            var tokenString =await _userService.LoginAsync(item);
+            if (tokenString == null)
             {
-                var user = await _userService.LoginAsync(item);
-                if (user == null)
-                    return Unauthorized("Email hoặc mật khẩu không đúng");
-                return Ok(user);
+                return Unauthorized(new { Message = "Thông tin đăng nhập không chính xác" });
             }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            return Ok(tokenString);
         }
 
         [HttpPost("Register")]

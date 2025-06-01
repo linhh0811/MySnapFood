@@ -1,15 +1,19 @@
-﻿
+﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Auth
+@using Service.SnapFood.Client.Infrastructure.Service
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@inject NavigationManager Navigation
 
 
 
 
-@implements IDialogContentComponent<AuthModelDto>
+@implements IDialogContentComponent<RegisterDto>
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-    <body>
+
+<body>
     <FluentDialog PreventDismissOnOverlayClick="false">
         <FluentDialogBody>
             <div class="login-wrap">
@@ -19,62 +23,78 @@
                     <input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab">Đăng Ký</label>
                     <div class="login-form">
                         <div class="sign-in-htm">
-                            <EditForm Model="loginModel">
+                            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                                @if (!string.IsNullOrWhiteSpace(loginError))
+                                {
 
+                                    <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error">
+                                        @loginError
+                                    </FluentMessageBar>
+                                }
                                 <DataAnnotationsValidator />
+
 
                                 <div class="group">
                                     <label class="form-label">Email</label>
                                     <InputText class="form-control" @bind-Value="loginModel.Email" />
+                                    <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => loginModel.Email)" />
+
                                 </div>
 
                                 <div class="group">
                                     <label class="form-label">Mật khẩu</label>
                                     <InputText class="form-control" type="password" @bind-Value="loginModel.Password" />
+                                    <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => loginModel.Password)" />
+
                                 </div>
 
-                                <div class="group">
-                                    @if (!string.IsNullOrWhiteSpace(loginError))
-                                    {
-                                        <span class="text-danger">@loginError</span>
-                                    }
-                                </div>
+
 
                                 <div class="group">
-                                    <button type="submit" class="btn btn-primary" disabled="@isLoggingIn">Đăng nhập</button>
+                                    <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isLoggingIn">Đăng nhập</FluentButton>
+
                                 </div>
+
                             </EditForm>
                         </div>
 
                         <div class="sign-up-htm">
                             <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+                                @if (!string.IsNullOrWhiteSpace(registerError))
+                                {
+
+                                    <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error">
+                                        @registerError
+                                    </FluentMessageBar>
+                                }
                                 <DataAnnotationsValidator />
 
                                 <div class="group">
                                     <label class="form-label">Email</label>
                                     <InputText class="form-control" @bind-Value="registerModel.Email" />
+                                    <ValidationMessage style="color:red;margin-top:10px;" For="@(() => registerModel.Email)" />
+
                                 </div>
 
                                 <div class="group">
                                     <label class="form-label">Mật khẩu</label>
                                     <InputText class="form-control" type="password" @bind-Value="registerModel.Password" />
+                                    <ValidationMessage style="color:red;margin-top:10px;" For="@(() => registerModel.Password)" />
+
                                 </div>
 
                                 <div class="group">
                                     <label class="form-label">Nhập lại mật khẩu</label>
                                     <InputText class="form-control" type="password" @bind-Value="registerModel.ConfirmPassword" />
+                                    <ValidationMessage style="color:red;margin-top:10px;" For="@(() => registerModel.ConfirmPassword)" />
+
                                 </div>
 
                                 <div class="group">
-                                    @if (!string.IsNullOrWhiteSpace(registerError))
-                                    {
-                                        <span class="text-danger">@registerError</span>
-                                    }
+                                    <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isRegistering">Đăng ký</FluentButton>
+
                                 </div>
 
-                                <div class="group">
-                                    <button type="submit" class="btn btn-primary" disabled="@isRegistering">Đăng ký</button>
-                                </div>
                             </EditForm>
                         </div>
                     </div>
@@ -83,223 +103,223 @@
 
         </FluentDialogBody>
     </FluentDialog>
-   
+
 
 </body>
 
 <style>
 
     body {
-        margin: 0;
-        color: #6a6f8c;
-        /* background: #c8c8c8; */
-        font: 600 16px/18px "Open Sans", sans-serif;
+    margin: 0;
+    color: #6a6f8c;
+    /* background: #c8c8c8; */
+    font: 600 16px/18px "Open Sans", sans-serif;
     }
 
     *,
     :after,
     :before {
-        box-sizing: border-box;
+    box-sizing: border-box;
     }
 
     .clearfix:after,
     .clearfix:before {
-        content: "";
-        display: table;
+    content: "";
+    display: table;
     }
 
     .clearfix:after {
-        clear: both;
-        display: block;
+    clear: both;
+    display: block;
     }
 
     a {
-        color: inherit;
-        text-decoration: none;
+    color: inherit;
+    text-decoration: none;
     }
 
     .login-wrap {
-        width: 100%;
-        margin: auto;
-        max-width: 525px;
-        min-height: 670px;
-        position: relative;
-        background: url(https://png.pngtree.com/png-clipart/20230916/original/pngtree-fast-food-in-a-cute-hand-drawn-style-clipart-vector-png-image_12246520.png) no-repeat center;
-        box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+    width: 100%;
+    margin: auto;
+    max-width: 525px;
+    min-height: 670px;
+    position: relative;
+    background: url(https://png.pngtree.com/png-clipart/20230916/original/pngtree-fast-food-in-a-cute-hand-drawn-style-clipart-vector-png-image_12246520.png) no-repeat center;
+    box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
     }
 
     .login-html {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        padding: 90px 70px 50px 70px;
-        background: rgba(40, 57, 101, 0.9);
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    padding: 90px 70px 50px 70px;
+    background: rgba(40, 57, 101, 0.9);
     }
 
-        .login-html .sign-in-htm,
-        .login-html .sign-up-htm {
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            position: absolute;
-            transform: rotateY(180deg);
-            backface-visibility: hidden;
-            transition: all 0.4s linear;
-        }
+    .login-html .sign-in-htm,
+    .login-html .sign-up-htm {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
+    transition: all 0.4s linear;
+    }
 
-        .login-html .sign-in,
-        .login-html .sign-up,
-        .login-form .group .check {
-            display: none;
-        }
+    .login-html .sign-in,
+    .login-html .sign-up,
+    .login-form .group .check {
+    display: none;
+    }
 
-        .login-html .tab,
-        .login-form .group .label,
-        .login-form .group .button {
-            text-transform: uppercase;
-        }
+    .login-html .tab,
+    .login-form .group .label,
+    .login-form .group .button {
+    text-transform: uppercase;
+    }
 
-        .login-html .tab {
-            font-size: 22px;
-            margin-right: 15px;
-            cursor: pointer;
-            padding-bottom: 5px;
-            margin: 0 15px 10px 0;
-            display: inline-block;
-            border-bottom: 2px solid transparent;
-        }
+    .login-html .tab {
+    font-size: 22px;
+    margin-right: 15px;
+    cursor: pointer;
+    padding-bottom: 5px;
+    margin: 0 15px 10px 0;
+    display: inline-block;
+    border-bottom: 2px solid transparent;
+    }
 
-        .login-html .sign-in:checked + .tab,
-        .login-html .sign-up:checked + .tab {
-            color: #fff;
-            border-color: #1161ee;
-            cursor: pointer;
-        }
+    .login-html .sign-in:checked + .tab,
+    .login-html .sign-up:checked + .tab {
+    color: #fff;
+    border-color: #1161ee;
+    cursor: pointer;
+    }
 
     .login-form {
-        min-height: 345px;
-        position: relative;
-        perspective: 1000px;
-        transform-style: preserve-3d;
+    min-height: 345px;
+    position: relative;
+    perspective: 1000px;
+    transform-style: preserve-3d;
     }
 
-        .login-form .group {
-            margin-bottom: 15px;
-        }
+    .login-form .group {
+    margin-bottom: 15px;
+    }
 
-            .login-form .group .label,
-            .login-form .group .input,
-            .login-form .group .button {
-                width: 100%;
-                color: #fff;
-                display: block;
-            }
+    .login-form .group .label,
+    .login-form .group .input,
+    .login-form .group .button {
+    width: 100%;
+    color: #fff;
+    display: block;
+    }
 
-            .login-form .group .input,
-            .login-form .group .button {
-                border: none;
-                padding: 15px 20px;
-                border-radius: 25px;
-                background: rgba(255, 255, 255, 0.1);
-            }
+    .login-form .group .input,
+    .login-form .group .button {
+    border: none;
+    padding: 15px 20px;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.1);
+    }
 
-            .login-form .group input[data-type="password"] {
-                -webkit-text-security: circle;
-            }
+    .login-form .group input[data-type="password"] {
+    -webkit-text-security: circle;
+    }
 
-            .login-form .group .label {
-                color: #aaa;
-                font-size: 12px;
-            }
+    .login-form .group .label {
+    color: #aaa;
+    font-size: 12px;
+    }
 
-            .login-form .group .button {
-                background: #1161ee;
-                cursor: pointer;
-            }
+    .login-form .group .button {
+    background: #1161ee;
+    cursor: pointer;
+    }
 
-                .login-form .group .button:hover {
-                    background: #1454c4;
-                    cursor: pointer;
-                }
+    .login-form .group .button:hover {
+    background: #1454c4;
+    cursor: pointer;
+    }
 
-            .login-form .group label .icon {
-                width: 15px;
-                height: 15px;
-                border-radius: 2px;
-                position: relative;
-                display: inline-block;
-                background: rgba(255, 255, 255, 0.1);
-            }
+    .login-form .group label .icon {
+    width: 15px;
+    height: 15px;
+    border-radius: 2px;
+    position: relative;
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.1);
+    }
 
-                .login-form .group label .icon:before,
-                .login-form .group label .icon:after {
-                    content: "";
-                    width: 10px;
-                    height: 2px;
-                    background: #fff;
-                    position: absolute;
-                    transition: all 0.2s ease-in-out 0s;
-                }
+    .login-form .group label .icon:before,
+    .login-form .group label .icon:after {
+    content: "";
+    width: 10px;
+    height: 2px;
+    background: #fff;
+    position: absolute;
+    transition: all 0.2s ease-in-out 0s;
+    }
 
-                .login-form .group label .icon:before {
-                    left: 3px;
-                    width: 5px;
-                    bottom: 6px;
-                    transform: scale(0) rotate(0);
-                }
+    .login-form .group label .icon:before {
+    left: 3px;
+    width: 5px;
+    bottom: 6px;
+    transform: scale(0) rotate(0);
+    }
 
-                .login-form .group label .icon:after {
-                    top: 6px;
-                    right: 0;
-                    transform: scale(0) rotate(0);
-                }
+    .login-form .group label .icon:after {
+    top: 6px;
+    right: 0;
+    transform: scale(0) rotate(0);
+    }
 
-            .login-form .group .check:checked + label {
-                color: #fff;
-            }
+    .login-form .group .check:checked + label {
+    color: #fff;
+    }
 
-                .login-form .group .check:checked + label .icon {
-                    background: #1161ee;
-                }
+    .login-form .group .check:checked + label .icon {
+    background: #1161ee;
+    }
 
-                    .login-form .group .check:checked + label .icon:before {
-                        transform: scale(1) rotate(45deg);
-                    }
+    .login-form .group .check:checked + label .icon:before {
+    transform: scale(1) rotate(45deg);
+    }
 
-                    .login-form .group .check:checked + label .icon:after {
-                        transform: scale(1) rotate(-45deg);
-                    }
+    .login-form .group .check:checked + label .icon:after {
+    transform: scale(1) rotate(-45deg);
+    }
 
     .login-html
     .sign-in:checked + .tab + .sign-up + .tab + .login-form
     .sign-in-htm {
-        transform: rotate(0);
+    transform: rotate(0);
     }
 
     .login-html .sign-up:checked + .tab + .login-form .sign-up-htm {
-        transform: rotate(0);
+    transform: rotate(0);
     }
 
     .hr {
-        height: 2px;
-        margin: 60px 0 50px 0;
-        background: rgba(255, 255, 255, 0.2);
+    height: 2px;
+    margin: 60px 0 50px 0;
+    background: rgba(255, 255, 255, 0.2);
     }
 
     .foot-lnk {
-        text-align: center;
+    text-align: center;
     }
 </style>
 
 @code {
-    [Parameter] public AuthModelDto Content { get; set; } = new();
+    [Parameter] public RegisterDto Content { get; set; } = new();
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
-    private AuthModelDto registerModel = new();
-    private LoginModel loginModel = new();
+    private RegisterDto registerModel = new();
+    private LoginDto loginModel = new();
 
     private string registerError = "";
     private string loginError = "";
@@ -315,45 +335,57 @@
         registerError = "";
         isRegistering = true;
         requestRestAPI.Endpoint = "api/User/Register";
-        ResultAPI result = await CallApi.Post<AuthModelDto>(requestRestAPI, registerModel);
+        ResultAPI result = await CallApi.Post<RegisterDto>(requestRestAPI, registerModel);
 
         if (result.Status == StatusCode.OK)
         {
             await Dialog.CloseAsync();
-            ToastService.ShowSuccess("Thêm sản phẩm thành công.");
+            ToastService.ShowSuccess("Tạo tài khoản thành công.");
 
         }
         else
         {
             isRegistering = false;
-            registerError = "Thêm sản phẩm thất bại: " + result.Message;
-           
+            registerError = "Tạo tài khoản thất bại: " + result.Message;
+
         }
 
-      
+
     }
 
-    // private async Task HandleLogin()
-    // {
-    //     loginError = "";
-    //     isLoggingIn = true;
+    private async Task HandleLogin()
+    {
+        loginError = "";
 
-    //     var user = await UserService.LoginAsync(new LoginDto
-    //         {
-    //             Email = loginModel.Email,
-    //             Password = loginModel.Password
-    //         });
 
-    //     if (user != null)
-    //     {
-    //         Dialog.Hide();
-    //         manager.NavigateTo("/");
-    //     }
-    //     else
-    //     {
-    //         loginError = "Email hoặc mật khẩu không đúng.";
-    //     }
+        try
+        {
+            isLoggingIn = true;
+            requestRestAPI.Endpoint = "api/User/Login";
+            ResultAPI response = await CallApi.Post<Dto.Auth.AuthResponseDto>(requestRestAPI, loginModel);
+            if (response.Status == StatusCode.OK)
+            {
+                var result = response.Data as Dto.Auth.AuthResponseDto;
+                if (result?.Token != null)
+                {
+                    await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(result);
+                    await Dialog.CloseAsync();
+                    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                }
+                ToastService.ShowSuccess("Đăng nhập thành công.");
+            }
+            else
+            {
+                isLoggingIn = true;
+                loginError = "Thông tin không chính xác";
+            }
+        }
+        catch (Exception ex)
+        {
+            isLoggingIn = false;
+            loginError = ex.Message;
 
-    //     isLoggingIn = false;
-    // }
+        }
+       
+    }
 }

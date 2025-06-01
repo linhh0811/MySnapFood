@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using Service.SnapFood.Share.Model.Commons;
-using System.IdentityModel.Tokens.Jwt;
 
-namespace Service.SnapFood.Manage.Infrastructure.Services
+namespace Service.SnapFood.Client.Infrastructure.Service
 {
     public interface IUserService
     {
@@ -57,8 +53,8 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
             }
         }
 
-       
 
-       
+
+
     }
 }

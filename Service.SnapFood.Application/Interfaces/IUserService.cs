@@ -11,7 +11,7 @@ namespace Service.SnapFood.Application.Interfaces
         Task<List<User>> GetAllAsync();
         Task<User> GetByIdAsync(Guid id);
         Task<bool> UpdateAsync(Guid id, UserDto item);
-        Task<User?> LoginAsync(LoginDto item);
+        Task<AuthResponseDto?> LoginAsync(LoginDto item);
         Task<Guid> RegisterAsync(RegisterDto item);
     }
 }

@@ -12,16 +12,20 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Service.SnapFood.Domain.Enums;
+using Service.SnapFood.Application.Interfaces.Jwt;
 
 namespace Service.SnapFood.Application.Service
 {
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IJwtService _jwtService;
 
-        public UserService(IUnitOfWork unitOfWork)
+
+        public UserService(IUnitOfWork unitOfWork, IJwtService jwtService)
         {
             _unitOfWork = unitOfWork;
+            _jwtService = jwtService;
         }
 
 
@@ -112,7 +116,7 @@ namespace Service.SnapFood.Application.Service
         #endregion
 
         #region Đăng nhập, đăng ký
-        public async Task<User?> LoginAsync(LoginDto item)
+        public async Task<AuthResponseDto?> LoginAsync(LoginDto item)
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item), "Thông tin đăng nhập không được để trống");
@@ -126,8 +130,17 @@ namespace Service.SnapFood.Application.Service
             var user = users.FirstOrDefault(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant());
             if (user == null || !BCrypt.Net.BCrypt.Verify(item.Password, user.Password))
                 return null;
+            AuthDto authDto = new AuthDto()
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FullName = user.FullName,
+            };
 
-            return user;
+            return new AuthResponseDto
+            {
+                Token = _jwtService.GenerateToken(authDto)
+            };
         }
 
         //public async Task<Guid> RegisterAsync(RegisterDto item)
