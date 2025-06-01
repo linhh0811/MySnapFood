@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
+using Service.SnapFood.Application.Service;
+using Service.SnapFood.Share.Query;
 using System;
 using System.Threading.Tasks;
 
@@ -46,7 +48,12 @@ namespace Service.SnapFood.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
+        [HttpPost("GetPaged")]
+        public IActionResult GetPage(BaseQuery query)
+        {
+            var result = _userService.GetPaged(query);
+            return Ok(result);
+        }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {

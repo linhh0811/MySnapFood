@@ -51,7 +51,7 @@ namespace Service.SnapFood.Application.Service
 
             int totalRecords = 0;
             var dataQuery = _unitOfWork.UserRepo.FilterData(
-                q => q,
+                q => q.Where(u => u.UserType == UserType.User), // Lọc chỉ lấy UserType.User
                 query.gridRequest,
                 ref totalRecords
             );
