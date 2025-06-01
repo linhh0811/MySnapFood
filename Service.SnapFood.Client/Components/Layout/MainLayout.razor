@@ -1,5 +1,9 @@
 ﻿@using Service.SnapFood.Client.Components.Pages.Auth
+@using Service.SnapFood.Client.Infrastructure.Service
+@using Service.SnapFood.Share.Model.Commons
 @inherits LayoutComponentBase
+@inject IUserService UserService
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,6 +21,8 @@
     </style>
 </head>
 <body>
+        <CascadingValue Value="CurrentUser">
+    
     <FluentLayout>
         <FluentStack Class="body-stack" Orientation="Orientation.Horizontal" Width="100%" HorizontalGap="0">
             <NavMenu/>
@@ -44,6 +50,7 @@
             <FluentMenuProvider />
         </FluentStack>
     </FluentLayout>
+    </CascadingValue>
 </body>
 </html>
 
@@ -53,3 +60,12 @@
     <a class="dismiss">🗙</a>
 </div>
 
+
+@code {
+    private CurrentUser CurrentUser = new();
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUserAsync();
+        StateHasChanged();
+    }
+}

@@ -1,4 +1,5 @@
 ﻿@using Service.SnapFood.Client.Components.Pages.Auth
+@using Service.SnapFood.Share.Model.Commons
 <nav class="navbar navbar-expand-sm navbar-light bg-white fixed-top shadow-sm" style="z-index:1">
     <div class="container">
         <!-- Logo hoặc tiêu đề -->
@@ -22,20 +23,45 @@
 
             </ul>
             <!-- Nút Login -->
+            @if (CurrentUser.UserId != Guid.Empty)
+            {
+                <ul class="navbar-nav navbar-right">
 
-            <ul class="navbar-nav navbar-right">
-                <li class="nav-item">
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.Cart())" Href="/"></FluentNavLink>
+
+
+
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.Person())" Href="/"></FluentNavLink>
+
+
+                    <FluentLabel class="nav-link navbar-text">Xin chào, @CurrentUser.UserName</FluentLabel>
                     <FluentButton Appearance="Appearance.Accent"
                                   Class="rounded-pill"
                                   OnClick="OpenModalAuth">
-                        Đăng nhập/Đăng ký
+                        Đăng xuất
                     </FluentButton>
-                </li>
-            </ul>
+                </ul>
+            }
+            else
+            {
+                <ul class="navbar-nav navbar-right">
+                    <li class="nav-item">
+                        <FluentButton Appearance="Appearance.Accent"
+                                      Class="rounded-pill"
+                                      OnClick="OpenModalAuth">
+                            Đăng nhập/Đăng ký
+                        </FluentButton>
+                    </li>
+                </ul>
+
+            }
+
         </div>
     </div>
 </nav>
 @code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
 
@@ -50,7 +76,7 @@
                     Modal = true,
                     PreventDismissOnOverlayClick = false,
                     ShowDismiss = false,
-                    
+
 
 
                 });

@@ -2,7 +2,7 @@
 
 namespace Service.SnapFood.Client.Dto.Auth
 {
-    public class LoginModel
+    public class LoginDto
     {
         [Required(ErrorMessage = "Email không được để trống")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]

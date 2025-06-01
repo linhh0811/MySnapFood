@@ -45,6 +45,10 @@
                     {
                         page =  1,
                         pageSize = int.MaxValue,
+                        sort = new List<Sort>
+                        {
+                            new Sort { field = "DisplayOrder", dir = "asc" }
+                        }
                     }
                 };
             requestRestAPI.Endpoint = "api/Category/GetPaged";

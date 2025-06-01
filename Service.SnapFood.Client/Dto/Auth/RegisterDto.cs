@@ -2,7 +2,7 @@
 
 namespace Service.SnapFood.Client.Dto.Auth
 {
-    public class AuthModelDto
+    public class RegisterDto
     {
        
 
@@ -13,6 +13,8 @@ namespace Service.SnapFood.Client.Dto.Auth
         [Required(ErrorMessage = "Mật khẩu không được để trống")]
         [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
         public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Mật khẩu xác nhận không được để trống")]
 
         [Compare("Password", ErrorMessage = "Mật khẩu nhập lại không khớp")]
         public string ConfirmPassword { get; set; } = string.Empty;
