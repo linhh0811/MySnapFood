@@ -111,6 +111,12 @@
 							<img src="@context.ImageUrl" alt="Ảnh" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
 						</TemplateColumn>
 
+						<TemplateColumn Title="Vị trí" Style="display: flex;align-items: center;">
+							<span style="cursor: pointer;">
+								@context.DisplayOrder
+							</span>
+						</TemplateColumn>
+
 						<TemplateColumn Title="Trạng thái" Style="display: flex; align-items: center;">
 							<FluentBadge Appearance="@(context.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
 								@(context.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")

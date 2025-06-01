@@ -10,7 +10,12 @@ namespace Service.SnapFood.Manage.Dto.Category
         [Required(ErrorMessage = "Tên phân loại không để trống.")]
         public string CategoryName { get; set; } = string.Empty;
         [Required(ErrorMessage = "Ảnh phân loại để trống.")]
+
         public string ImageUrl { get; set; } = string.Empty;
+        [Range(1,int.MaxValue,ErrorMessage = "Vị trí từ lớn hơn 0.")]
+
+        public int DisplayOrder { get; set; }
+
         public ModerationStatus ModerationStatus { get; set; }
 
     }
