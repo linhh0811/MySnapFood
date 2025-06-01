@@ -38,7 +38,31 @@ namespace Service.SnapFood.Api.Controllers
             var bill = await _billService.GetByIdAsync(id);
             return Ok(bill);
         }
-
+        [HttpGet("ByUser/{userId}")]
+        public async Task<IActionResult> GetByUser(Guid userId)
+        {
+            try
+            {
+                var bills = await _billService.GetAllAsync();
+                var userBills = bills.Where(b => b.UserId == userId)
+                    .Select(b => new BillDto
+                    {
+                        Id = b.Id,
+                        BillCode = b.BillCode,
+                        UserId = b.UserId,
+                        StoreId = b.StoreId,
+                        Status = b.Status,
+                        TotalAmount = b.TotalAmount,
+                        TotalAmountEndow = b.TotalAmountEndow,
+                        Created = b.Created
+                    }).ToList();
+                return Ok(userBills);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BillDto item)
         {
