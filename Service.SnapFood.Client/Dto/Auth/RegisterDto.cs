@@ -4,7 +4,9 @@ namespace Service.SnapFood.Client.Dto.Auth
 {
     public class RegisterDto
     {
-       
+        [Required(ErrorMessage = "Tên không được để trống")]
+
+        public string FullName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email không được để trống")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
