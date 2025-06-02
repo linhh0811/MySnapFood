@@ -68,7 +68,12 @@
                                     </FluentMessageBar>
                                 }
                                 <DataAnnotationsValidator />
+                                <div class="group">
+                                    <label class="form-label">Họ và tên</label>
+                                    <InputText class="form-control" @bind-Value="registerModel.FullName" />
+                                    <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => registerModel.FullName)" />
 
+                                </div>
                                 <div class="group">
                                     <label class="form-label">Email</label>
                                     <InputText class="form-control" @bind-Value="registerModel.Email" />
@@ -342,6 +347,11 @@
             await Dialog.CloseAsync();
             ToastService.ShowSuccess("Tạo tài khoản thành công.");
 
+            loginModel.Email = registerModel.Email;
+            loginModel.Password = loginModel.Password;
+
+            await HandleLogin();
+
         }
         else
         {
@@ -376,7 +386,7 @@
             }
             else
             {
-                isLoggingIn = true;
+                isLoggingIn = false;
                 loginError = "Thông tin không chính xác";
             }
         }

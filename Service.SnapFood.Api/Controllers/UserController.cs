@@ -24,7 +24,7 @@ namespace Service.SnapFood.Api.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginDto item)
         {
-            var tokenString =await _userService.LoginAsync(item);
+            var tokenString = await _userService.LoginAsync(item);
             if (tokenString == null)
             {
                 return Unauthorized(new { Message = "Thông tin đăng nhập không chính xác" });
@@ -36,15 +36,10 @@ namespace Service.SnapFood.Api.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto item)
         {
-            try
-            {
-                var result = await _userService.RegisterAsync(item);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            var result = await _userService.RegisterAsync(item);
+            return Ok();
+
         }
         [HttpPost("GetPaged")]
         public IActionResult GetPage(BaseQuery query)

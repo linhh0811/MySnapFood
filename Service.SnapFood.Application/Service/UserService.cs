@@ -127,7 +127,7 @@ namespace Service.SnapFood.Application.Service
                 throw new ArgumentException("Email không hợp lệ");
 
             var users = await _unitOfWork.UserRepo.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant());
+            var user = users.Where(x=>x.UserType==UserType.User).FirstOrDefault(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant());
             if (user == null || !BCrypt.Net.BCrypt.Verify(item.Password, user.Password))
                 return null;
             AuthDto authDto = new AuthDto()
@@ -178,10 +178,10 @@ namespace Service.SnapFood.Application.Service
 
        
             var users = await _unitOfWork.UserRepo.GetAllAsync();
-            //if (users.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
-            //    throw new Exception("Email đã tồn tại");
+            if (users.Where(x=>x.UserType==UserType.User).Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
+                throw new Exception("Email đã tồn tại");
 
-        
+
             var userId = Guid.NewGuid();
             var user = new User
             {
