@@ -54,12 +54,14 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAsync([FromBody] UserDto item)
+        public async Task<IActionResult> CreateAsync([FromBody] StaffDto item)
         {
             try
             {
                 var result = await _staffService.CreateAsync(item);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = result }, item);
+                //return CreatedAtAction(nameof(GetByIdAsync), new { id = result }, item);
+                return Ok(new { id = result, message = "Thêm nhân viên thành công" });
+
             }
             catch (Exception ex)
             {
@@ -68,7 +70,7 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UserDto item)
+        public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] StaffDto item)
         {
             try
             {
