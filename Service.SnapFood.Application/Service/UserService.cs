@@ -130,6 +130,7 @@ namespace Service.SnapFood.Application.Service
             return user;
         }
 
+
         //public async Task<Guid> RegisterAsync(RegisterDto item)
         //{
         //    if (item == null)

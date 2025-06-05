@@ -22,6 +22,8 @@ namespace Service.SnapFood.Application
             services.AddScoped<ISizeService, SizeService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IComboService, ComboService>();
+            services.AddScoped<IBillService, BillService>();
+           
             services.AddSingleton<IJwtService, JwtService>();
 
             return services;

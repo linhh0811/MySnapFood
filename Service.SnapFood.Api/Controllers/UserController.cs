@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
+using Service.SnapFood.Application.Service;
 using System;
 using System.Threading.Tasks;
 
@@ -11,27 +12,50 @@ namespace Service.SnapFood.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+      
 
         public UserController(IUserService userService)
         {
             _userService = userService;
         }
 
+    
+
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto item)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            try
+            var user = await _userService.LoginAsync(loginDto);
+
+            if (user != null)
             {
-                var user = await _userService.LoginAsync(item);
-                if (user == null)
-                    return Unauthorized("Email hoặc mật khẩu không đúng");
-                return Ok(user);
+               
+
+                return Ok(new
+                {
+                    message = "Đăng nhập thành công",
+                    user = new
+                    {
+                        user.Id,
+                        user.FullName,
+                        user.Email
+                    }
+                });
             }
-            catch (ArgumentException ex)
+            else
             {
-                return BadRequest(ex.Message);
+                return Unauthorized(new
+                {
+                    error = "Email hoặc mật khẩu không chính xác"
+                });
             }
         }
+
+       
+
+
+
+
+
 
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto item)
