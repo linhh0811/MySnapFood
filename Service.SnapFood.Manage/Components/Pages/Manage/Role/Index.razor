@@ -43,7 +43,7 @@
                                     ItemsProvider="@LoadUsers"
                                     Pagination="@pagination"
                                     ResizableColumns="false"
-                                    GridTemplateColumns="0.5fr 1.5fr 1.5fr"
+                                    GridTemplateColumns="0.5fr 1.5fr 1.5fr 1fr"
                                     RowSize="DataGridRowSize.Large"
                                     ShowHover="true">
                         <TemplateColumn Title="#" Style="display:flex;align-items: center;">
@@ -60,6 +60,11 @@
                             <span style="cursor: pointer;">
                                 @context.Email
                             </span>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Hành động" Style="display: flex; align-items: center;">
+                            <FluentButton Title="Xóa khỏi quyền" Appearance="Appearance.Outline" OnClick="@(() => DeleteUserFromRole(context.Id))">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+                            </FluentButton>
                         </TemplateColumn>
                     </FluentDataGrid>
                     <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefreshData" />

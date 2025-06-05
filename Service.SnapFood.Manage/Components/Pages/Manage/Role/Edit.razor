@@ -1,0 +1,64 @@
+﻿@namespace Service.SnapFood.Manage.Components.Pages.Manage.Role
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.User
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+@using Service.SnapFood.Share.Query.Grid
+@using System.Text.Json
+@using Service.SnapFood.Manage.Dto.Role
+@using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Share.Model.SQL
+
+
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+<FluentStack Orientation="Orientation.Vertical" Gap="15">
+    <h4>Danh sách người dùng</h4>
+    <FluentSearch @bind-Value="SearchKeyword" @bind-Value:after="RefreshDataAsync" Placeholder="Nhập vào từ khóa" />
+    <FluentGridItem Style="width:100%;">
+        <FluentDataGrid @ref="UserGrid"
+                        TGridItem="UserDto"
+                        ItemsProvider="@LoadUsers"
+                        Pagination="@pagination"
+                        ResizableColumns="false"
+                        GridTemplateColumns="0.5fr 1.5fr 1.5fr 0.5fr"
+                        RowSize="DataGridRowSize.Large"
+                        ShowHover="true"
+                        Style="max-height: 500px; overflow-y: auto;">
+            <TemplateColumn Title="STT" Style="display: flex; align-items: center;">
+                <span style="cursor: pointer;">
+                    @context.Index
+                </span>
+            </TemplateColumn>
+            <TemplateColumn Title="Tên người dùng" Style="display: flex; align-items: center;">
+                <span style="cursor: pointer; color: dodgerblue;">
+                    @context.FullName
+                </span>
+            </TemplateColumn>
+            <TemplateColumn Title="Địa chỉ Email" Style="display: flex; align-items: center;">
+                <span style="cursor: pointer;">
+                    @context.Email
+                </span>
+            </TemplateColumn>
+            <TemplateColumn Title="Hành động" Style="display: flex; justify-content: center; align-items: center;">
+                @if (context.IsInRole)
+                {
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" Title="Đã thuộc quyền" />
+                }
+                else
+                {
+                    <FluentButton Title="Thêm vào quyền"
+                                  Appearance="Appearance.Outline"
+                                  OnClick="@(() => AddUserToRole(context.Id))"
+                                  Disabled="@isSaving">
+                        <FluentIcon Value="@(new Icons.Regular.Size16.Add())" />
+                    </FluentButton>
+                }
+            </TemplateColumn>
+        </FluentDataGrid>
+    </FluentGridItem>
+    <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefreshData" />
+</FluentStack>
