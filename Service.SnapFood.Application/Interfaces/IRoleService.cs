@@ -10,8 +10,11 @@ namespace Service.SnapFood.Application.Interfaces
     public interface IRoleService
     {
         Task<List<Roles>> GetAllRolesAsync();
-        Task<List<User>> GetUsersByRoleIdAsync(Guid roleId);
+        DataTableJson GetAllUsersPagedForRole(Guid roleId, BaseQuery query);
+        List<User> GetUsersByRoleId(Guid roleId);
+        DataTableJson GetAllUsersPaged(BaseQuery query);
         DataTableJson GetUsersByRoleIdPaged(Guid roleId, BaseQuery query);
         Task<bool> AddUserToRoleAsync(Guid userId, Guid roleId);
+        Task<bool> RemoveUserFromRoleAsync(Guid userId, Guid roleId);
     }
 }

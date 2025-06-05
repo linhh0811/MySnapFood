@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Dto.Role;
 using Service.SnapFood.Manage.Dto.TreeView;
@@ -10,12 +11,13 @@ using Service.SnapFood.Share.Query;
 using Service.SnapFood.Share.Query.Grid;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Service.SnapFood.Manage.Components.Pages.Manage.Role
 {
-    public partial class RoleManagement : ComponentBase
+    public partial class Index : ComponentBase
     {
         [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
         [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -126,12 +128,13 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Role
                     IsEditMode = false,
                     OnRefresh = EventCallback.Factory.Create(this, RefreshDataAsync)
                 };
-                var dialog = await DialogService.ShowDialogAsync<EditRole>(parameters, new DialogParameters
+                var dialog = await DialogService.ShowDialogAsync<Edit>(parameters, new DialogParameters
                 {
                     Title = "Thêm người dùng vào quyền",
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
-                    Modal = true
+                    Modal = true,
+                    Width ="1000px"
                 });
             }
             catch (Exception ex)
@@ -140,10 +143,44 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Role
             }
         }
 
+        private async Task DeleteUserFromRole(Guid userId)
+        {
+            if (selectedRole == null)
+            {
+                ToastService.ShowWarning("Vui lòng chọn một quyền trước khi xóa người dùng.");
+                return;
+            }
+
+            var confirmDialog = await DialogService.ShowDialogAsync<ModalConfirm>(new DialogParameters<RequestModalConfirm>
+            {
+                Content = new RequestModalConfirm
+                {
+                    Title = "Xác nhận xóa",
+                    Content = "Bạn có chắc chắn muốn xóa người dùng này khỏi quyền?",
+                    Message = "Hành động này không thể hoàn tác."
+                }
+            });
+            var result = await confirmDialog.Result;
+            if (!result.Cancelled && result.Data is bool success && success)
+            {
+                requestRestAPI.Endpoint = $"api/Role/{selectedRole.Id}/RemoveUser";
+                var response = await CallApi.Post<object>(requestRestAPI, userId);
+                if (response.Status == StatusCode.OK)
+                {
+                    ToastService.ShowSuccess("Xóa người dùng khỏi quyền thành công.");
+                    await LoadUsersForRole(selectedRole.Id);
+                }
+                else
+                {
+                    ToastService.ShowError("Xóa người dùng thất bại: " + response.Message);
+                }
+            }
+        }
         private async Task RefreshData(int value)
         {
             pagination.ItemsPerPage = value;
             await pagination.SetCurrentPageIndexAsync(0);
+            await RefreshDataAsync();
         }
 
         private async Task RefreshDataAsync()
