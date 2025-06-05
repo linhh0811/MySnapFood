@@ -24,11 +24,12 @@ namespace Service.SnapFood.Application.Service
         private readonly IEmailService _emailService;
 
         private readonly IJwtService _jwtService;
-        public StaffService(IUnitOfWork unitOfWork, IEmailService emailService,IJwtService jwtService)
+        public StaffService(IUnitOfWork unitOfWork, IEmailService emailService, IJwtService jwtService)
         {
             _unitOfWork = unitOfWork;
             _emailService = emailService;
             _jwtService = jwtService;
+        }
    
 
 
