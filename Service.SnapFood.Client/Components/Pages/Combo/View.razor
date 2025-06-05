@@ -8,7 +8,9 @@
     <FluentGrid Spacing="2" AdaptiveRendering="true">
 
         <FluentGridItem xs="12" sm="5">
+
             <FluentCard Style="min-height:350px;">
+
                 <img src="@ComboModel.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@ComboModel.ComboName" />
                 <FluentLabel Typo="Typography.H5">@ComboModel.ComboName</FluentLabel>
                 @foreach (var item in ComboModel.ComboItems)
@@ -18,6 +20,7 @@
             </FluentCard>
         </FluentGridItem>
         <FluentGridItem xs="12" sm="7">
+
             <FluentCard Style="height: 250px; overflow-y: auto;">
                 <FluentAccordion>
                     @foreach (var item in ComboModel.ComboItems)
@@ -59,6 +62,7 @@
                 </FluentAccordion>
             </FluentCard>
             <FluentCard Style="height:90px; margin-top:10px; display: flex; align-items: center;">
+
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; width: 100%;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <FluentButton Appearance="Appearance.Outline" Style="width: 40px; height: 40px; background-color: red; color: white;" @onclick="DecreaseQuantity">-</FluentButton>
@@ -120,6 +124,7 @@
     .size-button.selected {
     border: 2px solid red;
     }
+
 </style>
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
@@ -130,14 +135,17 @@
     private ComboDto ComboModel = new ComboDto();
     private int quantity = 1;
     private bool isSaving = false;
+
     private Dictionary<string, string> selectedSizes = new Dictionary<string, string>();
     private Dictionary<string, decimal> sizePrices = new Dictionary<string, decimal>();
     private decimal TotalPrice { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {
         await GetCombo();
         TotalPrice = ComboModel.BasePrice;
+
 
     }
 
@@ -179,12 +187,14 @@
         }
 
         TotalPrice = (basePrice + sizeAdditionalPrice) * quantity;
+
         StateHasChanged();
     }
     private async Task HideDialog()
     {
         await Dialog.CloseAsync();
     }
+
     private void SelectSize(string productId, string size, decimal additionalPrice)
     {
         if (selectedSizes.ContainsKey(productId))
@@ -210,3 +220,4 @@
         return string.Empty;
     }
 }
+
