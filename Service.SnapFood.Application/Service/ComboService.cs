@@ -71,7 +71,9 @@ namespace Service.SnapFood.Application.Service
                         Quantity = x.Quantity,
                         ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
                         CategoryName = _unitOfWork.CategoriesRepo.GetById(product.FirstOrDefault(p=>p.Id == x.ProductId).CategoryId)?.CategoryName ?? "",
-                        Sizes = size.Where(s => s.ParentId == product.FirstOrDefault(p=>p.Id ==x.ProductId)?.SizeId && s.ModerationStatus == ModerationStatus.Approved)
+
+                        Sizes = size.Where(s => s.ParentId == product.FirstOrDefault(p=>p.Id ==x.ProductId)?.SizeId && s.ModerationStatus == ModerationStatus.Approved&&s.ParentId!=null)
+
                                     .Select(s => new SizeDto
                                     {
                                         Id = s.Id,
