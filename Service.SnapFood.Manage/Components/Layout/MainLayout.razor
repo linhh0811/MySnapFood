@@ -1,29 +1,51 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Share.Model.Commons
+@using Microsoft.AspNetCore.Components.Authorization;
 
- <FluentLayout>
-    <FluentStack Class="body-stack" Orientation="Orientation.Horizontal" Width="100%" HorizontalGap="0">
-        <NavMenu />
-        <FluentBodyContent id="body-content" Style="height: calc(100dvh - 90px);">
-            <div class="content">
-                <article id="article">
+@inject IUserService UserService
+@if (CurrentUser is not null && !string.IsNullOrEmpty(CurrentUser.UserName))
+{
+     <CascadingValue Value="CurrentUser">
+    <FluentLayout>
+        <FluentStack Class="body-stack" Orientation="Orientation.Horizontal" Width="100%" HorizontalGap="0">
+            <NavMenu />
+            <FluentBodyContent id="body-content" Style="height: calc(100dvh - 90px);">
+                <div class="content">
+                    <article id="article">
 
-                    @Body
+                        @Body
 
-                </article>
-                <FluentToastProvider MaxToastCount="10" Position="ToastPosition.BottomRight" />
-                <FluentDialogProvider />
-                <FluentTooltipProvider />
-                <FluentKeyCodeProvider />
-                <FluentMenuProvider />
+                    </article>
+                    <FluentToastProvider MaxToastCount="10" Position="ToastPosition.BottomRight" />
+                    <FluentDialogProvider />
+                    <FluentTooltipProvider />
+                    <FluentKeyCodeProvider />
+                    <FluentMenuProvider />
 
-            </div>
-        </FluentBodyContent>
-    </FluentStack>
-</FluentLayout>
+                </div>
+            </FluentBodyContent>
+        </FluentStack>
+    </FluentLayout>
+    </CascadingValue>
 
+}
+else
+{
+    <Login></Login>
+}
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+@code {
+    private CurrentUser CurrentUser = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUserAsync();
+        StateHasChanged();
+    }
+}

@@ -60,6 +60,8 @@ namespace Service.SnapFood.Application.Service
 
             if (combo is not null)
             {
+                var product = _unitOfWork.ProductRepo.GetAll();
+                var size = _unitOfWork.SizesRepo.GetAll();
                 // Get combo items
                 var comboItems = _unitOfWork.ProductComboRepo
                     .FindWhere(x => x.ComboId == id)
@@ -67,31 +69,47 @@ namespace Service.SnapFood.Application.Service
                     {
                         ProductId = x.ProductId,
                         Quantity = x.Quantity,
-                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId).ProductName
+                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
+                        CategoryName = _unitOfWork.CategoriesRepo.GetById(product.FirstOrDefault(p=>p.Id == x.ProductId).CategoryId)?.CategoryName ?? "",
+
+                        Sizes = size.Where(s => s.ParentId == product.FirstOrDefault(p=>p.Id ==x.ProductId)?.SizeId && s.ModerationStatus == ModerationStatus.Approved&&s.ParentId!=null)
+
+                                    .Select(s => new SizeDto
+                                    {
+                                        Id = s.Id,
+                                        SizeName = s.SizeName,
+                                        AdditionalPrice = s.AdditionalPrice,
+                                        DisplayOrder = s.DisplayOrder
+                                    }).OrderBy(s => s.DisplayOrder).ToList()
                     })
                     .ToList();
+                
 
                 // Get category name
                 var category = _unitOfWork.CategoriesRepo.GetById(combo.CategoryId);
-
-                var comboDto = new ComboDto
+                if (category is not null)
                 {
-                    Id = combo.Id,
-                    CategoryId = combo.CategoryId,
-                    CategoryName = category.CategoryName,
-                    ComboName = combo.ComboName,
-                    ImageUrl = combo.ImageUrl,
-                    BasePrice = combo.BasePrice,
-                    Description = combo.Description,
-                    Quantity = combo.Quantity,
-                    Created = combo.Created,
-                    LastModified = combo.LastModified,
-                    ModerationStatus = combo.ModerationStatus,
-                    CreatedBy = combo.CreatedBy,
-                    LastModifiedBy = combo.LastModifiedBy,
-                    ComboItems = comboItems
-                };
-                return comboDto;
+                    var comboDto = new ComboDto
+                    {
+                        Id = combo.Id,
+                        CategoryId = combo.CategoryId,
+                        CategoryName = category.CategoryName,
+                        ComboName = combo.ComboName,
+                        ImageUrl = combo.ImageUrl,
+                        BasePrice = combo.BasePrice,
+                        Description = combo.Description,
+                        Quantity = combo.Quantity,
+                        Created = combo.Created,
+                        LastModified = combo.LastModified,
+                        ModerationStatus = combo.ModerationStatus,
+                        CreatedBy = combo.CreatedBy,
+                        LastModifiedBy = combo.LastModifiedBy,
+                        ComboItems = comboItems
+                    };
+                    return comboDto;
+                }
+
+               
             }
             return null;
         }
@@ -118,7 +136,7 @@ namespace Service.SnapFood.Application.Service
                     {
                         ProductId = x.ProductId,
                         Quantity = x.Quantity,
-                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId).ProductName
+                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName
                     }).ToList()
                 );
 

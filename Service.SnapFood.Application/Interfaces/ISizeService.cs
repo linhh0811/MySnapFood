@@ -14,7 +14,7 @@ namespace Service.SnapFood.Application.Interfaces
         List<Sizes> GetSizeSelect();
 
         Task<List<SizeTreeDto>> GetSizeTreeAsync();
-        Task<Sizes> GetByIdAsync(Guid id);
+        Task<Sizes?> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(SizeDto item);
         Task<bool> UpdateAsync(Guid id, SizeDto item);
         Task<bool> DeleteAsync(Guid id);

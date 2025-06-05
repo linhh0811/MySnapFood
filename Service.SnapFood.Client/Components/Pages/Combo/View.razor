@@ -1,0 +1,223 @@
+﻿@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.Combo
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@inherits ComponentBase
+@implements IDialogContentComponent<ViewParameters>
+<FluentDialogBody>
+    <FluentGrid Spacing="2" AdaptiveRendering="true">
+
+        <FluentGridItem xs="12" sm="5">
+
+            <FluentCard Style="min-height:350px;">
+
+                <img src="@ComboModel.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@ComboModel.ComboName" />
+                <FluentLabel Typo="Typography.H5">@ComboModel.ComboName</FluentLabel>
+                @foreach (var item in ComboModel.ComboItems)
+                {
+                    <p class="card-title" style="margin: 0;font-size:14px;font-weight:400;">@item.ProductName</p>
+                }
+            </FluentCard>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="7">
+
+            <FluentCard Style="height: 250px; overflow-y: auto;">
+                <FluentAccordion>
+                    @foreach (var item in ComboModel.ComboItems)
+                    {
+                        for (int i = 1; i <= item.Quantity; i++)
+                        {
+                            <FluentAccordionItem Heading="@(item.Quantity == 1 ? $"Chọn {item.CategoryName.ToLower()}" : $"Chọn {item.CategoryName.ToLower()} {i}")" Style="background-color:#ffc522">
+
+                                <div class="size-selector" style="background-color:#f5f1e6;padding:10px">
+                                    @if (item.Sizes is not null && item.Sizes.Count > 0)
+                                    {
+                                        @foreach (var size in item.Sizes)
+                                        {
+                                            <div class="size-item">
+                                                <FluentButton Appearance="Appearance.Stealth"
+                                                Class="@(GetSelectedSize(item.ProductId.ToString()) == size.SizeName ? "size-button selected" : "size-button")"
+                                                @onclick="() => SelectSize(item.ProductId.ToString(), size.SizeName,size.AdditionalPrice)">
+                                                    @size.SizeName
+                                                </FluentButton>
+                                                <FluentLabel Style="color:red">+@size.AdditionalPrice.ToString("N0") đ</FluentLabel>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="size-item">
+                                            <FluentButton Appearance="Appearance.Stealth"
+                                            Class="size-button selected">
+                                                Tiêu chuẩn
+                                            </FluentButton>
+                                            <FluentLabel Style="color:red">+0 đ</FluentLabel>
+                                        </div>
+                                    }
+                                </div>
+                            </FluentAccordionItem>
+                        }
+
+                    }
+                </FluentAccordion>
+            </FluentCard>
+            <FluentCard Style="height:90px; margin-top:10px; display: flex; align-items: center;">
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <FluentButton Appearance="Appearance.Outline" Style="width: 40px; height: 40px; background-color: red; color: white;" @onclick="DecreaseQuantity">-</FluentButton>
+                        <FluentLabel Style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; border-radius: 4px;">@quantity</FluentLabel>
+                        <FluentButton Appearance="Appearance.Outline" Style="width: 40px; height: 40px; background-color: red; color: white;" @onclick="IncreaseQuantity">+</FluentButton>
+                    </div>
+                    <FluentLabel Style="color: red; font-size: 20px; font-weight: bold;">@(TotalPrice.ToString("N0")) đ</FluentLabel>
+                </div>
+            </FluentCard>
+
+        </FluentGridItem>
+    </FluentGrid>
+</FluentDialogBody>
+<FluentDialogFooter>
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
+        <FluentButton Appearance="Appearance.Neutral" @onclick="HideDialog" Disabled="@isSaving">Hủy</FluentButton>
+        <FluentButton Appearance="Appearance.Outline" Type="ButtonType.Submit" Disabled="@isSaving" Style="background-color:red;color: white;">
+            @if (isSaving)
+            {
+                <span style="margin-left: 8px;">Đang thêm vào giỏ hàng...</span>
+            }
+            else
+            {
+                <span>Thêm vào giỏ hàng</span>
+            }
+        </FluentButton>
+    </FluentStack>
+
+</FluentDialogFooter>
+
+<style>
+    .size-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    }
+
+    .size-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    }
+
+    .size-button {
+    min-width: 40px;
+    height: 40px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 0 10px;
+    }
+
+    .size-button.selected {
+    border: 2px solid red;
+    }
+
+</style>
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public ViewParameters Content { get; set; } = new();
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private ComboDto ComboModel = new ComboDto();
+    private int quantity = 1;
+    private bool isSaving = false;
+
+    private Dictionary<string, string> selectedSizes = new Dictionary<string, string>();
+    private Dictionary<string, decimal> sizePrices = new Dictionary<string, decimal>();
+    private decimal TotalPrice { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCombo();
+        TotalPrice = ComboModel.BasePrice;
+
+
+    }
+
+    private async Task GetCombo()
+    {
+
+        requestRestAPI.Endpoint = $"api/Combo/{Content.Id}";
+        ResultAPI result = await CallApi.Get<ComboDto>(requestRestAPI);
+        if (result.Status == StatusCode.OK)
+        {
+            ComboModel = result.Data as ComboDto ?? new ComboDto();
+        }
+
+    }
+
+
+    private void IncreaseQuantity()
+    {
+        quantity++;
+        UpdateTotalPrice();
+    }
+
+    private void DecreaseQuantity()
+    {
+        if (quantity > 1) quantity--;
+        UpdateTotalPrice();
+    }
+
+
+    private void UpdateTotalPrice()
+    {
+        decimal basePrice = ComboModel.BasePrice;
+        decimal sizeAdditionalPrice = 0;
+
+        // Tính tổng phí size
+        foreach (var price in sizePrices.Values)
+        {
+            sizeAdditionalPrice += price;
+        }
+
+        TotalPrice = (basePrice + sizeAdditionalPrice) * quantity;
+
+        StateHasChanged();
+    }
+    private async Task HideDialog()
+    {
+        await Dialog.CloseAsync();
+    }
+
+    private void SelectSize(string productId, string size, decimal additionalPrice)
+    {
+        if (selectedSizes.ContainsKey(productId))
+        {
+            selectedSizes[productId] = size;
+            sizePrices[productId] = additionalPrice;
+        }
+        else
+        {
+            selectedSizes.Add(productId, size);
+            sizePrices.Add(productId, additionalPrice);
+        }
+
+        UpdateTotalPrice();
+    }
+
+    private string GetSelectedSize(string productId)
+    {
+        if (selectedSizes.TryGetValue(productId, out var size))
+        {
+            return size;
+        }
+        return string.Empty;
+    }
+}
+

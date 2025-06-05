@@ -1,4 +1,8 @@
 ﻿@using Service.SnapFood.Client.Components.Pages.Auth
+@using Service.SnapFood.Share.Model.Commons
+@using Microsoft.AspNetCore.Components.Authorization;
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 <nav class="navbar navbar-expand-sm navbar-light bg-white fixed-top shadow-sm" style="z-index:1">
     <div class="container">
         <!-- Logo hoặc tiêu đề -->
@@ -12,30 +16,59 @@
         <!-- Menu -->
         <div class="collapse navbar-collapse fs-4" id="navbarNav">
             <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
-                    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
-                </li>
+                <FluentNavLink Href="/">Trang chủ</FluentNavLink>
 
-                <li class="nav-item">
-                    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="OrderHome">Đặt hàng</a>
-                </li>
+                <FluentSpacer Width="15" />
+
+                <FluentNavLink Href="/Order-Home">Đặt hàng</FluentNavLink>
 
             </ul>
             <!-- Nút Login -->
+            @if (CurrentUser.UserId != Guid.Empty)
+            {
+                <ul class="navbar-nav navbar-right">
+                    <FluentCounterBadge Count="1" Appearance="Appearance.Accent">
+                        <FluentButton Title="Giỏ hàng" Appearance="Appearance.Stealth">
+                            <FluentIcon Value="@(new Icons.Regular.Size24.Cart())" Color="@Color.Neutral" />
+                        </FluentButton>
+                    </FluentCounterBadge>
+                    <FluentSpacer Width="15" />                  
 
-            <ul class="navbar-nav navbar-right">
-                <li class="nav-item">
-                    <FluentButton Appearance="Appearance.Accent"
-                                  Class="rounded-pill"
-                                  OnClick="OpenModalAuth">
-                        Đăng nhập/Đăng ký
+                    <FluentButton Title="Thông tin người dùng" Appearance="Appearance.Stealth">
+                        <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size24.Person())" Color="@Color.Neutral" />
                     </FluentButton>
-                </li>
-            </ul>
+
+                    <FluentSpacer Width="10" />
+
+                    <FluentLabel Style="font-size:18px;" class="nav-link navbar-text">Xin chào, @CurrentUser.UserName</FluentLabel>
+
+                    <FluentSpacer Width="10" />
+
+                    <FluentButton Title="Đăng xuất" Appearance="Appearance.Outline" OnClick="Logout">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.SignOut())" />
+                    </FluentButton>
+                </ul>
+            }
+            else
+            {
+                <ul class="navbar-nav navbar-right">
+                    <li class="nav-item">
+                        <FluentButton Appearance="Appearance.Accent"
+                                      Class="rounded-pill"
+                                      OnClick="OpenModalAuth">
+                            Đăng nhập/Đăng ký
+                        </FluentButton>
+                    </li>
+                </ul>
+
+            }
+
         </div>
     </div>
 </nav>
 @code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
 
@@ -47,6 +80,11 @@
                 {
                     Title = null,
                     PreventScroll = true,
+                    Modal = true,
+                    PreventDismissOnOverlayClick = false,
+                    ShowDismiss = false,
+
+
 
                 });
         }
@@ -54,6 +92,15 @@
         {
             ToastService.ShowError($"Lỗi khi mở modal: {ex.Message}");
         }
+    }
+
+    private async Task Logout()
+    {
+
+            await ((Infrastructure.Service.CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+            Navigation.NavigateTo("/", forceLoad: true);
+
+
     }
 
 }

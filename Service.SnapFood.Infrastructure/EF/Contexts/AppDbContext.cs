@@ -21,25 +21,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.ApplyConfiguration(new CartConfigurations());
-            builder.ApplyConfiguration(new CartItemConfigurations());
-            builder.ApplyConfiguration(new BillConfigurations());
-            builder.ApplyConfiguration(new BillDetailsConfigurations());
-            builder.ApplyConfiguration(new ComboConfigurations());
-            builder.ApplyConfiguration(new ProductComboConfigurations());
-            builder.ApplyConfiguration(new ProductConfigurations());
-            builder.ApplyConfiguration(new AddressConfigurations());
-            builder.ApplyConfiguration(new UserConfigurations());
-            builder.ApplyConfiguration(new BillDeliveryConfigurations());
-            builder.ApplyConfiguration(new BillNotesConfigurations());
-            builder.ApplyConfiguration(new BillPaymentConfigurations());
-            builder.ApplyConfiguration(new ComboItemsArchiveConfigurations());
-            builder.ApplyConfiguration(new UserRoleConfigurations());
-            builder.ApplyConfiguration(new RoleConfigurations());
-            builder.ApplyConfiguration(new SizesConfigurations());
-            builder.ApplyConfiguration(new CategoriesConfigurations());
-            builder.ApplyConfiguration(new StoreConfigurations());
-
+           
 
             builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
             base.OnModelCreating(builder);
@@ -189,13 +171,15 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
                 CategoryName = "Đồ uống",
-                ImageUrl = "https://www.lotteria.vn/media/catalog/tmp/category/MENU_DAT_HANG_THU_C_UO_NG_new_3.jpg",
+                DisplayOrder = 5,
+                ImageUrl = "https://jollibee.com.vn//media/catalog/category/thucuong.png",
                 ModerationStatus = ModerationStatus.Approved,
             },
             new Categories
             {
                 Id = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
                 CategoryName = "Gà sốt cay",
+                DisplayOrder = 1,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/web-07.png",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -203,6 +187,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("90dc4303-d8e3-4e08-99cd-fbfe73b5ef00"),
                 CategoryName = "Mỳ ý",
+                DisplayOrder = 2,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/web-06.png",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -210,6 +195,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"),
                 CategoryName = "Combo gà",
+                DisplayOrder=7,
                 ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/222278_4.png.webp",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -217,6 +203,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),
                 CategoryName = "Gà rán",
+                DisplayOrder = 3,
                 ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0001_4.png.webp",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -224,6 +211,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
                 CategoryName = "Hamburger",
+                DisplayOrder = 4,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/cat_burger_1.png",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -231,6 +219,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),
                 CategoryName = "Phần ăn phụ",
+                DisplayOrder = 6,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/phananphu.png",
                 ModerationStatus = ModerationStatus.Approved,
             }
@@ -492,6 +481,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"),
                 RoleName = "Admin",
+                EnumRole=EnumRole.Admin,
                 Description = "Quản trị viên",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -499,6 +489,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d2e"),
                 RoleName = "Quản lý",
+                EnumRole = EnumRole.Manager,
                 Description = "Quản trị viên",
                 ModerationStatus = ModerationStatus.Approved,
             },
@@ -506,6 +497,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             {
                 Id = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
                 RoleName = "Nhân viên",
+                EnumRole = EnumRole.Staff,
                 Description = "Nhân viên",
                 ModerationStatus = ModerationStatus.Approved,
             });
@@ -560,7 +552,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             }
         }
         public DbSet<Cart> Carts { get; set; }
-        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<CartProductItem> CartItems { get; set; }
         public DbSet<Bill> Bill { get; set; }
         public DbSet<BillDetails> BillDetailses { get; set; }
         public DbSet<Combo> Combos { get; set; }

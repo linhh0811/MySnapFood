@@ -18,14 +18,18 @@ namespace Service.SnapFood.Application
         {
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IStaffService, StaffService>();
+
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ISizeService, SizeService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IComboService, ComboService>();
             services.AddScoped<IBillService, BillService>();
-           
+            services.AddScoped<IStaffService, StaffService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddSingleton<IJwtService, JwtService>();
-
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IBillService, BillService>();
             return services;
         }
     }

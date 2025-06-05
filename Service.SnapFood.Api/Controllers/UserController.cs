@@ -2,6 +2,8 @@
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Application.Service;
+
+using Service.SnapFood.Share.Query;
 using System;
 using System.Threading.Tasks;
 
@@ -24,30 +26,14 @@ namespace Service.SnapFood.Api.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            var user = await _userService.LoginAsync(loginDto);
 
-            if (user != null)
+            var tokenString = await _userService.LoginAsync(item);
+            if (tokenString == null)
             {
-               
+                return Unauthorized(new { Message = "Thông tin đăng nhập không chính xác" });
+            }
 
-                return Ok(new
-                {
-                    message = "Đăng nhập thành công",
-                    user = new
-                    {
-                        user.Id,
-                        user.FullName,
-                        user.Email
-                    }
-                });
-            }
-            else
-            {
-                return Unauthorized(new
-                {
-                    error = "Email hoặc mật khẩu không chính xác"
-                });
-            }
+            return Ok(tokenString);
         }
 
        
@@ -60,17 +46,17 @@ namespace Service.SnapFood.Api.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto item)
         {
-            try
-            {
-                var result = await _userService.RegisterAsync(item);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = result }, item);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
 
+            var result = await _userService.RegisterAsync(item);
+            return Ok();
+
+        }
+        [HttpPost("GetPaged")]
+        public IActionResult GetPage(BaseQuery query)
+        {
+            var result = _userService.GetPaged(query);
+            return Ok(result);
+        }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {

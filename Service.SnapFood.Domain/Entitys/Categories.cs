@@ -11,6 +11,8 @@ namespace Service.SnapFood.Domain.Entitys
     {
         public string CategoryName { get; set; } = string.Empty;
         public string ImageUrl { get; set; }= string.Empty;
+        public int DisplayOrder { get; set; }
+
         public virtual List<Product> Product { get; set; } = null!;
         public virtual List<Combo> Combo { get; set; } = null!;
 

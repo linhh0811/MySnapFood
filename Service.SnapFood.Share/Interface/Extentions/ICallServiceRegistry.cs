@@ -9,6 +9,7 @@ namespace Service.SnapFood.Share.Interface.Extentions
 {
     public interface ICallServiceRegistry
     {
+        Task SetAuthorizeHeader();
         Task<ResultAPI> Delete(ApiRequestModel apiRequestModel);
         Task<ResultAPI> Put(ApiRequestModel apiRequestModel, object data);
         Task<ResultAPI> Get<T>(ApiRequestModel apiRequestModel);
