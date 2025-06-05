@@ -1,0 +1,183 @@
+﻿@namespace Service.SnapFood.Manage.Components.Pages.Manage.Staff
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.StaffDto
+@using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+<FluentDialog @ref="Dialog" Modal="true" TrapFocus="true" Style="width: 500px;">
+    <FluentDialogHeader>
+        <h3>@(Content.IsEditMode ? "Sửa nhân viên" : "Thêm nhân viên")</h3>
+    </FluentDialogHeader>
+
+    <EditForm Model="StaffModel" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error">
+                @ErrorMessage
+            </FluentMessageBar>
+        }
+        <FluentStack Orientation="Orientation.Vertical" Gap="15">
+            <FluentTextField Label="Tên nhân viên" @bind-Value="StaffModel.FullName" Style="width:100%;" />
+            <ValidationMessage style="color:red" For="@(() => StaffModel.FullName)" />
+
+            <FluentTextField Label="Số điện thoại" @bind-Value="StaffModel.Numberphone" Style="width:100%;" />
+            <ValidationMessage style="color:red" For="@(() => StaffModel.Numberphone)" />
+
+            <FluentTextField Label="Email" @bind-Value="StaffModel.Email" Style="width:100%;" />
+            <ValidationMessage style="color:red" For="@(() => StaffModel.Email)" />
+
+            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
+                <FluentButton Appearance="Appearance.Neutral" @onclick="HideDialog" Disabled="@isSaving">Hủy</FluentButton>
+                <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span style="margin-left: 8px;">Đang lưu...</span>
+                    }
+                    else
+                    {
+                        <span>Lưu</span>
+                    }
+                </FluentButton>
+            </FluentStack>
+        </FluentStack>
+    </EditForm>
+</FluentDialog>
+
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
+
+    private ApiRequestModel requestRestAPI = new ApiRequestModel();
+    private StaffDto StaffModel { get; set; } = new StaffDto();
+
+    private string? ErrorMessage;
+    private bool isSaving = false;
+
+    // Tự động gọi load dữ liệu khi có Id và đang sửa
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Content.IsEditMode && Content.Id != Guid.Empty)
+        {
+            await GetStaff();
+        }
+        else
+        {
+            StaffModel = new StaffDto();
+            ErrorMessage = null;
+        }
+    }
+
+    private async Task GetStaff()
+    {
+        requestRestAPI.Endpoint = $"api/Staff/{Content.Id}";
+        ResultAPI result = await CallApi.Get<StaffDto>(requestRestAPI);
+        if (result.Status == StatusCode.OK)
+        {
+            StaffModel = result.Data as StaffDto ?? new StaffDto();
+        }
+        else
+        {
+            ErrorMessage = "Lấy dữ liệu nhân viên thất bại: " + result.Message;
+        }
+    }
+
+    private async Task<bool> CreateModule(StaffDto createRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            requestRestAPI.Endpoint = "api/Staff";
+            ResultAPI result = await CallApi.Post<StaffDto>(requestRestAPI, createRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Thêm nhân viên thành công.");
+                return true;
+            }
+            else
+            {
+                ErrorMessage = "Thêm nhân viên thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Thêm nhân viên thất bại: " + ex.Message;
+            return false;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task<bool> UpdateModule(Guid id, StaffDto updateRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            requestRestAPI.Endpoint = $"api/Staff/{id}";
+            ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Sửa nhân viên thành công.");
+                return true;
+            }
+            else
+            {
+                ErrorMessage = "Sửa nhân viên thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Sửa nhân viên thất bại: " + ex.Message;
+            return false;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (isSaving) return;
+
+        isSaving = true;
+        bool result = false;
+
+        if (Content.IsEditMode)
+        {
+            result = await UpdateModule(Content.Id, StaffModel);
+        }
+        else
+        {
+            result = await CreateModule(StaffModel);
+        }
+
+        if (result)
+        {
+            await Dialog.CloseAsync();
+            await Content.OnRefresh.InvokeAsync();
+        }
+        else
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task HideDialog()
+    {
+        await Dialog.CloseAsync();
+    }
+}

@@ -16,6 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Service.SnapFood.Application\Service.SnapFood.Application.csproj" />
+    <ProjectReference Include="..\Service.SnapFood.Infrastructure\Service.SnapFood.Infrastructure.csproj" />
     <ProjectReference Include="..\Service.SnapFood.Share\Service.SnapFood.Share.csproj" />
   </ItemGroup>
 
