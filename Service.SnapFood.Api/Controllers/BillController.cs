@@ -18,7 +18,7 @@ namespace Service.SnapFood.Api.Controllers
             _billService = billService;
         }
 
-        [HttpPost("GetPage")]
+        [HttpPost("GetPaged")]
         public IActionResult GetPage([FromBody] BaseQuery query)
         {
             var result = _billService.GetPage(query);

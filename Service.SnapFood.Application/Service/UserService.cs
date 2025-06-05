@@ -143,6 +143,7 @@ namespace Service.SnapFood.Application.Service
             };
         }
 
+
         //public async Task<Guid> RegisterAsync(RegisterDto item)
         //{
         //    if (item == null)

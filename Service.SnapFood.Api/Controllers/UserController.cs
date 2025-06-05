@@ -4,7 +4,6 @@ using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Application.Service;
 
 using Service.SnapFood.Share.Query;
-
 using System;
 using System.Threading.Tasks;
 
@@ -15,15 +14,19 @@ namespace Service.SnapFood.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+      
 
         public UserController(IUserService userService)
         {
             _userService = userService;
         }
 
+    
+
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto item)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
+
             var tokenString = await _userService.LoginAsync(item);
             if (tokenString == null)
             {
@@ -32,6 +35,13 @@ namespace Service.SnapFood.Api.Controllers
 
             return Ok(tokenString);
         }
+
+       
+
+
+
+
+
 
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto item)

@@ -37,12 +37,13 @@ namespace Service.SnapFood.Application.Service
                     ref totalRecords
                 );
 
-                var data = dataQuery.AsEnumerable()
+                var data = dataQuery.ToList()
                     .Select((m, i) => new BillDto
                     {
                         Id = m.Id,
                         BillCode = m.BillCode,
                         UserId = m.UserId,
+                        FullName = _unitOfWork.UserRepo.GetById(m.UserId).FullName,
                         StoreId = m.StoreId,
                         Status = m.Status,
                         TotalAmount = m.TotalAmount,
