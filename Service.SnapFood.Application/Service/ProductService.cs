@@ -59,7 +59,7 @@ namespace Service.SnapFood.Application.Service
             return products.ToList();
         }
 
-        public async Task<Product> GetByIdAsync(Guid id)
+        public async Task<Product?> GetByIdAsync(Guid id)
         {
             var product = await _unitOfWork.ProductRepo.GetByIdAsync(id);
             return product;
@@ -218,8 +218,15 @@ namespace Service.SnapFood.Application.Service
         private string GetCategoryNameById(Guid id)
         {
 
-           var category = _unitOfWork.CategoriesRepo.GetById(id);
-            return category.CategoryName;
+            var category = _unitOfWork.CategoriesRepo.GetById(id);
+            if (category is null)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return category.CategoryName;
+            }
         }
         private string? GetSizeNameById(Guid id)
         {

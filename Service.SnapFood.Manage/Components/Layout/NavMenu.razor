@@ -1,5 +1,7 @@
 ﻿@using Microsoft.FluentUI.AspNetCore.Components
-
+@using Microsoft.AspNetCore.Components.Authorization;
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 <FluentStack Orientation="Orientation.Horizontal" Style="width:250px;padding-top:15px">
     <FluentNavMenu Title="Databound">
         <!-- Nhóm Bán hàng -->
@@ -14,10 +16,40 @@
             <FluentNavLink Icon="@(new Icons.Regular.Size24.Box())" Href="/Quan-Ly/San-Pham">Sản phẩm</FluentNavLink>
             <FluentNavLink Icon="@(new Icons.Regular.Size24.AppsList())" Href="/Quan-Ly/Combo">Combo</FluentNavLink>
             <FluentNavLink Icon="@(new Icons.Regular.Size24.DocumentCheckmark())">Đơn hàng</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.People())">Khách hàng</FluentNavLink>
+
             <FluentNavLink Icon="@(new Icons.Regular.Size24.PersonStar())" Href="/Quan-Ly/Nhan-Vien">Nhân viên</FluentNavLink>
+
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.People())" Href="/Quan-Ly/Nguoi-Dung">Khách hàng</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.Settings())" Href="/Quan-Ly/Quyen">Quản lý quyền</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size24.PersonStar())">Nhân viên</FluentNavLink>
             <FluentNavLink Icon="@(new Icons.Regular.Size24.Settings())" Href="/Quan-Ly/Size-PhanLoai">QL chung</FluentNavLink>
         </FluentNavGroup>
+        
+        <div style="padding-top:20px;">
+            <hr />
+            <FluentNavLink Appearance="Appearance.Neutral"
+            Icon="@(new Icons.Regular.Size24.SignOut())"
+            OnClick="Logout">
+                Đăng xuất
+            </FluentNavLink>
+        </div>
     </FluentNavMenu>
 </FluentStack>
 
+@code {
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+
+    private async Task Logout()
+    {
+        var dialog = await DialogService.ShowDialogAsync<LogoutComfirm>(new DialogParameters());
+        var result = await dialog.Result;
+
+        if (result.Cancelled == false && result.Data is bool success && success)
+        {
+            await ((Infrastructure.Services.CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+       
+
+    }
+}

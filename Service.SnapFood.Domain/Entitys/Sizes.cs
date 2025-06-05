@@ -16,5 +16,10 @@ namespace Service.SnapFood.Domain.Entitys
         public virtual List<Product> Product { get; set; } = null!;
         public virtual Sizes? Parent { get; set; }
 
+        public virtual List<CartProductItem> CartProductItem { get; set; } = null!;
+
+        public virtual List<ComboProductItem> ComboProductItem { get; set; } = null!;
+
+
     }
 }

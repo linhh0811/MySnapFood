@@ -14,6 +14,8 @@ namespace Service.SnapFood.Application.Dtos
         public int Index { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
+        public int DisplayOrder { get; set; }
+
         public ModerationStatus ModerationStatus { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
