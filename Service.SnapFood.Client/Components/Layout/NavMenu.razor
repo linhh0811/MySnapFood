@@ -16,13 +16,11 @@
         <!-- Menu -->
         <div class="collapse navbar-collapse fs-4" id="navbarNav">
             <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
-                    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
-                </li>
+                <FluentNavLink Href="/">Trang chủ</FluentNavLink>
 
-                <li class="nav-item">
-                    <a class="nav-link " asp-area="" asp-controller="Home" asp-action="OrderHome">Đặt hàng</a>
-                </li>
+                <FluentSpacer Width="15" />
+
+                <FluentNavLink Href="/Order-Home">Đặt hàng</FluentNavLink>
 
             </ul>
             <!-- Nút Login -->
@@ -30,17 +28,11 @@
             {
                 <ul class="navbar-nav navbar-right">
                     <FluentCounterBadge Count="1" Appearance="Appearance.Accent">
-                        <FluentButton Appearance="Appearance.Stealth">
+                        <FluentButton Title="Giỏ hàng" Appearance="Appearance.Stealth">
                             <FluentIcon Value="@(new Icons.Regular.Size24.Cart())" Color="@Color.Neutral" />
                         </FluentButton>
                     </FluentCounterBadge>
-                    <FluentSpacer Width="15" />
-                   @*  <FluentCounterBadge Count="0" Appearance="Appearance.Stealth">
-                        <FluentButton Title="Giỏ hàng" Appearance="Appearance.Stealth">
-                            <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size24.Cart())" />
-                        </FluentButton>
-                    </FluentCounterBadge> *@
-                  
+                    <FluentSpacer Width="15" />                  
 
                     <FluentButton Title="Thông tin người dùng" Appearance="Appearance.Stealth">
                         <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size24.Person())" Color="@Color.Neutral" />

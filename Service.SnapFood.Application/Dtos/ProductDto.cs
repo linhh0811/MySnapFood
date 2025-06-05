@@ -24,6 +24,7 @@ namespace Service.SnapFood.Application.Dtos
         public decimal BasePrice { get; set; }
         public string CategoryName { get; set; }= string.Empty;
         public string? SizeName { get; set; } 
+        public List<SizeDto>? Sizes { get; set; }
         public ModerationStatus ModerationStatus { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }

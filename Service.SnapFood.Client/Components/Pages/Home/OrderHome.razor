@@ -1,0 +1,22 @@
+﻿@page "/Order-Home"
+@using Service.SnapFood.Client.Components.Pages.Category
+@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.Category
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+@using Service.SnapFood.Share.Query.Grid
+@using System.Text.Json
+<br/>
+<CategoryOrderHome></CategoryOrderHome>
+<hr />
+<Service.SnapFood.Client.Components.Pages.Product.Index></Service.SnapFood.Client.Components.Pages.Product.Index>
+<Service.SnapFood.Client.Components.Pages.Combo.Index></Service.SnapFood.Client.Components.Pages.Combo.Index>
+
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+   
+}

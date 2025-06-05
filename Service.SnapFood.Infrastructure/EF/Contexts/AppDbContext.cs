@@ -172,7 +172,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 Id = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
                 CategoryName = "Đồ uống",
                 DisplayOrder = 5,
-                ImageUrl = "https://www.lotteria.vn/media/catalog/tmp/category/MENU_DAT_HANG_THU_C_UO_NG_new_3.jpg",
+                ImageUrl = "https://jollibee.com.vn//media/catalog/category/thucuong.png",
                 ModerationStatus = ModerationStatus.Approved,
             },
             new Categories

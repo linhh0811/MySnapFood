@@ -59,10 +59,43 @@ namespace Service.SnapFood.Application.Service
             return products.ToList();
         }
 
-        public async Task<Product?> GetByIdAsync(Guid id)
+        public async Task<ProductDto?> GetByIdAsync(Guid id)
         {
             var product = await _unitOfWork.ProductRepo.GetByIdAsync(id);
-            return product;
+            if (product is not null)
+            {
+                ProductDto productDto = new ProductDto()
+                {
+                    Id = product.Id,
+                    CategoryId=product.CategoryId,
+                    SizeId=product.SizeId,
+                    ImageUrl=product.ImageUrl,
+                    ProductName=product.ProductName,
+                    Description = product.Description,
+                    BasePrice=product.BasePrice,
+                    ModerationStatus=product.ModerationStatus
+
+
+                };
+                if (product.SizeId is not null)
+                {
+                    var sizes = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == product.SizeId&&x.ModerationStatus== ModerationStatus.Approved);
+                    var sizeDtos = sizes.Select(x => new SizeDto()
+                    {
+                        Id = x.Id,
+                        SizeName = x.SizeName,
+                        AdditionalPrice=x.AdditionalPrice,
+                        DisplayOrder = x.DisplayOrder,
+                    }).OrderBy(x=>x.DisplayOrder);
+ 
+                    
+                    productDto.Sizes = sizeDtos.ToList();
+                }
+
+                return productDto;
+            }
+            return null;
+           
         }
 
         public DataTableJson GetPaged(BaseQuery query)
