@@ -24,7 +24,7 @@ namespace Service.SnapFood.Api.Controllers
     
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginDto item)
         {
 
             var tokenString = await _userService.LoginAsync(item);

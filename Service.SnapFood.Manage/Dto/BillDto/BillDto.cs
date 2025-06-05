@@ -1,4 +1,5 @@
-﻿using Service.SnapFood.Domain.Enums;
+﻿
+using Service.SnapFood.Share.Model.Enum;
 using System.ComponentModel.DataAnnotations;
 
 namespace Service.SnapFood.Manage.Dto.BillDto
