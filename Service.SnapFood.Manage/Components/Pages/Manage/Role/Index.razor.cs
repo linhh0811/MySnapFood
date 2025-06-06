@@ -134,7 +134,9 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Role
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
                     Modal = true,
-                    Width ="1000px"
+                    Width ="800px",
+                    ShowDismiss=false,
+                    ShowTitle=false
                 });
             }
             catch (Exception ex)

@@ -16,15 +16,20 @@
 @implements IDialogContentComponent<EditOrUpdateParameters>
 
 <FluentStack Orientation="Orientation.Vertical" Gap="15">
-    <h4>Danh sách người dùng</h4>
-    <FluentSearch @bind-Value="SearchKeyword" @bind-Value:after="RefreshDataAsync" Placeholder="Nhập vào từ khóa" />
+    <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+           <h4>Gán người dùng vào quyền</h4>
+        </FluentStack>
+        <FluentSearch @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
+    </FluentStack>
+
     <FluentGridItem Style="width:100%;">
         <FluentDataGrid @ref="UserGrid"
                         TGridItem="UserDto"
                         ItemsProvider="@LoadUsers"
                         Pagination="@pagination"
                         ResizableColumns="false"
-                        GridTemplateColumns="0.5fr 1.5fr 1.5fr 0.5fr"
+                        GridTemplateColumns="0.5fr 1.5fr 1.5fr 0.70fr"
                         RowSize="DataGridRowSize.Large"
                         ShowHover="true"
                         Style="max-height: 500px; overflow-y: auto;">
@@ -46,7 +51,7 @@
             <TemplateColumn Title="Hành động" Style="display: flex; justify-content: center; align-items: center;">
                 @if (context.IsInRole)
                 {
-                    <FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" Title="Đã thuộc quyền" />
+                    <FluentIcon Value="@(new Icons.Regular.Size20.Checkmark())" Title="Đã thuộc quyền" />
                 }
                 else
                 {
@@ -54,7 +59,7 @@
                                   Appearance="Appearance.Outline"
                                   OnClick="@(() => AddUserToRole(context.Id))"
                                   Disabled="@isSaving">
-                        <FluentIcon Value="@(new Icons.Regular.Size16.Add())" />
+                        <FluentIcon Value="@(new Icons.Regular.Size20.PersonAdd())" />
                     </FluentButton>
                 }
             </TemplateColumn>
@@ -62,3 +67,7 @@
     </FluentGridItem>
     <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefreshData" />
 </FluentStack>
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@CancelAsync">Thoát</FluentButton>
+  
+</FluentDialogFooter>

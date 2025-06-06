@@ -64,7 +64,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
         #region get dữ liệu
         private async Task GetCategory()
         {
-
+            ApiRequestModel requestRestAPI = new ApiRequestModel() { };
             requestRestAPI.Endpoint = $"api/Category/";
             ResultAPI result = await CallApi.Get<List<CategoryDto>>(requestRestAPI);
             if (result.Status == StatusCode.OK)
@@ -76,7 +76,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
         }
         private async Task GetCombo()
         {
-
+            ApiRequestModel requestRestAPI = new ApiRequestModel() { };
             requestRestAPI.Endpoint = $"api/Combo/{Content.Id}";
             ResultAPI result = await CallApi.Get<ComboDto>(requestRestAPI);
             if (result.Status == StatusCode.OK)
