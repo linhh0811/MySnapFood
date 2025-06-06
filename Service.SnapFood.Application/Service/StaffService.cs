@@ -59,11 +59,11 @@ namespace Service.SnapFood.Application.Service
 
             int totalRecords = 0;
             var dataQuery = _unitOfWork.UserRepo.FilterData(
-                q => q,
+                q => q.Where(x => x.UserType == UserType.Store),
                 query.gridRequest,
                 ref totalRecords
 
-            ).Where(x => x.UserType == Domain.Enums.UserType.Store );
+            );
 
             var data = dataQuery.AsEnumerable()
                 .Select((m, i) => new StaffDto

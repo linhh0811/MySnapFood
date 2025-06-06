@@ -122,5 +122,9 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Role
         {
             if (UserGrid != null) await UserGrid.RefreshDataAsync();
         }
+        public async Task CancelAsync()
+        {
+            await Dialog.CancelAsync();
+        }
     }
 }
