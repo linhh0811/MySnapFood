@@ -9,12 +9,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Service.SnapFood.Infrastructure.EF.Contexts;
 using Service.SnapFood.Domain.Entitys;
+using Service.SnapFood.Share.Interface.Extentions;
 
 namespace Service.SnapFood.Infrastructure.Repositorys.Base
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
+        private readonly IRequestContext _requestContext;
+
         private IDbContextTransaction? _transaction;
         public IProductRepository ProductRepo { get; private set; }
 

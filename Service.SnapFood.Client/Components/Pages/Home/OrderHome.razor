@@ -9,14 +9,16 @@
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
 <br/>
-<CategoryOrderHome></CategoryOrderHome>
+<CategoryOrderHome  OnCategorySelected="OnCategorySelected"></CategoryOrderHome>
 <hr />
-<Service.SnapFood.Client.Components.Pages.Product.Index></Service.SnapFood.Client.Components.Pages.Product.Index>
-<Service.SnapFood.Client.Components.Pages.Combo.Index></Service.SnapFood.Client.Components.Pages.Combo.Index>
+<Service.SnapFood.Client.Components.Pages.Product.Index  OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Product.Index>
+<Service.SnapFood.Client.Components.Pages.Combo.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Combo.Index>
 
 @code {
-    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
-    [Inject] private IToastService ToastService { get; set; } = default!;
-    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
-   
+    private CategoryDto categorySelected = new();
+
+    private void OnCategorySelected(CategoryDto category)
+    {
+        categorySelected = category;
+    }
 }
