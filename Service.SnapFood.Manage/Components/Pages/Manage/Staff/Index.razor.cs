@@ -13,9 +13,9 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Staff
 {
     public partial class Index : ComponentBase
     {
-        [Inject] private ICallServiceRegistry CallApi { get; set; } = default;
-        [Inject] private IToastService ToastService { get; set; } = default;
-        [Inject] private IDialogService DialogService { get; set; } = default;
+        [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+        [Inject] private IToastService ToastService { get; set; } = default!;
+        [Inject] private IDialogService DialogService { get; set; } = default!;
         private ApiRequestModel requestRestAPI = new ApiRequestModel();
         protected FluentDataGrid<StaffDto> StaffGrid { get; set; } = default!;
         protected string SearchKeyword { get; set; } = string.Empty;

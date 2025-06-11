@@ -7,19 +7,22 @@
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
 <header>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light p-3">
         <div class="container">
             <ul class="navbar-nav mx-auto" style="width:100%">
                 <FluentHorizontalScroll Style="width: 80%; margin: 0 auto;">
                     @foreach (var category in categoryDtos)
                     {
                         <li style="width: 170px;" class="nav-item mx-3">
-                            <img src="@category.ImageUrl"
-                                 style="height: 70px; width: 100%; object-fit: cover;"
-                                 alt="@category.CategoryName">
-                            <div style="text-align: center;">
-                                <a class="nav-link text-muted fw-bold fs-5 active" href="#uudai">@category.CategoryName</a>
+                            <div @onclick="()=>SelectCategory(category)">
+                                <img src="@category.ImageUrl"
+                                style="height: 70px; width: 100%; object-fit: cover;"
+                                alt="@category.CategoryName">
+                                <div style="text-align: center;">
+                                    <a class="nav-link text-muted fw-bold fs-5 active"><p style="@(category.Id == CategorySelect.Id ? "color: red;":"" )">@category.CategoryName</p></a>
+                                </div>
                             </div>
+
                         </li>
                     }
                 </FluentHorizontalScroll>
@@ -33,10 +36,20 @@
     [Inject] private IToastService ToastService { get; set; } = default!;
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private List<CategoryDto> categoryDtos = new List<CategoryDto>();
+    [Parameter]
+    public EventCallback<List<CategoryDto>> DataCategory { get; set; }
+    [Parameter]
+    public EventCallback<CategoryDto> OnCategorySelected { get; set; }
+
+    private CategoryDto CategorySelect = new();
+
 
     protected override async Task OnInitializedAsync()
     {
         await LoadCategory();
+        await DataCategory.InvokeAsync(categoryDtos);
+        await OnCategorySelected.InvokeAsync(categoryDtos.First());
+        CategorySelect = categoryDtos.First();
     }
     private async Task LoadCategory()
     {
@@ -61,11 +74,11 @@
             ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
             if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
             {
-                var items = JsonSerializer.Deserialize<List<CategoryDto>>(dataTable.Data.GetRawText(),
+                var categoryDto = JsonSerializer.Deserialize<List<CategoryDto>>(dataTable.Data.GetRawText(),
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CategoryDto>();
 
 
-                categoryDtos = items.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
+                categoryDtos = categoryDto.Where(x => x.ModerationStatus == ModerationStatus.Approved && x.IsExits == true).ToList();
 
             }
             StateHasChanged();
@@ -75,5 +88,12 @@
         {
             ToastService.ShowError($"Lỗi khi tải danh sách phân loại: {ex.Message}");
         }
+    }
+
+    private async Task SelectCategory(CategoryDto category)
+    {
+        CategorySelect = category;
+        await OnCategorySelected.InvokeAsync(category); // Gửi danh mục được chọn lên cha
+        StateHasChanged();
     }
 }

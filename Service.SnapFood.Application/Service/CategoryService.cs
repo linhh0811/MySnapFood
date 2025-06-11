@@ -103,6 +103,14 @@ namespace Service.SnapFood.Application.Service
 
         public DataTableJson GetPaged(BaseQuery query)
         {
+            var productCategoryIds = _unitOfWork.ProductRepo
+                                    .GetAll()
+                                    .Select(p => p.CategoryId)
+                                    .Distinct();
+            var comboCategoryIds = _unitOfWork.ComboRepo
+                                    .GetAll()
+                                    .Select(p => p.CategoryId)
+                                    .Distinct();
             int totalRecords = 0;
             var dataQuery = _unitOfWork.CategoriesRepo.FilterData(
                 q => q, // Bỏ hoàn toàn điều kiện Where
@@ -122,6 +130,7 @@ namespace Service.SnapFood.Application.Service
                 ModerationStatus = m.ModerationStatus,
                 CreatedBy = m.CreatedBy,
                 LastModifiedBy = m.LastModifiedBy,
+                IsExits= productCategoryIds.Contains(m.Id) || comboCategoryIds.Contains(m.Id)
             });
 
 
@@ -132,6 +141,7 @@ namespace Service.SnapFood.Application.Service
         #endregion
 
 
+        
 
 
         #region Duyệt, hủy duyệt

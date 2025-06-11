@@ -1,17 +1,19 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Service.SnapFood.Api.Controllers.Base;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
+using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Query;
 
 namespace Service.SnapFood.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    public class CategoryController : BaseController
     {
         private readonly ICategoryService _categoryService;
-        public CategoryController(ICategoryService categoryService)
+        public CategoryController(IRequestContext requestContext, ICategoryService categoryService) : base(requestContext)
         {
             _categoryService = categoryService;
         }

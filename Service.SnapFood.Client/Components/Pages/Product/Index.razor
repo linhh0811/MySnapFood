@@ -1,4 +1,5 @@
 ﻿@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.Category
 @using Service.SnapFood.Client.Dto.Product
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.SQL
@@ -7,13 +8,23 @@
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
 <div class="container row">
+
     @foreach (var product in ProductDto)
     {
         <div class="col-md-3 col-sm-6 mb-4">
             <FluentCard class="h-100 position-relative" style="min-height: 300px;">
                 <img src="@product.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@product.ProductName" />
-                <div style="padding: 10px; min-height: 120px;">
+                <div style="padding: 0; min-height: 120px;">
                     <FluentLabel Typo="Typography.H5">@product.ProductName</FluentLabel>
+                    @if (!string.IsNullOrEmpty(product.SizeName))
+                    {
+                        <p class="card-title" style="margin: 0;padding-top:10px;">@product.SizeName</p>
+                    }else
+                    {
+                        <p class="card-title" style="margin: 0;padding-top:10px">@product.CategoryName</p>
+
+                    }
+
                 </div>
                 <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
                     <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
@@ -21,9 +32,7 @@
                     </FluentLabel>
                     <FluentButton Appearance="Appearance.Accent"
                                   Title="Thêm sản phẩm"
-
                                   Style="padding: 0; margin-left: auto;"
-
                                   Type="ButtonType.Submit"
                                   OnClick="() => HandleClick(product.Id, product.SizeId)">
                         +
@@ -31,18 +40,28 @@
                 </div>
             </FluentCard>
         </div>
+
     }
+
 </div>
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
-
+    [Parameter]
+    public List<CategoryDto> Categories { get; set; } = new List<CategoryDto>();
+    [Parameter]
+    public CategoryDto OnCategorySelected { get; set; } = new CategoryDto();
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private List<ProductDto> ProductDto = new List<ProductDto>();
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadProduct();
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+
         await LoadProduct();
     }
     private async Task LoadProduct()
@@ -69,7 +88,7 @@
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ProductDto>();
 
 
-                ProductDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
+                ProductDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved && x.CategoryId == OnCategorySelected.Id).ToList();
 
             }
             StateHasChanged();
@@ -87,7 +106,7 @@
         {
             var parameters = new ViewParameters
                 {
-                    Id=id,                   
+                    Id = id,
                 };
             var dialog = await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
                 {
@@ -95,10 +114,10 @@
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
                     Modal = true,
-                    Width="800px",
-                    ShowTitle=false,
-                    ShowDismiss=false
-                    
+                    Width = "800px",
+                    ShowTitle = false,
+                    ShowDismiss = false
+
                 });
         }
         catch (Exception ex)
@@ -107,7 +126,7 @@
         }
     }
 
-    private async Task HandleClick(Guid productId,string? sizeId)
+    private async Task HandleClick(Guid productId, string? sizeId)
     {
         if (!string.IsNullOrEmpty(sizeId))
         {
