@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Service.SnapFood.Share.Interface.Extentions;
+using Service.SnapFood.Share.Model.Commons;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -23,13 +24,26 @@ namespace Service.SnapFood.Infrastructure.Middleware
 
         public async Task InvokeAsync(HttpContext context, IRequestContext requestContext)
         {
-            string? token = context.Request.Headers["Authorization"].FirstOrDefault();
-            //if (token is not null)
-            //{
-            //    var identity = GetClaimsIdentity(token);
-            //    var user = new ClaimsPrincipal(identity);
-            //}
-            //await _next(context);
+            string? token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+
+            if (token is not null)
+            {
+                var identity = GetClaimsIdentity(token);
+                var user = new ClaimsPrincipal(identity);
+                string userId = user.FindFirst("user_id")?.Value ?? string.Empty;
+                string userName = user.Identity?.Name ?? string.Empty;
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    CurrentUser CurrentUser = new CurrentUser()
+                    {
+                        UserId = Guid.Parse(userId),
+                        UserName = userName,
+                    };
+                    requestContext.CurrentUser = CurrentUser;
+                }               
+                
+            }
+            await _next(context);
         }
         private ClaimsIdentity GetClaimsIdentity(string token)
         {
