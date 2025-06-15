@@ -1,49 +1,42 @@
 ﻿@using Service.SnapFood.Client.Components.Pages.Auth
 @using Service.SnapFood.Share.Model.Commons
 @using Microsoft.AspNetCore.Components.Authorization;
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
+@using Service.SnapFood.Share.Interface.Extentions;
+
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
+@inject ICallServiceRegistry CallApi
+
 <nav class="navbar navbar-expand-sm navbar-light bg-white fixed-top shadow-sm" style="z-index:1">
     <div class="container">
-        <!-- Logo hoặc tiêu đề -->
         <a class="navbar-brand" href="#">Snap Food</a>
-
-        <!-- Nút ba gạch ngang -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-
-        <!-- Menu -->
         <div class="collapse navbar-collapse fs-4" id="navbarNav">
             <ul class="navbar-nav mx-auto">
                 <FluentNavLink Href="/">Trang chủ</FluentNavLink>
-
                 <FluentSpacer Width="15" />
-
                 <FluentNavLink Href="/Order-Home">Đặt hàng</FluentNavLink>
-
             </ul>
-            <!-- Nút Login -->
             @if (CurrentUser.UserId != Guid.Empty)
             {
                 <ul class="navbar-nav navbar-right">
-                    <FluentCounterBadge Count="1" Appearance="Appearance.Accent">
-                        <FluentButton Title="Giỏ hàng" Appearance="Appearance.Stealth">
-                            <FluentIcon Value="@(new Icons.Regular.Size24.Cart())" Color="@Color.Neutral" />
-                        </FluentButton>
-                    </FluentCounterBadge>
-                    <FluentSpacer Width="15" />                  
-
+                    <FluentNavLink Href="/cart">
+                        <FluentCounterBadge Count="@CartItemCount" Appearance="Appearance.Accent">
+                            <FluentButton Title="Giỏ hàng" Appearance="Appearance.Stealth">
+                                <FluentIcon Value="@(new Icons.Regular.Size24.Cart())" Color="@Color.Neutral" />
+                            </FluentButton>
+                        </FluentCounterBadge>
+                    </FluentNavLink>
+                    <FluentSpacer Width="15" />
                     <FluentButton Title="Thông tin người dùng" Appearance="Appearance.Stealth">
                         <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size24.Person())" Color="@Color.Neutral" />
                     </FluentButton>
-
                     <FluentSpacer Width="10" />
-
                     <FluentLabel Style="font-size:18px;" class="nav-link navbar-text">Xin chào, @CurrentUser.UserName</FluentLabel>
-
                     <FluentSpacer Width="10" />
-
                     <FluentButton Title="Đăng xuất" Appearance="Appearance.Outline" OnClick="Logout">
                         <FluentIcon Value="@(new Icons.Regular.Size24.SignOut())" />
                     </FluentButton>
@@ -53,40 +46,71 @@
             {
                 <ul class="navbar-nav navbar-right">
                     <li class="nav-item">
-                        <FluentButton Appearance="Appearance.Accent"
-                                      Class="rounded-pill"
-                                      OnClick="OpenModalAuth">
+                        <FluentButton Appearance="Appearance.Accent" Class="rounded-pill" OnClick="OpenModalAuth">
                             Đăng nhập/Đăng ký
                         </FluentButton>
                     </li>
                 </ul>
-
             }
-
         </div>
     </div>
 </nav>
+
 @code {
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; } = new();
-    [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private IToastService ToastService { get; set; } = default!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = default!;
+
+    [Inject]
+    private IToastService ToastService { get; set; } = default!;
+
+    private int CartItemCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (CurrentUser.UserId != Guid.Empty)
+        {
+            await LoadCartItemCount();
+        }
+    }
+
+    private async Task LoadCartItemCount()
+    {
+        try
+        {
+            var request = new ApiRequestModel { Endpoint = $"api/cart/quantity/{CurrentUser.UserId}" };
+            var result = await CallApi.Get<int>(request); // Gọi API mới và nhận số nguyên
+            if (result.Status == StatusCode.OK && result.Data != null)
+            {
+                CartItemCount = (int)result.Data;
+                StateHasChanged(); // Cập nhật UI
+            }
+            else
+            {
+                CartItemCount = 0;
+            }
+        }
+        catch (Exception ex)
+        {
+            CartItemCount = 0;
+            ToastService.ShowError($"Lỗi khi tải số lượng giỏ hàng: {ex.Message}");
+        }
+    }
 
     private async Task OpenModalAuth()
     {
         try
         {
             var dialog = await DialogService.ShowDialogAsync<AuthDialog>(new DialogParameters
-                {
-                    Title = null,
-                    PreventScroll = true,
-                    Modal = true,
-                    PreventDismissOnOverlayClick = false,
-                    ShowDismiss = false,
-
-
-
-                });
+            {
+                Title = null,
+                PreventScroll = true,
+                Modal = true,
+                PreventDismissOnOverlayClick = false,
+                ShowDismiss = false
+            });
         }
         catch (Exception ex)
         {
@@ -96,11 +120,13 @@
 
     private async Task Logout()
     {
-
-            await ((Infrastructure.Service.CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
-            Navigation.NavigateTo("/", forceLoad: true);
-
-
+        await ((Infrastructure.Service.CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 
+    // Thêm phương thức công khai để các component khác gọi
+    public async Task RefreshCartItemCount()
+    {
+        await LoadCartItemCount();
+    }
 }

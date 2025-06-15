@@ -552,7 +552,9 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             }
         }
         public DbSet<Cart> Carts { get; set; }
-        public DbSet<CartProductItem> CartItems { get; set; }
+        public DbSet<CartProductItem> CartProductItems { get; set; }
+        public DbSet<CartComboItem> CartComboItems { get; set; } // Thêm DbSet cho CartComboItem
+        public DbSet<ComboProductItem> ComboProductItems { get; set; } // Thêm DbSet cho ComboProductItem
         public DbSet<Bill> Bill { get; set; }
         public DbSet<BillDetails> BillDetailses { get; set; }
         public DbSet<Combo> Combos { get; set; }

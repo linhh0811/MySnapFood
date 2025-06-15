@@ -1,222 +1,301 @@
-﻿using Service.SnapFood.Application.Dtos;
+﻿using Microsoft.AspNetCore.Http;
+using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
-using Service.SnapFood.Share.Model.SQL;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Service.SnapFood.Share.Model.SQL;
 
 namespace Service.SnapFood.Application.Service
 {
     public class CartService : ICartService
     {
-        //private readonly IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
-        //public CartService(IUnitOfWork unitOfWork)
-        //{
-        //    _unitOfWork = unitOfWork;
-        //}
+        public CartService(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
 
-        //public async Task AddComboToCartAsync(Guid userId, Guid comboId, int quantity)
-        //{
-        //    var cart = await GetCartByIdUserAsync(userId);
-        //    if (cart is null)
-        //    {
-        //        throw new Exception("Không lấy được giỏ hàng");
-        //    }
-        //    var combo = await _unitOfWork.ComboRepo.GetByIdAsync(comboId);
-        //    if (combo == null)
-        //    {
-        //        throw new Exception("Combo không còn tồn tại trên hệ thốngop");
-        //    }
-                
+        public async Task AddComboToCartAsync(AddComboToCartDto item)
+        {
+            var cart = await GetOrCreateCartAsync(item.UserId);
+            var combo = await _unitOfWork.ComboRepo.GetByIdAsync(item.ComboId);
+            if (combo == null)
+            {
+                throw new Exception("Combo không còn tồn tại trên hệ thống");
+            }
 
-        //    if (combo.ModerationStatus != ModerationStatus.Approved)
-        //    {
-        //        throw new Exception("Combo chưa được duyệt");
-        //    }
-        //    var existingItem = cart.CartItems
-        //        .FirstOrDefault(ci => ci.ItemType == ItemType.Combo && ci.Combo != null && ci.Combo.Id == comboId);
-        //    if (existingItem != null)
-        //    {
-        //        existingItem.Quantity += quantity;
-        //        _unitOfWork.CartItemRepo.Update(existingItem);
-        //    }
-        //    else
-        //    {
-        //        var cartItem = new CartProductItem
-        //        {
-        //            CartId = cart.Id,
-        //            ItemType = ItemType.Combo,
-        //            Quantity = quantity
-        //        };
-        //        await _unitOfWork.CartItemRepo.AddAsync(cartItem);
-        //    }
+            if (combo.ModerationStatus != ModerationStatus.Approved)
+            {
+                throw new Exception("Combo chưa được duyệt");
+            }
 
-        //    await _unitOfWork.CompleteAsync();
-        //}
-        //public async Task AddProductToCartAsync(Guid userId, Guid productId, int quantity)
-        //{
-        //    var cart = await GetCartByIdUserAsync(userId);
-        //    if (cart is null)
-        //    {
-        //        throw new Exception("Không lấy được giỏ hàng");
-        //    }
-        //    var product = await _unitOfWork.ProductRepo.GetByIdAsync(productId);
-        //    if (product == null)
-        //        throw new Exception("Sản phẩm không còn tồn tại trên hệ thống");
-        //    if (product.ModerationStatus!= ModerationStatus.Approved)
-        //    {
-        //        throw new Exception("Sản phẩm chưa được duyệt");
-        //    }
+            var existingItem = cart.CartComboItems
+                .FirstOrDefault(ci => ci.ComboId == item.ComboId && ci.SizeId == item.SizeId);
 
-        //    var existingItem = cart.CartItems
-        //        .FirstOrDefault(ci => ci.ItemType == ItemType.Product && ci.ProductId == productId);
+            if (existingItem != null)
+            {
+                existingItem.Quantity += item.Quantity;
+                _unitOfWork.CartComboItemRepo.Update(existingItem);// Sử dụng CartComboItemRepo
+            }
+            else
+            {
+                var cartItem = new CartComboItem
+                {
+                    CartId = cart.Id,
+                    ComboId = item.ComboId,
+                    SizeId = item.SizeId,
+                    Quantity = item.Quantity
+                };
+                await _unitOfWork.CartComboItemRepo.AddAsync(cartItem);
+            }
 
-        //    if (existingItem != null)
-        //    {
-        //        existingItem.Quantity += quantity;
-        //        _unitOfWork.CartItemRepo.Update(existingItem);
-        //    }
-        //    else
-        //    {
-        //        var cartItem = new CartProductItem
-        //        {
-        //            CartId = cart.Id,
-        //            ProductId = productId,
-        //            ItemType = ItemType.Product,
-        //            Quantity = quantity
-        //        };
+            await _unitOfWork.CompleteAsync();
+        }
 
-        //        await _unitOfWork.CartItemRepo.AddAsync(cartItem);
-        //    }
+        public async Task AddProductToCartAsync(AddProductToCartDto item)
+        {
+            var cart = await GetOrCreateCartAsync(item.UserId);
+            var product = await _unitOfWork.ProductRepo.GetByIdAsync(item.ProductId);
+            if (product == null)
+            {
+                throw new Exception("Sản phẩm không còn tồn tại trên hệ thống");
+            }
 
-        //    await _unitOfWork.CompleteAsync();
-        //}
+            if (product.ModerationStatus != ModerationStatus.Approved)
+            {
+                throw new Exception("Sản phẩm chưa được duyệt");
+            }
 
+            var existingItem = cart.CartProductItems
+                .FirstOrDefault(ci => ci.ProductId == item.ProductId && ci.SizeId == item.SizeId);
 
+            if (existingItem != null)
+            {
+                existingItem.Quantity += item.Quantity;
+                _unitOfWork.CartItemRepo.Update(existingItem);
+            }
+            else
+            {
+                var cartItem = new CartProductItem
+                {
+                    CartId = cart.Id,
+                    ProductId = item.ProductId,
+                    SizeId = item.SizeId,
+                    Quantity = item.Quantity
+                };
+                await _unitOfWork.CartItemRepo.AddAsync(cartItem);
+            }
 
-        //public async Task CheckOut(CheckOutDto item)
-        //{
-        //    var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsyncByUserId(item.UserId);
-        //    if (cart == null || !cart.CartItems.Any())
-        //        throw new Exception("Cart is empty");
+            await _unitOfWork.CompleteAsync();
+        }
 
-        //    var bill = new Bill
-        //    {
-        //        UserId = item.UserId,
-        //        TotalAmount = 0,
-        //        BillDetails = new List<BillDetails>()
-        //    };
+        public async Task ClearCart(Guid cartId)
+        {
+            var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsync(cartId);
+            if (cart == null)
+            {
+                throw new Exception("Giỏ hàng không tồn tại");
+            }
 
-        //    foreach (var cartItem in cart.CartItems)
-        //    {
-        //        decimal price = 0;
-        //        string itemName = "";
+            foreach (var item in cart.CartProductItems.ToList())
+            {
+                _unitOfWork.CartItemRepo.Delete(item);
+            }
 
-        //        if (cartItem.ProductId != Guid.Empty)
-        //        {
-        //            var product = await _unitOfWork.ProductRepo.GetByIdAsync(cartItem.ProductId);
-        //            if (product == null) continue;
-        //            price = product.BasePrice;
-        //            itemName = product.ProductName;
-        //        }
-        //        else if (cartItem.ItemType == ItemType.Combo && cartItem.Combo != null)
-        //        {
-        //            var combo = await _unitOfWork.ComboRepo.GetByIdAsync(cartItem.Combo.Id);
-        //            if (combo == null) continue;
-        //            price = combo.BasePrice;
-        //            itemName = combo.ComboName;
-        //        }
+            foreach (var item in cart.CartComboItems.ToList())
+            {
+                _unitOfWork.CartComboItemRepo.Delete(item);
+            }
 
-        //        bill.TotalAmount += price * cartItem.Quantity;
+            await _unitOfWork.CompleteAsync();
+        }
 
-        //        var billDetail = new BillDetails
-        //        {
-        //            BillId = bill.Id,
-        //            ItemType = cartItem.ItemType,
-        //            ItemsName = itemName,
-        //            Quantity = cartItem.Quantity,
-        //            Price = price,
-        //            PriceEndow = 0
-        //        };
+        public async Task<CartDto> GetCartByIdUserAsync(Guid userId)
+        {
+            var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsyncByUserId(userId);
+            if (cart == null)
+            {
+                cart = new Cart { UserId = userId, CartProductItems = new List<CartProductItem>(), CartComboItems = new List<CartComboItem>() };
+                await _unitOfWork.CartRepo.AddAsync(cart);
+                await _unitOfWork.CompleteAsync();
+            }
 
-        //        bill.BillDetails.Add(billDetail);
-        //    }
+            var cartDto = new CartDto
+            {
+                Id = cart.Id,
+                UserId = cart.UserId,
+                CartProductItems = cart.CartProductItems.Select(ci => new CartProductItemDto
+                {
+                    Id = ci.Id,
+                    ProductId = ci.ProductId,
+                    SizeId = ci.SizeId,
+                    Quantity = ci.Quantity,
+                    ProductName = ci.Product.ProductName,
+                    SizeName = ci.Size.SizeName,
+                    ImageUrl = ci.Product.ImageUrl,
+                    Price = ci.Product.BasePrice
+                }).ToList(),
+                CartComboItems = cart.CartComboItems.Select(ci => new CartComboItemDto
+                {
+                    Id = ci.Id,
+                    ComboId = ci.ComboId,
+                    SizeId = ci.SizeId,
+                    Quantity = ci.Quantity,
+                    ComboName = ci.Combo.ComboName,
+                    ImageUrl = ci.Combo.ImageUrl,
+                    Price = ci.Combo.BasePrice,
+                    ComboProductItems = ci.ComboProductItems.Select(cpi => new ComboProductItemDto
+                    {
+                        ProductId = cpi.ProductId,
+                        SizeId = cpi.SizeId,
+                        Quantity = cpi.Quantity,
+                        ProductName = cpi.Product.ProductName,
+                        SizeName = cpi.Size.SizeName
+                    }).ToList()
+                }).ToList()
+            };
 
-        //    await _unitOfWork.BillRepo.AddAsync(bill);
+            cartDto.TotalQuantity = cartDto.CartProductItems.Sum(p => p.Quantity) + cartDto.CartComboItems.Sum(c => c.Quantity);
+            cartDto.TotalPrice = cartDto.CartProductItems.Sum(p => p.Quantity * p.Price) + cartDto.CartComboItems.Sum(c => c.Quantity * c.Price);
 
-        //    foreach (var itemToDelete in cart.CartItems.ToList())
-        //    {
-        //        _unitOfWork.CartItemRepo.Delete(itemToDelete);
-        //    }
+            return cartDto;
+        }
 
-        //    await _unitOfWork.CompleteAsync();
-        //}
+        public async Task RemoveCartItemAsync(Guid cartItemId)
+        {
+            var cartItem = await _unitOfWork.CartItemRepo.GetByIdAsync(cartItemId);
+            if (cartItem == null)
+            {
+                throw new Exception("Mục trong giỏ hàng không tồn tại");
+            }
 
-        //public async Task ClearCart(Guid cartId)
-        //{
-        //    var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsync(cartId);
-        //    if (cart == null)
-        //        throw new Exception("Cart not found");
+            _unitOfWork.CartItemRepo.Delete(cartItem);
+            await _unitOfWork.CompleteAsync();
+        }
 
-        //    foreach (var item in cart.CartItems.ToList())
-        //    {
-        //        _unitOfWork.CartItemRepo.Delete(item);
-        //    }
+        public async Task UpdateCartItemAsync(Guid cartItemId, int quantity)
+        {
+            var cartItem = await _unitOfWork.CartItemRepo.GetByIdAsync(cartItemId);
+            if (cartItem == null)
+            {
+                throw new Exception("Mục trong giỏ hàng không tồn tại");
+            }
 
-        //    await _unitOfWork.CompleteAsync();
-        //}
+            if (quantity <= 0)
+            {
+                _unitOfWork.CartItemRepo.Delete(cartItem);
+            }
+            else
+            {
+                cartItem.Quantity = quantity;
+                _unitOfWork.CartItemRepo.Update(cartItem);
+            }
 
-        //public async Task<Cart> GetCartByIdUserAsync(Guid userId)
-        //{
-        //    var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsyncByUserId(userId);
+            await _unitOfWork.CompleteAsync();
+        }
 
-        //    if (cart == null)
-        //    {
-        //        cart = new Cart
-        //        {
-        //            UserId = userId,
-        //            CartItems = new List<CartProductItem>()
-        //        };
+        public async Task CheckOut(CheckOutDto item)
+        {
+            // Giữ nguyên mã cũ như yêu cầu
+            var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsyncByUserId(item.UserId);
+            if (cart == null || (!cart.CartProductItems.Any() && !cart.CartComboItems.Any()))
+            {
+                throw new Exception("Giỏ hàng trống");
+            }
 
-        //        await _unitOfWork.CartRepo.AddAsync(cart);
-        //        await _unitOfWork.CompleteAsync();
-        //    }
+            var bill = new Bill
+            {
+                UserId = item.UserId,
+                TotalAmount = 0,
+                BillDetails = new List<BillDetails>()
+            };
 
-        //    return cart;
-        //}
+            foreach (var cartItem in cart.CartProductItems)
+            {
+                var product = await _unitOfWork.ProductRepo.GetByIdAsync(cartItem.ProductId);
+                if (product == null) continue;
 
-        //public async Task RemoveCartItem(Guid cartItemId)
-        //{
-        //    var cartItem = await _unitOfWork.CartItemRepo.GetByIdAsync(cartItemId);
-        //    if (cartItem == null)
-        //        throw new Exception("Cart item not found");
+                bill.TotalAmount += product.BasePrice * cartItem.Quantity;
 
-        //    _unitOfWork.CartItemRepo.Delete(cartItem);
-        //    await _unitOfWork.CompleteAsync();
-        //}
+                var billDetail = new BillDetails
+                {
+                    BillId = bill.Id,
+                    ItemType = ItemType.Product,
+                    ItemsName = product.ProductName,
+                    Quantity = cartItem.Quantity,
+                    Price = product.BasePrice,
+                    PriceEndow = 0
+                };
+                bill.BillDetails.Add(billDetail);
+            }
 
-        //public async Task UpdateCartItem(Guid cartItemId, int quantity)
-        //{
-        //    var cartItem = await _unitOfWork.CartItemRepo.GetByIdAsync(cartItemId);
-        //    if (cartItem == null)
-        //        throw new Exception("Cart item not found");
+            foreach (var cartItem in cart.CartComboItems)
+            {
+                var combo = await _unitOfWork.ComboRepo.GetByIdAsync(cartItem.ComboId);
+                if (combo == null) continue;
 
-        //    if (quantity <= 0)
-        //    {
-        //        _unitOfWork.CartItemRepo.Delete(cartItem);
-        //    }
-        //    else
-        //    {
-        //        cartItem.Quantity = quantity;
-        //        _unitOfWork.CartItemRepo.Update(cartItem);
-        //    }
+                bill.TotalAmount += combo.BasePrice * cartItem.Quantity;
 
-        //    await _unitOfWork.CompleteAsync();
-        //}
+                var billDetail = new BillDetails
+                {
+                    BillId = bill.Id,
+                    ItemType = ItemType.Combo,
+                    ItemsName = combo.ComboName,
+                    Quantity = cartItem.Quantity,
+                    Price = combo.BasePrice,
+                    PriceEndow = 0
+                };
+                bill.BillDetails.Add(billDetail);
+            }
+
+            await _unitOfWork.BillRepo.AddAsync(bill);
+
+            foreach (var itemToDelete in cart.CartProductItems.ToList())
+            {
+                _unitOfWork.CartItemRepo.Delete(itemToDelete);
+            }
+
+            foreach (var itemToDelete in cart.CartComboItems.ToList())
+            {
+                _unitOfWork.CartComboItemRepo.Delete(itemToDelete);
+            }
+
+            await _unitOfWork.CompleteAsync();
+        }
+
+        private async Task<Cart> GetOrCreateCartAsync(Guid userId)
+        {
+            var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsyncByUserId(userId);
+            if (cart == null)
+            {
+                cart = new Cart
+                {
+                    UserId = userId,
+                    CartProductItems = new List<CartProductItem>(),
+                    CartComboItems = new List<CartComboItem>()
+                };
+                await _unitOfWork.CartRepo.AddAsync(cart);
+                await _unitOfWork.CompleteAsync();
+            }
+            return cart;
+        }
+        public async Task<int> GetCartQuantityAsync(Guid userId)
+        {
+            var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsyncByUserId(userId);
+            if (cart == null)
+            {
+                return 0; // Giỏ hàng trống hoặc không tồn tại
+            }
+
+            int totalQuantity = cart.CartProductItems.Sum(p => p.Quantity) + cart.CartComboItems.Sum(c => c.Quantity);
+            return totalQuantity;
+        }
     }
 }
