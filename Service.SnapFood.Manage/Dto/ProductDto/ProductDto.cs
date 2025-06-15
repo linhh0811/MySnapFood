@@ -24,6 +24,8 @@ namespace Service.SnapFood.Manage.Dto.ProductDto
         [Range(1,int.MaxValue,ErrorMessage ="Giá sản phẩm lớn hơn 0")]
         public decimal BasePrice { get; set; }
         public ModerationStatus ModerationStatus { get; set; }
+        public ModerationStatus CategoryModerationStatus { get; set; }
+        public ModerationStatus SizeModerationStatus { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
         public Guid CreatedBy { get; set; }

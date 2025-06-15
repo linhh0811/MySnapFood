@@ -43,28 +43,57 @@
 
             <FluentNumberField Label="Giá" @bind-Value="ProductModel.BasePrice" Style="width:100%;" />
             <ValidationMessage style="color:red" For="@(() => ProductModel.BasePrice)" />
-            <FluentSelect Label="Phân loại" 
-            @bind-Value="ProductModel.CategoryId" 
-            Items="CategoryList" 
-            OptionText="@(x => x.CategoryName)" 
-            OptionValue="@(x => x.Id)" 
-            Nullable="true" 
-            Style="width:100%;" 
-            Height="220px"
-            Position="SelectPosition.Below">
+            <FluentSelect Label="Phân loại"
+                          @bind-Value="ProductModel.CategoryId"
+                          Items="CategoryList"
+                          OptionText="@(x => x.CategoryName)"
+                          OptionValue="@(x => x.Id)"
+                          Nullable="true"
+                          Style="width:100%;"
+                          Height="220px"
+                          Position="SelectPosition.Below"
+                          OptionDisabled="@(x => x.ModerationStatus == ModerationStatus.Rejected && x.Id != ProductModel.CategoryId)">
+                <OptionTemplate Context="category">
+                    @if (category.ModerationStatus == ModerationStatus.Rejected)
+                    {
+                        <span>
+                            <span style="color: gray; text-decoration: line-through;">@category.CategoryName</span>
+                            <span style="color: red;"> (Ngừng hoạt động)</span>
+                        </span>
+                    }
+                    else
+                    {
+                        <span>@category.CategoryName</span>
+                    }
+                </OptionTemplate>
             </FluentSelect>
             <ValidationMessage style="color:red" For="@(() => ProductModel.CategoryId)" />
 
             <FluentSelect Label="Kích cỡ"
-            @bind-Value="ProductModel.SizeId"
-            Items="SizeList"
-            OptionText="@(x => x.SizeName)"
-            OptionValue="@(x => x.Id)"
-            Nullable="true"
-            Style="width:100%;"
-            Height="220px"
-            Position="SelectPosition.Below">
+                          @bind-Value="ProductModel.SizeId"
+                          Items="SizeList"
+                          OptionText="@(x => x.SizeName)"
+                          OptionValue="@(x => x.Id)"
+                          Nullable="true"
+                          Style="width:100%;"
+                          Height="220px"
+                          Position="SelectPosition.Below"
+                          OptionDisabled="@(x => x.ModerationStatus == ModerationStatus.Rejected && x.Id != ProductModel.SizeId)">
+                <OptionTemplate Context="size">
+                    @if (size.ModerationStatus == ModerationStatus.Rejected)
+                    {
+                        <span>
+                            <span style="color: gray; text-decoration: line-through;">@size.SizeName</span>
+                            <span style="color: red;"> (Ngừng hoạt động)</span>
+                        </span>
+                    }
+                    else
+                    {
+                        <span>@size.SizeName</span>
+                    }
+                </OptionTemplate>
             </FluentSelect>
+
             <FluentTextArea Label="Ghi chú" @bind-Value="ProductModel.Description" Style="width:100%" Rows="3" Resize="TextAreaResize.Both" />          
             <ValidationMessage style="color:red" For="@(() => ProductModel.Description)" />
 
@@ -133,7 +162,6 @@
         if (result.Status == StatusCode.OK)
         {
             CategoryList = result.Data as List<CategoryDto> ?? new List<CategoryDto>();
-            CategoryList = CategoryList.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
             ProductModel.CategoryId = CategoryList.First().Id??string.Empty;
         }
     }

@@ -69,7 +69,12 @@ namespace Service.SnapFood.Api.Controllers
             }
             return NoContent();
         }
-
+        [HttpPut("{Id}/CheckApprove")]
+        public IActionResult CheckApprove(Guid Id)
+        {
+            var result = _comboService.CheckApproveAsync(Id);
+            return Ok(result);
+        }
         [HttpPut("{Id}/Approve")]
         public async Task<IActionResult> Approve(Guid Id)
         {

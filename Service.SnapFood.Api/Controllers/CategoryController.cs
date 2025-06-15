@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Api.Controllers.Base;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
+using Service.SnapFood.Application.Service;
 using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Query;
 
@@ -77,6 +78,13 @@ namespace Service.SnapFood.Api.Controllers
                 return BadRequest("Duyệt không thành công");
             }
             return NoContent();
+        }
+        [HttpPut("{Id}/CheckReject")]
+        public IActionResult CheckReject(Guid Id)
+        {
+            var result = _categoryService.CheckRejectAsync(Id);
+
+            return Ok(result);
         }
         [HttpPut("{Id}/Reject")]
         public async Task<IActionResult> Reject(Guid Id)

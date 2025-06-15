@@ -53,11 +53,11 @@ namespace Service.SnapFood.Application.Service
         }
         public  List<Sizes> GetSizeSelect()
         {
-            var sizes =  _unitOfWork.SizesRepo.FindWhere(x=>x.ModerationStatus==ModerationStatus.Approved&&x.ParentId==null)
+            var sizes =  _unitOfWork.SizesRepo.FindWhere(x=>x.ParentId==null)
                 .OrderBy(x=>x.DisplayOrder);
             foreach (var item in sizes)
             {
-                var sizeChild = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == item.Id&&x.ModerationStatus==ModerationStatus.Approved);
+                var sizeChild = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == item.Id);
                 item.SizeName = item.SizeName + "("+ string.Join(", ", sizeChild.Select(x=>x.SizeName)) + ")";
                 
             }

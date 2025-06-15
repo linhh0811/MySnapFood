@@ -25,6 +25,8 @@ namespace Service.SnapFood.Application.Dtos
         public DateTime CreteDate { get; set; }
 
         public ModerationStatus ModerationStatus { get; set; }
+        public ModerationStatus CategoryModerationStatus { get; set; }
+
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
         public Guid CreatedBy { get; set; }
