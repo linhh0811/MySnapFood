@@ -14,79 +14,82 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <style>
         body {
-            margin: 0;
-            color: #6a6f8c;
-            font: 600 16px/18px "Open Sans", sans-serif;
+        margin: 0;
+        color: #6a6f8c;
+        font: 600 16px/18px "Open Sans", sans-serif;
         }
     </style>
 </head>
 <body>
     <CascadingValue Value="CurrentUser">
+        @if (_loaded)
+        {
+            <FluentLayout>
+                <FluentStack Class="body-stack" Orientation="Orientation.Horizontal" Width="100%" HorizontalGap="0">
+                    <NavMenu OpenMenuThongTin="OpenMenuThongTin" />
+                    <FluentBodyContent>
+                        <div class="container">
+                            @if (OpenMenu == true)
+                            {
 
-        <FluentLayout>
-            <FluentStack Class="body-stack" Orientation="Orientation.Horizontal" Width="100%" HorizontalGap="0">
-                <NavMenu OpenMenuThongTin="OpenMenuThongTin" />
-                <FluentBodyContent>
-                    <div class="container">
-                        @if (OpenMenu == true)
-                        {
-
-                            <main role="main">
-                                <marquee behavior="scroll" direction="left" style="color: red; font-size: 20px; font-weight: bold;padding:10px">
-                                    Kính chào quý khách! Chúc quý khách ngày mới tốt lành.
-                                </marquee>
-                                <div class="container-fluid mt-3">
-                                    <FluentCard>
-                                        <div class="row">
-                                            <div class="col-md-3 ">
-                                                <FluentNavMenu>
-                                                    <FluentNavLink Icon="@(new Icons.Regular.Size20.History())" OnClick="()=>OpenMenuThongTin(true)" Href="/">Lịch sử đơn hàng</FluentNavLink>
-                                                    <FluentNavLink Icon="@(new Icons.Regular.Size20.Location())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Địa chỉ giao hàng</FluentNavLink>
-                                                    <FluentNavLink Icon="@(new Icons.Regular.Size20.Tag())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Mã giảm giá</FluentNavLink>
-                                                    <FluentNavLink Icon="@(new Icons.Regular.Size20.Person())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Thông tin tài khoản</FluentNavLink>
-                                                    <hr style="margin:8px" />
-                                                    <FluentNavLink Icon="@(new Icons.Regular.Size20.SignOut())">Đăng xuất</FluentNavLink>
-                                                </FluentNavMenu>
+                                <main role="main">
+                                    <marquee behavior="scroll" direction="left" style="color: red; font-size: 20px; font-weight: bold;padding:10px">
+                                        Kính chào quý khách! Chúc quý khách ngày mới tốt lành.
+                                    </marquee>
+                                    <div class="container-fluid mt-3">
+                                        <FluentCard>
+                                            <div class="row">
+                                                <div class="col-md-3 ">
+                                                    <FluentNavMenu>
+                                                        <FluentNavLink Icon="@(new Icons.Regular.Size20.History())" OnClick="()=>OpenMenuThongTin(true)" Href="/">Lịch sử đơn hàng</FluentNavLink>
+                                                        <FluentNavLink Icon="@(new Icons.Regular.Size20.Location())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Địa chỉ giao hàng</FluentNavLink>
+                                                        <FluentNavLink Icon="@(new Icons.Regular.Size20.Tag())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Mã giảm giá</FluentNavLink>
+                                                        <FluentNavLink Icon="@(new Icons.Regular.Size20.Person())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Thông tin tài khoản</FluentNavLink>
+                                                        <hr style="margin:8px" />
+                                                        <FluentNavLink Icon="@(new Icons.Regular.Size20.SignOut())">Đăng xuất</FluentNavLink>
+                                                    </FluentNavMenu>
+                                                </div>
+                                                <div class="col col-md-9">
+                                                    @Body
+                                                </div>
                                             </div>
-                                            <div class="col col-md-9">
+                                        </FluentCard>
+                                    </div>
+
+                                </main>
+
+                            }
+                            else
+                            {
+
+                                <main role="main">
+                                    <marquee behavior="scroll" direction="left" style="color: red; font-size: 20px; font-weight: bold;padding:10px">
+                                        Kính chào quý khách! Chúc quý khách ngày mới tốt lành.
+                                    </marquee>
+                                    <div class="container-fluid mt-3">
+                                        <div class="row">
+
+                                            <div class="col col-12">
                                                 @Body
                                             </div>
                                         </div>
-                                    </FluentCard>
-                                </div>
-
-                            </main>
-
-                        }
-                        else
-                        {
-
-                            <main role="main">
-                                <marquee behavior="scroll" direction="left" style="color: red; font-size: 20px; font-weight: bold;padding:10px">
-                                    Kính chào quý khách! Chúc quý khách ngày mới tốt lành.
-                                </marquee>
-                                <div class="container-fluid mt-3">
-                                    <div class="row">
-
-                                        <div class="col col-12">
-                                            @Body
-                                        </div>
                                     </div>
-                                </div>
 
-                            </main>
-                        }
+                                </main>
+                            }
 
 
-                    </div>
-                </FluentBodyContent>
-                <FluentToastProvider MaxToastCount="10" Position="ToastPosition.BottomRight" />
-                <FluentDialogProvider />
-                <FluentTooltipProvider />
-                <FluentKeyCodeProvider />
-                <FluentMenuProvider />
-            </FluentStack>
-        </FluentLayout>
+                        </div>
+                    </FluentBodyContent>
+                    <FluentToastProvider MaxToastCount="10" Position="ToastPosition.BottomRight" />
+                    <FluentDialogProvider />
+                    <FluentTooltipProvider />
+                    <FluentKeyCodeProvider />
+                    <FluentMenuProvider />
+                </FluentStack>
+            </FluentLayout>
+        }
+        
     </CascadingValue>
 </body>
 </html>
@@ -101,11 +104,20 @@
 @code {
     private CurrentUser CurrentUser = new();
     private bool OpenMenu = false;
+    private bool _loaded = false;
     protected override async Task OnInitializedAsync()
-    {
-        CurrentUser = await UserService.GetCurrentUserAsync();
+    {     
         Navigation.LocationChanged += OnLocationChanged;
-        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            CurrentUser = await UserService.GetCurrentUserAsync();
+            _loaded = true;
+            StateHasChanged();
+        }
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
