@@ -20,6 +20,7 @@ namespace Service.SnapFood.Application.Interfaces
 
         Task<bool> DeleteAsync(Guid id);
         Task<bool> ApproveAsync(Guid id);
+        int CheckRejectAsync(Guid id);
         Task<bool> RejectAsync(Guid id);
     }
 }

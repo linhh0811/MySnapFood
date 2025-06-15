@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Service.SnapFood.Share.Model.SQL;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Service.SnapFood.Application.Dtos
         public int Quantity { get; set; }
 
         public List<SizeDto>? Sizes { get; set; }
+        public ModerationStatus ModerationStatus { get; set; }
 
 
     }

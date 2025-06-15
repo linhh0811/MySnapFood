@@ -158,15 +158,70 @@ namespace Service.SnapFood.Application.Service
             return false;
         }
 
+        public int CheckRejectAsync(Guid id) //Hủy duyệt
+        {
+            var ProductApprovedCount = _unitOfWork.ProductRepo
+                .FindWhere(x => x.CategoryId == id && x.ModerationStatus == ModerationStatus.Approved)
+                .Select(x => x.Id)
+                .Distinct()
+                .Count();
+
+            var ComboApprovedCount = _unitOfWork.ComboRepo
+                .FindWhere(x => x.CategoryId == id && x.ModerationStatus == ModerationStatus.Approved)
+                .Select(x => x.Id)
+                .Distinct()
+                .Count();
+
+
+
+            return ComboApprovedCount+ ProductApprovedCount;
+        }
         public async Task<bool> RejectAsync(Guid id) //Hủy duyệt
         {
-            var product = _unitOfWork.CategoriesRepo.GetById(id);
-            if (product is not null)
+            var category = _unitOfWork.CategoriesRepo.GetById(id);
+            if (category is not null)
             {
-                product.ModerationStatus = ModerationStatus.Rejected;
-                _unitOfWork.CategoriesRepo.Update(product);
+                category.ModerationStatus = ModerationStatus.Rejected;
+                _unitOfWork.CategoriesRepo.Update(category);
                 await _unitOfWork.CompleteAsync();
+                var comboIds = _unitOfWork.ComboRepo
+                    .FindWhere(x => x.CategoryId == id && x.ModerationStatus == ModerationStatus.Approved)
+                    .Select(x => x.Id);      
+
+                if (comboIds.Count() > 0)
+                {
+                    foreach (var comboId in comboIds)
+                    {
+                        var combo = _unitOfWork.ComboRepo.GetById(comboId);
+                        if (combo is not null)
+                        {
+                            combo.ModerationStatus = ModerationStatus.Rejected;
+                            _unitOfWork.ComboRepo.Update(combo);
+                            await _unitOfWork.CompleteAsync();
+                        }
+
+                    }
+                }
+                var productIds = _unitOfWork.ProductRepo
+                    .FindWhere(x => x.CategoryId == id && x.ModerationStatus == ModerationStatus.Approved)
+                    .Select(x => x.Id);
+
+                if (productIds.Count() > 0)
+                {
+                    foreach (var productId in productIds)
+                    {
+                        var product = _unitOfWork.ProductRepo.GetById(productId);
+                        if (product is not null)
+                        {
+                            product.ModerationStatus = ModerationStatus.Rejected;
+                            _unitOfWork.ProductRepo.Update(product);
+                            await _unitOfWork.CompleteAsync();
+                        }
+
+                    }
+                }
                 return true;
+
             }
             return false;
         }

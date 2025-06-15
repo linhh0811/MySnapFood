@@ -22,6 +22,21 @@ namespace Service.SnapFood.Application.Service
             _unitOfWork = unitOfWork;
         }
         #region Duyệt, hủy duyệt
+        public int CheckApproveAsync(Guid id)
+        {
+            var productIds = _unitOfWork.ProductComboRepo
+                 .FindWhere(x => x.ComboId == id)
+                 .Select(x => x.ProductId)
+                 .Distinct();
+
+            var productRejectCount = _unitOfWork.ProductRepo
+                .FindWhere(x => productIds.Contains(x.Id) && x.ModerationStatus == ModerationStatus.Rejected)
+                .Count();
+
+
+
+            return productRejectCount;
+        }
         public async Task<bool> ApproveAsync(Guid id)
         {
             var combo = _unitOfWork.ComboRepo.GetById(id);
@@ -30,6 +45,24 @@ namespace Service.SnapFood.Application.Service
                 combo.ModerationStatus = ModerationStatus.Approved;
                 _unitOfWork.ComboRepo.Update(combo);
                 await _unitOfWork.CompleteAsync();
+                var productIds = _unitOfWork.ProductComboRepo
+                .FindWhere(x => x.ComboId == id)
+                .Select(x => x.ProductId)
+                .Distinct();
+
+                var productRejectIds = _unitOfWork.ProductRepo
+                    .FindWhere(x => productIds.Contains(x.Id) && x.ModerationStatus == ModerationStatus.Rejected)
+                    .Select(x=>x.Id);
+                foreach (var productId in productRejectIds)
+                {
+                    var product = _unitOfWork.ProductRepo.GetById(productId);
+                    if (product is not null)
+                    {
+                        product.ModerationStatus = ModerationStatus.Approved;
+                        _unitOfWork.ProductRepo.Update(product);
+                        await _unitOfWork.CompleteAsync();
+                    }
+                }
                 return true;
             }
             return false;
@@ -136,11 +169,13 @@ namespace Service.SnapFood.Application.Service
                     {
                         ProductId = x.ProductId,
                         Quantity = x.Quantity,
-                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName
+                        ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
+                        ModerationStatus= _unitOfWork.ProductRepo.GetById(x.ProductId)?.ModerationStatus??0
+
                     }).ToList()
                 );
 
-            var data = dataQuery.AsEnumerable()
+            var data = dataQuery.ToList()
                 .Select((m, i) => new ComboDto
                 {
                     Id = m.Id,
@@ -155,6 +190,7 @@ namespace Service.SnapFood.Application.Service
                     Created = m.Created,
                     LastModified = m.LastModified,
                     ModerationStatus = m.ModerationStatus,
+                    CategoryModerationStatus=_unitOfWork.CategoriesRepo.GetById(m.CategoryId)?.ModerationStatus??0,
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
                     ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>()

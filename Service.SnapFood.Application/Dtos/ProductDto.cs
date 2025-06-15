@@ -26,6 +26,9 @@ namespace Service.SnapFood.Application.Dtos
         public string? SizeName { get; set; } 
         public List<SizeDto>? Sizes { get; set; }
         public ModerationStatus ModerationStatus { get; set; }
+        public ModerationStatus CategoryModerationStatus { get; set; }
+        public ModerationStatus SizeModerationStatus { get; set; }
+
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
         public Guid CreatedBy { get;  set; }
