@@ -4,6 +4,7 @@ using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Application.Interfaces.Jwt;
 using Service.SnapFood.Application.Service;
 using Service.SnapFood.Application.Service.Jwt;
+using Service.SnapFood.Share.Interface.Extentions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,8 @@ namespace Service.SnapFood.Application
             services.AddSingleton<IJwtService, JwtService>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IBillService, BillService>();
+            services.AddScoped<IRequestContext, RequestContext>();
+
             return services;
         }
     }

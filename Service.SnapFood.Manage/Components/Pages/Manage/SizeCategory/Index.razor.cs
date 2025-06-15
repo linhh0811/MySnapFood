@@ -429,5 +429,30 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
 
         }
         #endregion
+        private async Task OpenDetailsModal(string Id)
+        {
+            try
+            {
+                var parameters = new EditOrUpdateParameters
+                {
+                    Id = Guid.Parse(Id),
+                    RequestApi = requestRestAPI,
+                };
+                await DialogService.ShowDialogAsync<ViewCategory>(parameters, new DialogParameters
+                {
+                    Title = "Thông tin chi tiết phân loại",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "600px",
+                    TrapFocus = false
+
+                });
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi mở modal chi tiết: {ex.Message}");
+            }
+        }
     }
 }

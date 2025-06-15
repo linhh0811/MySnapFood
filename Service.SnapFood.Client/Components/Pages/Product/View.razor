@@ -14,6 +14,15 @@
             <FluentCard>
                 <img src="@ProductModel.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@ProductModel.ProductName" />
                 <FluentLabel Typo="Typography.H5">@ProductModel.ProductName</FluentLabel>
+                @if (!string.IsNullOrEmpty(ProductModel.SizeName))
+                {
+                    <p class="card-title" style="margin: 0;padding-top:10px;">@ProductModel.SizeName</p>
+                }
+                else
+                {
+                    <p class="card-title" style="margin: 0;padding-top:10px">@ProductModel.CategoryName</p>
+
+                }
             </FluentCard>
         </FluentGridItem>
         <FluentGridItem xs="12" sm="7">

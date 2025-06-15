@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using Service.SnapFood.Api.AppStart;
 using Service.SnapFood.Application;
 using Service.SnapFood.Infrastructure;
+using Service.SnapFood.Infrastructure.Middleware;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,11 +81,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
 app.UseCors("AllowBlazor");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseMiddleware<JwtMiddleware>();
 app.UseMiddleware<GlobalErrorHandlingMiddleware>();
 app.MapControllers();
 

@@ -60,7 +60,7 @@
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CategoryDto>();
 
 
-                categoryDtos = items.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
+                categoryDtos = items.Where(x => x.ModerationStatus == ModerationStatus.Approved&&x.IsExits==true    ).ToList();
 
             }
             StateHasChanged();
