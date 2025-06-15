@@ -5,6 +5,7 @@ using Service.SnapFood.Application.Service;
 
 using Service.SnapFood.Share.Query;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Service.SnapFood.Api.Controllers
@@ -36,9 +37,16 @@ namespace Service.SnapFood.Api.Controllers
             return Ok(tokenString);
         }
 
-       
 
 
+        [HttpGet("current")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            var user = await _userService.GetByIdAsync(Guid.Parse(userId));
+            return Ok(new UserDto { Id = user.Id, FullName = user.FullName, Email = user.Email });
+        }
 
 
 
