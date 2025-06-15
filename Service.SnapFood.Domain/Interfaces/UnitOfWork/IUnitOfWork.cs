@@ -15,6 +15,7 @@ namespace Service.SnapFood.Domain.Interfaces.UnitOfWork
         IBillDetailsRepository BillDetailsRepo { get; }
         ICartRepository CartRepo { get; }
         ICartItemRepository CartItemRepo { get; }
+        ICartComboItemRepository CartComboItemRepo { get; } // Thêm repository cho CartComboItem
         IProductComboRepository ProductComboRepo { get; }
         IAddressRepository AddressRepo { get; }
         IStoresRepository StoresRepo { get; }
