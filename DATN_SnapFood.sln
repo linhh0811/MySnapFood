@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service.SnapFood.Client", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service.SnapFood.Manage", "Service.SnapFood.Manage\Service.SnapFood.Manage.csproj", "{64336B96-207B-4284-B35F-63DF585520DC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AppHost", "AppHost", "{05498169-2BBA-4271-A2C2-AFB46406B8FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostSolution.AppHost", "AppHost\HostSolution.AppHost.csproj", "{2FE199FB-C455-46A9-93AF-190DE6B70B34}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +61,10 @@ Global
 		{64336B96-207B-4284-B35F-63DF585520DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64336B96-207B-4284-B35F-63DF585520DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64336B96-207B-4284-B35F-63DF585520DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FE199FB-C455-46A9-93AF-190DE6B70B34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FE199FB-C455-46A9-93AF-190DE6B70B34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FE199FB-C455-46A9-93AF-190DE6B70B34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FE199FB-C455-46A9-93AF-190DE6B70B34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +77,7 @@ Global
 		{2C3257E6-6D1A-463E-932A-373DD9E0CDF1} = {A2B35A36-A8AE-4A04-8CC6-5767695A1079}
 		{572FDD0B-DA80-42E6-9D8C-8A39A962BD4C} = {B7964169-D4DF-4302-85FC-67E9184DC960}
 		{64336B96-207B-4284-B35F-63DF585520DC} = {B7964169-D4DF-4302-85FC-67E9184DC960}
+		{2FE199FB-C455-46A9-93AF-190DE6B70B34} = {05498169-2BBA-4271-A2C2-AFB46406B8FE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8D3FD156-3C1A-4054-BE20-6B9052451051}
