@@ -105,6 +105,8 @@
     private CurrentUser CurrentUser = new();
     private bool OpenMenu = false;
     private bool _loaded = false;
+    private bool _justOpenedMenu = false; // Biến trạng thái tạm thời
+
     protected override async Task OnInitializedAsync()
     {     
         Navigation.LocationChanged += OnLocationChanged;
@@ -122,8 +124,12 @@
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        OpenMenu = false; // Đóng menu khi URL thay đổi
-        StateHasChanged(); // Cập nhật giao diện
+        if (!_justOpenedMenu)
+        {
+            OpenMenu = false;
+            StateHasChanged();
+        }
+        _justOpenedMenu = false;
     }
 
     public void Dispose()
@@ -133,5 +139,7 @@
     private void OpenMenuThongTin(bool result)
     {
         OpenMenu = result;
+        _justOpenedMenu = true;
+        StateHasChanged();
     }
 }
