@@ -31,23 +31,23 @@ namespace Service.SnapFood.Application.Service
                 Dtos.StringContent stringContent = new Dtos.StringContent();
                 string CheckApproveCategory = string.Empty;
                 var category = _unitOfWork.CategoriesRepo.GetById(product.CategoryId);
-                if (category is not null && category.ModerationStatus== ModerationStatus.Rejected)
+                if (category is not null && category.ModerationStatus == ModerationStatus.Rejected)
                 {
                     CheckApproveCategory = "Phân loại";
                 }
                 string CheckApproveSize = string.Empty;
-                var size = _unitOfWork.SizesRepo.GetById(product.SizeId??Guid.Empty);
+                var size = _unitOfWork.SizesRepo.GetById(product.SizeId ?? Guid.Empty);
                 if (size is not null && size.ModerationStatus == ModerationStatus.Rejected)
                 {
                     CheckApproveSize = "Size";
                 }
-                if (!string.IsNullOrEmpty(CheckApproveCategory)&&!string.IsNullOrEmpty(CheckApproveSize) )
+                if (!string.IsNullOrEmpty(CheckApproveCategory) && !string.IsNullOrEmpty(CheckApproveSize))
                 {
-                    stringContent.Content= $"{CheckApproveCategory} và {CheckApproveSize}";
+                    stringContent.Content = $"{CheckApproveCategory} và {CheckApproveSize}";
                 }
                 if (string.IsNullOrEmpty(CheckApproveCategory) && !string.IsNullOrEmpty(CheckApproveSize))
                 {
-                    stringContent.Content= CheckApproveSize;
+                    stringContent.Content = CheckApproveSize;
                 }
                 if (!string.IsNullOrEmpty(CheckApproveCategory) && string.IsNullOrEmpty(CheckApproveSize))
                 {
@@ -63,9 +63,9 @@ namespace Service.SnapFood.Application.Service
         public async Task<bool> ApproveAsync(Guid id)//Duyệt
         {
             var product = _unitOfWork.ProductRepo.GetById(id);
-            if (product is not null) 
-            { 
-                product.ModerationStatus= ModerationStatus.Approved;
+            if (product is not null)
+            {
+                product.ModerationStatus = ModerationStatus.Approved;
                 _unitOfWork.ProductRepo.Update(product);
                 await _unitOfWork.CompleteAsync();
                 var category = _unitOfWork.CategoriesRepo.GetById(product.CategoryId);
@@ -95,7 +95,7 @@ namespace Service.SnapFood.Application.Service
                 .Distinct();
 
             var ComboApprovedCount = _unitOfWork.ComboRepo
-                .FindWhere(x => comboIds.Contains(x.Id) && x.ModerationStatus== ModerationStatus.Approved) 
+                .FindWhere(x => comboIds.Contains(x.Id) && x.ModerationStatus == ModerationStatus.Approved)
                 .Count();
 
 
@@ -105,7 +105,7 @@ namespace Service.SnapFood.Application.Service
 
         public async Task<bool> RejectAsync(Guid id) //Hủy duyệt
         {
-           
+
             var product = _unitOfWork.ProductRepo.GetById(id);
             if (product is not null)
             {
@@ -132,8 +132,8 @@ namespace Service.SnapFood.Application.Service
                 }
                 return true;
             }
-           
-           
+
+
             return false;
         }
 
@@ -258,7 +258,7 @@ namespace Service.SnapFood.Application.Service
                 var allUsers = _unitOfWork.UserRepo.GetAll().ToList();
 
                 var dataQuery = _unitOfWork.ProductRepo.FilterData(
-                    q => q, 
+                    q => q,
                     query.gridRequest,
                     ref totalRecords
                 );
@@ -279,13 +279,13 @@ namespace Service.SnapFood.Application.Service
                     LastModified = m.LastModified,
                     ModerationStatus = m.ModerationStatus,
                     CategoryModerationStatus = GetCategoryModerationStatusById(m.CategoryId),
-                    SizeModerationStatus=GetSizeModerationStatusById(m.SizeId??Guid.Empty),
+                    SizeModerationStatus = GetSizeModerationStatusById(m.SizeId ?? Guid.Empty),
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
                     SizeName = GetSizeNameById(m.SizeId ?? Guid.Empty) ?? null,
                     CategoryName = GetCategoryNameById(m.CategoryId),
 
-                });
+
 
 
                     CreatedByName = allUsers.FirstOrDefault(u => u.Id == m.CreatedBy)?.FullName ?? "Không xác định",
@@ -316,7 +316,7 @@ namespace Service.SnapFood.Application.Service
                     throw new Exception("Tên sản phẩm trống");
                 }
 
-                if (item.BasePrice <=0)
+                if (item.BasePrice <= 0)
                 {
                     throw new Exception("Giá sản phẩm nhỏ hơn 0");
                 }
@@ -330,7 +330,7 @@ namespace Service.SnapFood.Application.Service
                 Product product = new Product
                 {
                     CategoryId = item.CategoryId,
-                    SizeId = item.SizeId ,
+                    SizeId = item.SizeId,
                     ImageUrl = item.ImageUrl,
                     ProductName = item.ProductName,
                     Description = item.Description,
@@ -348,13 +348,13 @@ namespace Service.SnapFood.Application.Service
             {
                 throw new Exception(ex.Message);
             }
-            
+
 
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var product =await _unitOfWork.ProductRepo.GetByIdAsync(id);
+            var product = await _unitOfWork.ProductRepo.GetByIdAsync(id);
             if (product is null)
             {
                 throw new Exception("Không tìm thấy sản phẩm");
@@ -390,13 +390,13 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Không tìm thấy sản phẩm");
                 }
-               
-                product.CategoryId= item.CategoryId;
-                product.SizeId= item.SizeId;
-                product.ProductName= item.ProductName;
-                product.ImageUrl= item.ImageUrl;
-                product.Description= item.Description;
-                product.BasePrice= item.BasePrice;
+
+                product.CategoryId = item.CategoryId;
+                product.SizeId = item.SizeId;
+                product.ProductName = item.ProductName;
+                product.ImageUrl = item.ImageUrl;
+                product.Description = item.Description;
+                product.BasePrice = item.BasePrice;
 
                 _unitOfWork.ProductRepo.Update(product);
                 await _unitOfWork.CompleteAsync();
@@ -406,9 +406,9 @@ namespace Service.SnapFood.Application.Service
             catch (Exception ex)
             {
 
-                throw new Exception(ex.Message) ;
+                throw new Exception(ex.Message);
             }
-           
+
 
         }
         #endregion
@@ -460,7 +460,7 @@ namespace Service.SnapFood.Application.Service
             var sizes = _unitOfWork.SizesRepo.GetById(id);
             if (sizes is not null)
             {
-                var sizeChild = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == sizes.Id && x.ModerationStatus == ModerationStatus.Approved).OrderBy(x=>x.DisplayOrder);
+                var sizeChild = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == sizes.Id && x.ModerationStatus == ModerationStatus.Approved).OrderBy(x => x.DisplayOrder);
                 var nameSize = sizes.SizeName + "(" + string.Join(", ", sizeChild.Select(x => x.SizeName)) + ")";
                 return nameSize;
             }
@@ -468,7 +468,8 @@ namespace Service.SnapFood.Application.Service
             {
                 return null;
             }
-            
+
         }
+
     }
 }

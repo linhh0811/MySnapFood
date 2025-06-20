@@ -20,6 +20,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CategoryName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DisplayOrder = table.Column<int>(type: "int", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastModified = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -32,11 +33,34 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Promotion",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PromotionName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PromotionType = table.Column<int>(type: "int", nullable: false),
+                    PromotionValue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LastModifiedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ModerationStatus = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Promotion", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RoleName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EnumRole = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastModified = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -163,6 +187,41 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PromotionItem",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PromotionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ComboId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ItemType = table.Column<int>(type: "int", nullable: false),
+                    Created = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PromotionItem", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PromotionItem_Combos_ComboId",
+                        column: x => x.ComboId,
+                        principalTable: "Combos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PromotionItem_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PromotionItem_Promotion_PromotionId",
+                        column: x => x.PromotionId,
+                        principalTable: "Promotion",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -450,7 +509,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CartId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SizeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SizeId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -470,11 +529,11 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CartProductItems_Sizes_ProductId",
-                        column: x => x.ProductId,
+                        name: "FK_CartProductItems_Sizes_SizeId",
+                        column: x => x.SizeId,
                         principalTable: "Sizes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -541,26 +600,26 @@ namespace Service.SnapFood.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "Categories",
-                columns: new[] { "Id", "CategoryName", "Created", "CreatedBy", "ImageUrl", "LastModified", "LastModifiedBy", "ModerationStatus" },
+                columns: new[] { "Id", "CategoryName", "Created", "CreatedBy", "DisplayOrder", "ImageUrl", "LastModified", "LastModifiedBy", "ModerationStatus" },
                 values: new object[,]
                 {
-                    { new Guid("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"), "Combo gà", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/222278_4.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
-                    { new Guid("90dc4303-d8e3-4e08-99cd-fbfe73b5ef00"), "Mỳ ý", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "https://jollibee.com.vn//media/catalog/category/web-06.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
-                    { new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"), "Gà sốt cay", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "https://jollibee.com.vn//media/catalog/category/web-07.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
-                    { new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"), "Đồ uống", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "https://www.lotteria.vn/media/catalog/tmp/category/MENU_DAT_HANG_THU_C_UO_NG_new_3.jpg", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
-                    { new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), "Hamburger", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "https://jollibee.com.vn//media/catalog/category/cat_burger_1.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
-                    { new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"), "Phần ăn phụ", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "https://jollibee.com.vn//media/catalog/category/phananphu.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
-                    { new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"), "Gà rán", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0001_4.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 }
+                    { new Guid("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"), "Combo gà", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 7, "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/222278_4.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
+                    { new Guid("90dc4303-d8e3-4e08-99cd-fbfe73b5ef00"), "Mỳ ý", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 2, "https://jollibee.com.vn//media/catalog/category/web-06.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
+                    { new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"), "Gà sốt cay", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 1, "https://jollibee.com.vn//media/catalog/category/web-07.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
+                    { new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"), "Đồ uống", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 5, "https://jollibee.com.vn//media/catalog/category/thucuong.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
+                    { new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), "Hamburger", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 4, "https://jollibee.com.vn//media/catalog/category/cat_burger_1.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
+                    { new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"), "Phần ăn phụ", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 6, "https://jollibee.com.vn//media/catalog/category/phananphu.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 },
+                    { new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"), "Gà rán", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 3, "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0001_4.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0 }
                 });
 
             migrationBuilder.InsertData(
                 table: "Roles",
-                columns: new[] { "Id", "Created", "CreatedBy", "Description", "LastModified", "LastModifiedBy", "ModerationStatus", "RoleName" },
+                columns: new[] { "Id", "Created", "CreatedBy", "Description", "EnumRole", "LastModified", "LastModifiedBy", "ModerationStatus", "RoleName" },
                 values: new object[,]
                 {
-                    { new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Quản trị viên", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Admin" },
-                    { new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d2e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Quản trị viên", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Quản lý" },
-                    { new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Nhân viên", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Nhân viên" }
+                    { new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Quản trị viên", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Admin" },
+                    { new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d2e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Quản trị viên", 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Quản lý" },
+                    { new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Nhân viên", 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Nhân viên" }
                 });
 
             migrationBuilder.InsertData(
@@ -580,6 +639,8 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 values: new object[,]
                 {
                     { new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"), 65000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), "Combo Burger Siêu Cay", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Burger Siêu Cay kèm Khoai Tây Chiên (M) và Pepsi Zero (M)", "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_burger_2.jpg.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, 0 },
+                    { new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ac"), 60000m, new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"), "Combo cơm gà sốt cay", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Cơm Gà Sốt Cay + Nước ngọt", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_4-compressed.jpg", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, 0 },
+                    { new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"), 70000m, new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"), "Combo cơm gà sốt cay", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Cơm Gà Sốt Cay +Súp bí đỏ+ Nước ngọt", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_3-compressed.jpg", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, 0 },
                     { new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"), 85000m, new Guid("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"), "Combo Gà Rán", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Gà Rán (1 miếng) kèm Khoai Tây Chiên (M) và Pepsi Zero (M)", "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/222281_4.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, 0 },
                     { new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"), 87000m, new Guid("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"), "Combo Gà Nướng", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Gà Nướng (1 miếng) kèm Khoai Tây Chiên (M) và Pepsi Zero (M)", "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/228380.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, 0 }
                 });
@@ -589,16 +650,26 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 columns: new[] { "Id", "BasePrice", "CategoryId", "Created", "CreatedBy", "Description", "ImageUrl", "LastModified", "LastModifiedBy", "ModerationStatus", "ProductName", "Quantity", "SizeId" },
                 values: new object[,]
                 {
-                    { new Guid("2d8f7e1a-5cbb-4ff1-bcbc-f82b07dcb4ad"), 35000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_shrimp_1_.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Burger Tôm", 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad") },
-                    { new Guid("7b17b539-8168-42c5-8b9f-1c1c783bd423"), 40000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0001_4.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Gà Rán (1 miếng)", 0, null },
-                    { new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 15000m, new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/d/r/drink_pepsi_zero_m_l__2.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Pepsi Zero", 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4") },
-                    { new Guid("9e41d162-3f6a-42a1-b9a6-28f6efbc7f5c"), 35000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_bulgogi_4.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Burger Bulgogi", 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad") },
+                    { new Guid("2d8f7e1a-5cbb-4ff1-bcbc-f82b07dcb4ad"), 35000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Burger Tôm", "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_shrimp_1_.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Burger Tôm", 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad") },
+                    { new Guid("2d8f7e1a-5cbb-4ff1-bcbc-f82b07dcb4ae"), 55000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Burger Double Double", "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_shrimp_1_.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Burger Double Double", 0, null },
+                    { new Guid("7b17b539-8168-42c5-8b9f-1c1c783bd423"), 40000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Gà Rán (1 miếng)", "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0001_4.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Gà Rán (1 miếng)", 0, null },
+                    { new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 15000m, new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Pepsi Zero", "https://www.lotteria.vn/media/catalog/product/cache/400x400/d/r/drink_pepsi_zero_m_l__2.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Pepsi Zero", 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4") },
+                    { new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb07bfc"), 20000m, new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Trà chanh hạt chia", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/h/_/h_nh_s_n_ph_m.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Trà chanh hạt chia", 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4") },
+                    { new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb07bfd"), 15000m, new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mirinda", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/t/h/th_c_u_ng_-_7_8_1.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Mirinda ", 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4") },
+                    { new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb07bfe"), 15000m, new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "7 Up", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/t/h/th_c_u_ng_-_9_10.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "7 Up ", 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4") },
+                    { new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb07bff"), 10000m, new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Nước suối", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/t/h/th_c_u_ng_-_1th_c_u_ng_-_2.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Nước suối ", 0, null },
+                    { new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb08bff"), 22000m, new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "MILKIS DELI", "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_-_milkis_menu_web.jpg.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "MILKIS DELI ", 0, null },
+                    { new Guid("9e41d162-3f6a-42a1-b9a6-28f6efbc7f5c"), 35000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Burger Bulgogi", "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_bulgogi_4.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Burger Bulgogi", 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad") },
                     { new Guid("b487da52-d738-4376-a1e3-c4a4d2fc7ef1"), 25000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/d/e/dessert_shake_potato_tuy_t_xanh_.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Khoai lắc tuyết xanh", 0, new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb") },
-                    { new Guid("c1a8f0ee-73c9-4c2f-b10f-fc3d6561d275"), 41000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_menu_5_.jpg.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Gà Sốt Bơ Tỏi (1 miếng)", 0, null },
-                    { new Guid("dbc17836-d6f4-46cb-bb9a-77b9c54e7b13"), 40000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/227436_2.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Gà Nướng (1 miếng)", 0, null },
-                    { new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), 25000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/d/e/dessert_french_fries_m_i.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Khoai Tây Chiên (M)", 0, new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb") },
-                    { new Guid("f4a7b7e8-63b6-4c90-a38a-74c5c8d9d7b1"), 35000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_burger_2.jpg.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Burger Siêu Cay", 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad") },
-                    { new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f93e"), 41000m, new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Mô tả", "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0003_1.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Gà Sốt HS (1 miếng)", 0, null }
+                    { new Guid("b487da52-d738-4376-a1e3-c4a4d2fc7ef2"), 15000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Súp bí đỏ", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/p/h/ph_n_n_ph_-_5.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Súp bí đỏ", 0, null },
+                    { new Guid("b487da52-d738-4376-a1e3-c4a4d2fc7ef3"), 10000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Cơm trắng", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/p/h/ph_n_n_ph_-_6.png", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Cơm trắng", 0, null },
+                    { new Guid("c1a8f0ee-73c9-4c2f-b10f-fc3d6561d275"), 41000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Gà Sốt Bơ Tỏi (1 miếng)", "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_menu_5_.jpg.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Gà Sốt Bơ Tỏi (1 miếng)", 0, null },
+                    { new Guid("dbc17836-d6f4-46cb-bb9a-77b9c54e7b13"), 40000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Gà Nướng (1 miếng)", "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/227436_2.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Gà Nướng (1 miếng)", 0, null },
+                    { new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), 25000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Khoai Tây Chiên", "https://www.lotteria.vn/media/catalog/product/cache/400x400/d/e/dessert_french_fries_m_i.png.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Khoai Tây Chiên", 0, new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb") },
+                    { new Guid("f4a7b7e8-63b6-4c90-a38a-74c5c8d9d7b1"), 35000m, new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Burger Siêu Cay", "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_burger_2.jpg.webp", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Burger Siêu Cay", 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad") },
+                    { new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f93e"), 35000m, new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Gà sốt HS(1 miếng)", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_7-compressed.jpg", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Gà sốt HS(1 miếng)", 0, null },
+                    { new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f94e"), 69000m, new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Gà sốt cay(2 miếng)", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_6-compressed_1.jpg", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Gà sốt cay(2 miếng)", 0, null },
+                    { new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"), 49000m, new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "Cơm gà sốt cay", "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_5-compressed.jpg", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, "Cơm gà sốt cay", 0, null }
                 });
 
             migrationBuilder.InsertData(
@@ -606,18 +677,18 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 columns: new[] { "Id", "AdditionalPrice", "Created", "CreatedBy", "DisplayOrder", "LastModified", "LastModifiedBy", "ModerationStatus", "ParentId", "SizeName" },
                 values: new object[,]
                 {
-                    { new Guid("113a873b-4fdc-429e-a370-13fd4d6e535a"), 4000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"), "L" },
-                    { new Guid("19a8ca13-16a7-49ca-b9a4-6bd25cc24ac3"), 7000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"), "XL" },
-                    { new Guid("29c0e456-1c78-47c3-bea5-732417fb9bad"), 25000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"), "Mega" },
-                    { new Guid("2bdc8d71-09d3-4cc0-aaf9-4ff37b1a5431"), 7000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb"), "Vừa" },
-                    { new Guid("2dc8c59f-efc5-4d89-a954-44e08acaa437"), 15000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb"), "Lớn" },
-                    { new Guid("59b60f91-2587-407e-937d-2c1eb2bf42b8"), 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"), "M" },
-                    { new Guid("6991cc19-e378-4290-921e-c614256c5f12"), 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"), "Phần thường" },
-                    { new Guid("6bcffcc1-803f-4bb5-968a-64680d90396a"), 25000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"), "Phần đại" },
-                    { new Guid("808ccf6f-c571-4ec8-8885-dc5096ae4f64"), 10000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"), "Big" },
-                    { new Guid("8270e2a0-5c6b-4354-8c4e-8475e9d11b34"), 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"), "Tiêu chuẩn" },
-                    { new Guid("82a3e06c-6479-4d91-b861-bf985271c2f9"), 12000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"), "Phần lớn" },
-                    { new Guid("8961fe6f-9041-4d2b-add4-dd94b6f11ba1"), 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb"), "Nhỏ" }
+                    { new Guid("10ee6e4d-14aa-4c14-a7ff-cb3b089df433"), 7000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"), "XL" },
+                    { new Guid("40016f2e-3047-444e-849b-90053ce80bc8"), 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"), "Phần thường" },
+                    { new Guid("496b4faf-c86c-4b51-b279-e67c569c7cf5"), 7000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb"), "Vừa" },
+                    { new Guid("62b2aaa3-f890-40a0-bc82-37ccb01929c3"), 4000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"), "L" },
+                    { new Guid("62d071cb-e604-4bb6-879a-0da77208ab77"), 25000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"), "Phần đại" },
+                    { new Guid("65191eb2-27db-4567-b190-2dfd5edf5e25"), 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"), "Tiêu chuẩn" },
+                    { new Guid("93249e0e-b6fb-4755-9499-07ee376d5a3c"), 15000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb"), "Lớn" },
+                    { new Guid("a58662e9-2c43-4bd9-9fca-a75a9032acd9"), 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"), "M" },
+                    { new Guid("bbf88f8f-9669-40fb-93bf-e0698493692d"), 12000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"), "Phần lớn" },
+                    { new Guid("c16132b6-3250-4715-9e8a-4bfa428c0a70"), 25000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"), "Mega" },
+                    { new Guid("cb1c07ed-0c0d-4b41-a31b-f0f8c0f33f20"), 10000m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"), "Big" },
+                    { new Guid("f71cc3fb-9adb-4c30-93a5-8e28932b9d45"), 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb"), "Nhỏ" }
                 });
 
             migrationBuilder.InsertData(
@@ -630,15 +701,20 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 columns: new[] { "Id", "ComboId", "Created", "ProductId", "Quantity" },
                 values: new object[,]
                 {
-                    { new Guid("354ba95f-9276-4f81-bc22-cac7f336413e"), new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("dbc17836-d6f4-46cb-bb9a-77b9c54e7b13"), 1 },
-                    { new Guid("36f83afe-aad1-4984-9f73-2d23c0fd9370"), new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 1 },
-                    { new Guid("43c028f2-ba31-4c44-9905-ad6d9d8e1330"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("f4a7b7e8-63b6-4c90-a38a-74c5c8d9d7b1"), 1 },
-                    { new Guid("856f5bc7-f3ed-495f-9c25-0157875b907b"), new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 1 },
-                    { new Guid("c53093e8-4a84-4578-b855-892d4bf250d3"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 1 },
-                    { new Guid("e332021d-1c42-4980-9014-4d36784e69a4"), new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("7b17b539-8168-42c5-8b9f-1c1c783bd423"), 1 },
-                    { new Guid("f131c66e-fc1f-4af7-acb0-d7a5969b0103"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), 1 },
-                    { new Guid("f1d350f8-8f68-435e-868e-ef1ae2006aeb"), new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), 1 },
-                    { new Guid("fc3b6149-3adc-445c-b095-fb05d6a97a49"), new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), 1 }
+                    { new Guid("0b40a8a7-6dae-4861-915a-fde5c48af289"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("b487da52-d738-4376-a1e3-c4a4d2fc7ef2"), 1 },
+                    { new Guid("0efeae4b-1c9b-4c70-b054-5a035ad45490"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("f4a7b7e8-63b6-4c90-a38a-74c5c8d9d7b1"), 1 },
+                    { new Guid("33fb9a08-ca22-4500-bd9b-4f99e2e0a5a7"), new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 1 },
+                    { new Guid("3a9c68bd-6950-48f7-b654-94743bdfbe53"), new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), 1 },
+                    { new Guid("40d2265b-50ce-4218-bfb8-1e09955776f4"), new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("dbc17836-d6f4-46cb-bb9a-77b9c54e7b13"), 1 },
+                    { new Guid("51f36c21-d050-49dd-a2bf-2d86865166e8"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ac"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"), 1 },
+                    { new Guid("809d12ed-47e2-4b70-b70f-8e1a69514330"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ac"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 1 },
+                    { new Guid("846f284a-222d-49ce-93a8-590de6e66f23"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), 1 },
+                    { new Guid("8a46c5ac-d482-465e-ac9a-66624fbbc083"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"), 1 },
+                    { new Guid("934450ec-5870-4745-b780-ac97c78787ed"), new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 1 },
+                    { new Guid("a57d1ca2-0f2f-432b-84c7-3ac711ff0c19"), new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("7b17b539-8168-42c5-8b9f-1c1c783bd423"), 1 },
+                    { new Guid("d9e68972-c221-4234-a9bf-196694e81694"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 1 },
+                    { new Guid("dd6d2636-7259-427e-be62-90b90827ff35"), new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), 1 },
+                    { new Guid("f1466c23-b127-4414-a9f1-50d5f0de3efc"), new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), 1 }
                 });
 
             migrationBuilder.InsertData(
@@ -646,8 +722,8 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 columns: new[] { "Id", "Created", "CreatedBy", "Email", "FullName", "LastModified", "LastModifiedBy", "ModerationStatus", "Numberphone", "Password", "StoreId", "UserType" },
                 values: new object[,]
                 {
-                    { new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "manhdb123@gmail.com", "Phạm Viết Mạnh", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, null, "$2a$11$hfUavUdknuucYxRafesaoehNAZsDl825Ac/eYhsKn4dAA.fD./m8e", new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d0e"), 1 },
-                    { new Guid("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d4e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "admin@gmail.com", "Admin", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, null, "$2a$11$AeE6SPxM54xLGVolLz4FOu85MVN5oIanvBf3DsdnMXji.u6fUHVMy", new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d0e"), 1 }
+                    { new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "manhdb123@gmail.com", "Phạm Viết Mạnh", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, null, "$2a$11$NWeiGWWjIt7a./ClpUS0uedN1BcvuYM/Q1LTQzNiIQa797yn7FBNm", new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d0e"), 1 },
+                    { new Guid("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d4e"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), "admin@gmail.com", "Admin", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), 0, null, "$2a$11$lHRdO2M.kfKQH38uWkUkS./ZvwBFZ30bGZiIqHUoY/Tn8GvCGb6HK", new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d0e"), 1 }
                 });
 
             migrationBuilder.InsertData(
@@ -655,9 +731,9 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 columns: new[] { "Id", "Created", "RoleId", "UserId" },
                 values: new object[,]
                 {
-                    { new Guid("9da1c677-e2d5-481c-8ae6-08d016d794e9"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"), new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e") },
-                    { new Guid("f3522bf0-205f-448c-8ad4-959390f0da99"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"), new Guid("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d4e") },
-                    { new Guid("f95a5298-a2b9-4fa3-8d3d-ad8ce3f5bb40"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"), new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e") }
+                    { new Guid("0c67f37b-ddf9-49f9-b76d-b6c0e7a9491b"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"), new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e") },
+                    { new Guid("7aad7d51-558e-4e51-8c38-0668d3726f9c"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"), new Guid("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d4e") },
+                    { new Guid("e663245f-4362-47c6-943e-b5d831c8f771"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"), new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e") }
                 });
 
             migrationBuilder.CreateIndex(
@@ -717,6 +793,11 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CartProductItems_SizeId",
+                table: "CartProductItems",
+                column: "SizeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Carts_UserId",
                 table: "Carts",
                 column: "UserId",
@@ -766,6 +847,21 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 name: "IX_Products_SizeId",
                 table: "Products",
                 column: "SizeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PromotionItem_ComboId",
+                table: "PromotionItem",
+                column: "ComboId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PromotionItem_ProductId",
+                table: "PromotionItem",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PromotionItem_PromotionId",
+                table: "PromotionItem",
+                column: "PromotionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Sizes_ParentId",
@@ -831,6 +927,9 @@ namespace Service.SnapFood.Infrastructure.Migrations
                 name: "ProductCombos");
 
             migrationBuilder.DropTable(
+                name: "PromotionItem");
+
+            migrationBuilder.DropTable(
                 name: "UserRole");
 
             migrationBuilder.DropTable(
@@ -841,6 +940,9 @@ namespace Service.SnapFood.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "Promotion");
 
             migrationBuilder.DropTable(
                 name: "Roles");
