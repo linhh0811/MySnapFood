@@ -1,0 +1,225 @@
+﻿@page "/bills/user/{id:guid}"
+@using Service.SnapFood.Manage.Dto.Bill
+@using Service.SnapFood.Manage.Dto.BillDetails
+@inject HttpClient Http
+
+<h3>Chi tiết đơn hàng</h3>
+
+<div class="step-container">
+    @for (int i = 1; i <= 5; i++)
+    {
+        <div class="step @(i <= CurrentStep ? "active" : "")">
+            <div class="circle">@i</div>
+            <div class="step-label">
+                @(i == 1 ? "Chờ xác nhận" :
+                    i == 2 ? "Đã xác nhận" :
+                    i == 3 ? "Giao hàng" :
+                    i == 4 ? "Hoàn thành" : "Huỷ")
+            </div>
+        </div>
+    }
+</div>
+
+<div class="mb-3">
+    @if (CurrentStep == 1)
+    {
+        <button class="btn btn-success me-2" @onclick="() => UpdateStatus(1)">Xác nhận</button>
+        <button class="btn btn-danger" @onclick="() => UpdateStatus(4)">Huỷ</button>
+    }
+    else if (CurrentStep == 2)
+    {
+        <button class="btn btn-success me-2" @onclick="() => UpdateStatus(2)">Giao hàng</button>
+        <button class="btn btn-danger" @onclick="() => UpdateStatus(4)">Huỷ</button>
+    }
+    else if (CurrentStep == 3)
+    {
+        <button class="btn btn-success me-2" @onclick="() => UpdateStatus(3)">Hoàn thành</button>
+        <button class="btn btn-danger" @onclick="() => UpdateStatus(4)">Huỷ</button>
+    }
+    else if (CurrentStep == 4)
+    {
+        <button class="btn btn-danger" @onclick="() => UpdateStatus(4)">Huỷ</button>
+    }
+</div>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Hình ảnh</th>
+            <th>Tên món</th>
+            <th>Giá</th>
+            <th>Số lượng</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in BillDetails)
+        {
+            <tr>
+                <td><img src="@item.ImageUrl" width="80" /></td>
+                <td>@item.ItemsName</td>
+                <td>
+                    @if (item.PriceEndow > item.Price)
+                    {
+                        <span style="text-decoration: line-through; color: gray;">@item.PriceEndow.ToString("N0") đ</span>
+
+                        <br />
+                    }
+                    @item.Price.ToString("N0") đ
+                </td>
+                <td>@item.Quantity</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<style>
+    .step-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #fff;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+    }
+
+     
+        .step:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            top: 17px;
+            right: -50%;
+            width: 100%;
+            height: 3px;
+            background-color: #ddd;
+            z-index: 0;
+        }
+
+        .step.active:not(:last-child)::after {
+            background-color: #007bff;
+        }
+
+    .circle {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background-color: #ddd;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        z-index: 1;
+        position: relative;
+    }
+
+    .step.active .circle {
+        background-color: #007bff;
+    }
+
+    .step-label {
+        margin-top: 5px;
+        font-size: 14px;
+        color: #333;
+    }
+
+    /* Nút bấm */
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #fff;
+        margin-right: 10px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+</style>
+
+@code {
+    [Parameter] public Guid id { get; set; }
+    private List<BillDetailsDto> BillDetails = new();
+    private int CurrentStep = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Console.WriteLine($"📦 BillId: {id}");
+
+            BillDetails = await Http.GetFromJsonAsync<List<BillDetailsDto>>($"api/BillDetails/{id}");
+            var bill = await Http.GetFromJsonAsync<BillDto>($"api/Bill/{id}");
+
+            if (bill != null)
+            {
+                CurrentStep = ConvertStatusToStep(bill.Status);
+                Console.WriteLine($"📌 Status: {bill.Status} → Step: {CurrentStep}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Lỗi khi load dữ liệu: {ex.Message}");
+        }
+    }
+
+    private int ConvertStatusToStep(int status)
+    {
+        return status switch
+        {
+            0 => 1, // Pending
+            1 => 2, // Confirmed
+            2 => 3, // Shipping
+            3 => 4, // Completed
+            4 => 5, // Cancelled
+            _ => 1
+        };
+    }
+
+    private async Task UpdateStatus(int status)
+    {
+        try
+        {
+            var body = JsonContent.Create(status);
+            var response = await Http.PutAsync($"api/Bill/UpdateStatus/{id}", body);
+
+            if (response.IsSuccessStatusCode)
+            {
+                CurrentStep = ConvertStatusToStep(status);
+                StateHasChanged();
+                Console.WriteLine("✅ Cập nhật trạng thái thành công.");
+            }
+            else
+            {
+                Console.WriteLine($"❌ Lỗi cập nhật: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Lỗi khi gọi API: {ex.Message}");
+        }
+    }
+}
