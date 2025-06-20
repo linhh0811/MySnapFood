@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
+using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Share.Query;
 using System;
 using System.Threading.Tasks;
@@ -36,6 +37,7 @@ namespace Service.SnapFood.Api.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var bill = await _billService.GetByIdAsync(id);
+            
             return Ok(bill);
         }
         [HttpGet("ByUser/{userId}")]
@@ -78,5 +80,26 @@ namespace Service.SnapFood.Api.Controllers
                 return BadRequest("Cập nhật không thành công");
             return NoContent();
         }
+        [HttpPut("UpdateStatus/{id}")]
+        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] int newStatus)
+        {
+            try
+            {
+                var statusEnum = (StatusOrder)newStatus;
+
+                var result = await _billService.UpdateStatusAsync(id, statusEnum);
+                if (!result)
+                    return BadRequest("Cập nhật trạng thái thất bại");
+
+                return Ok("Cập nhật trạng thái thành công");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
+
+
+
     }
 }

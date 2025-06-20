@@ -87,7 +87,7 @@ app.UseCors("AllowBlazor");
 app.UseAuthentication();
 app.UseAuthorization();
 
-//app.UseMiddleware<JwtMiddleware>();
+app.UseMiddleware<JwtMiddleware>();
 app.UseMiddleware<GlobalErrorHandlingMiddleware>();
 app.MapControllers();
 

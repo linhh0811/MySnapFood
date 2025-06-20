@@ -46,6 +46,9 @@
                                     <div style="display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-left: auto;">
                                         @if (context == selectedItem)
                                         {
+											<FluentButton Title="Sửa" Style="display: inline-block;" OnClick="@(()=>OpenModalUpdateSize(context.Id))">
+												<FluentIcon Value="@(new Icons.Regular.Size20.Edit())" />
+											</FluentButton>
                                             @if (treeView.ModerationStatus == (int)ModerationStatus.Approved)
                                             {
 												<FluentButton Title="Hủy duyệt" Style="display: inline-block;" OnClick="@(() => RejectSizeAsync(context.Id))">
@@ -56,10 +59,7 @@
                                             {
 												<FluentButton Title="Duyệt" Style="display: inline-block;" OnClick="@(() => ApproveSizeAsync(context.Id))">
                                                     <FluentIcon Value="@(new Icons.Regular.Size20.Checkmark())" />
-                                                </FluentButton>
-                                                <FluentButton Title="Sửa" Style="display: inline-block;" OnClick="@(()=>OpenModalUpdateSize(context.Id))">
-                                                    <FluentIcon Value="@(new Icons.Regular.Size20.Edit())"  />
-                                                </FluentButton>
+                                                </FluentButton>                                  
 												<FluentButton Title="Xóa" Style="display: inline-block;" OnClick="@(() => DeleteSizeAsync(context.Id))">
                                                     <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" />
                                                 </FluentButton>
@@ -123,13 +123,10 @@
 							</FluentBadge>
 						</TemplateColumn>
 						<TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:155px">
-							<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
-								@if (context.ModerationStatus != 0)
-								{
-									<FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(()=> OpenModalUpdateCategory(context.Id??string.Empty))">
-										<FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
-									</FluentButton>
-								}
+							<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">						
+								<FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(()=> OpenModalUpdateCategory(context.Id??string.Empty))">
+									<FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
+								</FluentButton>							
 
 								@if (context.ModerationStatus == 0)
 								{

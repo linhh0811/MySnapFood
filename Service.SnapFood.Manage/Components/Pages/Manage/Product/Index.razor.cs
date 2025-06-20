@@ -81,33 +81,122 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
         #region duyệt, hủy duyệt, xóa
         public async Task RejectAsync(Guid id)
         {
-            requestRestAPI.Endpoint = $"api/Product/{id}/Reject";
-            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
-            if (result.Status == StatusCode.OK)
+            try
             {
-                ToastService.ShowSuccess("Huỷ duyệt sản phẩm thành công");
-                await ProductGrid.RefreshDataAsync();
+                requestRestAPI.Endpoint = $"api/Product/{id}/CheckReject";
+                ResultAPI resultCheck = await CallApi.Put(requestRestAPI, new object());
+                if (resultCheck.Status == StatusCode.OK)
+                {
+                    var comboCount =Convert.ToInt32(resultCheck.Data?.ToString());
+                    if (comboCount>0)
+                    {
+                        var parameters = new RejectApproveParameters()
+                        {
+                            Title = "Hủy duyệt",
+                            Content = $"Sản phẩm hiện tại nằm trong {comboCount} combo đang hoạt động.",
+                            Content2 = "Nếu hủy duyệt sản phẩm này, các combo chứa sản phẩm cũng bị hủy duyệt."
+                        };
+                        var dialog = await DialogService.ShowDialogAsync<RejectConfirm>(parameters,new DialogParameters());
+                        var resultDialog = await dialog.Result;
+                        if (resultDialog.Cancelled == false && resultDialog.Data is bool success && success)
+                        {
+                            requestRestAPI.Endpoint = $"api/Product/{id}/Reject";
+                            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+                            if (result.Status == StatusCode.OK)
+                            {
+                                ToastService.ShowSuccess("Huỷ duyệt sản phẩm thành công");
+                                await ProductGrid.RefreshDataAsync();
+                            }
+                            else
+                            {
+                                ToastService.ShowError("Huỷ duyệt sản phẩm thất bại!  " + result.Message);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        requestRestAPI.Endpoint = $"api/Product/{id}/Reject";
+                        ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+                        if (result.Status == StatusCode.OK)
+                        {
+                            ToastService.ShowSuccess("Huỷ duyệt sản phẩm thành công");
+                            await ProductGrid.RefreshDataAsync();
+                        }
+                        else
+                        {
+                            ToastService.ShowError("Huỷ duyệt sản phẩm thất bại!  " + result.Message);
+                        }
+                    }
+                }
+               
+               
             }
-            else
+            catch (Exception ex)
             {
-                ToastService.ShowError("Huỷ duyệt sản phẩm thất bại!  " + result.Message);
+                ToastService.ShowError("Hủy duyệt thất bại: " + ex.Message);
             }
+           
 
         }
         public async Task ApproveAsync(Guid id)
         {
-            requestRestAPI.Endpoint = $"api/Product/{id}/Approve";
-            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
-            if (result.Status == StatusCode.OK)
+            try
             {
-                ToastService.ShowSuccess("Duyệt sản phẩm thành công");
-                await ProductGrid.RefreshDataAsync();
+                requestRestAPI.Endpoint = $"api/Product/{id}/CheckApprove";
+                ResultAPI resultCheck = await CallApi.Get<Dto.StringContent>(requestRestAPI);
+                if (resultCheck.Status == StatusCode.OK)
+                {
+                    var resultData = resultCheck.Data as Dto.StringContent ?? new Dto.StringContent();
+                    if (!string.IsNullOrEmpty(resultData.Content))
+                    {
+                        var parameters = new RejectApproveParameters()
+                        {
+                            Title = "Duyệt",
+                            Content = $"{resultData.Content} của sản phẩm đang ngừng hoạt động.",
+                            Content2 = $"Nếu duyệt sản phẩm này, {resultData.Content} của sản phẩm cũng sẽ được duyệt."
+                        };
+                        var dialog = await DialogService.ShowDialogAsync<RejectConfirm>(parameters, new DialogParameters());
+                        var resultDialog = await dialog.Result;
+                        if (resultDialog.Cancelled == false && resultDialog.Data is bool success && success)
+                        {
+                            requestRestAPI.Endpoint = $"api/Product/{id}/Approve";
+                            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+                            if (result.Status == StatusCode.OK)
+                            {
+                                ToastService.ShowSuccess("Duyệt sản phẩm thành công");
+                                await ProductGrid.RefreshDataAsync();
+
+                            }
+                            else
+                            {
+                                ToastService.ShowError("Duyệt sản phẩm thất bại!  " + result.Message);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        requestRestAPI.Endpoint = $"api/Product/{id}/Approve";
+                        ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+                        if (result.Status == StatusCode.OK)
+                        {
+                            ToastService.ShowSuccess("Duyệt sản phẩm thành công");
+                            await ProductGrid.RefreshDataAsync();
+
+                        }
+                        else
+                        {
+                            ToastService.ShowError("Duyệt sản phẩm thất bại!  " + result.Message);
+                        }
+                    }
+                }
+
 
             }
-            else
+            catch (Exception ex)
             {
-                ToastService.ShowError("Duyệt sản phẩm thất bại!  " + result.Message);
+                ToastService.ShowError("Hủy duyệt thất bại: " + ex.Message);
             }
+            
 
         }
         private async Task DeleteAsync(Guid id)

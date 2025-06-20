@@ -169,7 +169,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             );
             builder.Entity<Categories>().HasData(new Categories
             {
-                Id = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
+                Id = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),//Đồ uống
                 CategoryName = "Đồ uống",
                 DisplayOrder = 5,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/thucuong.png",
@@ -177,7 +177,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Categories
             {
-                Id = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
+                Id = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),//Gà sốt cay
                 CategoryName = "Gà sốt cay",
                 DisplayOrder = 1,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/web-07.png",
@@ -201,7 +201,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Categories
             {
-                Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),
+                Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),//Gà rán
                 CategoryName = "Gà rán",
                 DisplayOrder = 3,
                 ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0001_4.png.webp",
@@ -209,7 +209,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Categories
             {
-                Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
+                Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),//Hamburger
                 CategoryName = "Hamburger",
                 DisplayOrder = 4,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/cat_burger_1.png",
@@ -217,7 +217,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Categories
             {
-                Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),
+                Id = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),//Phần ăn phụ
                 CategoryName = "Phần ăn phụ",
                 DisplayOrder = 6,
                 ImageUrl = "https://jollibee.com.vn//media/catalog/category/phananphu.png",
@@ -229,10 +229,10 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                new Product
                {
                    Id = Guid.Parse("f4a7b7e8-63b6-4c90-a38a-74c5c8d9d7b1"),
-                   CategoryId=Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
+                   CategoryId=Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),//Hamburger
                    SizeId =Guid.Parse("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"),
                    ProductName = "Burger Siêu Cay",
-                   Description = "Mô tả",
+                   Description = "Burger Siêu Cay",
                    Quantity = 0,
                    BasePrice = 35000,
                    ModerationStatus = ModerationStatus.Approved,
@@ -242,9 +242,9 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                {
                    Id = Guid.Parse("9e41d162-3f6a-42a1-b9a6-28f6efbc7f5c"),
                    ProductName = "Burger Bulgogi",
-                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
+                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),//Hamburger
                    SizeId = Guid.Parse("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"),
-                   Description = "Mô tả",
+                   Description = "Burger Bulgogi",
                    Quantity = 0,
                    BasePrice = 35000,
                    ModerationStatus = ModerationStatus.Approved,
@@ -254,34 +254,102 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                {
                    Id = Guid.Parse("2d8f7e1a-5cbb-4ff1-bcbc-f82b07dcb4ad"),
                    ProductName = "Burger Tôm",
-                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
+                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),//Hamburger
                    SizeId = Guid.Parse("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"),
-                   Description = "Mô tả",
+                   Description = "Burger Tôm",
                    Quantity = 0,
                    BasePrice = 35000,
                    ModerationStatus = ModerationStatus.Approved,
                    ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_shrimp_1_.png.webp"
                },
+                new Product
+                {
+                    Id = Guid.Parse("2d8f7e1a-5cbb-4ff1-bcbc-f82b07dcb4ae"),
+                    ProductName = "Burger Double Double",
+                    CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),//Hamburger
+                    Description = "Burger Double Double",
+                    Quantity = 0,
+                    BasePrice = 55000,
+                    ModerationStatus = ModerationStatus.Approved,
+                    ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_shrimp_1_.png.webp"
+                },
                new Product
                {
                    Id = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
-                   CategoryId = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
+                   CategoryId = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),//Đồ uống
                    SizeId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
                    ProductName = "Pepsi Zero",
-                   Description = "Mô tả",
+                   Description = "Pepsi Zero",
                    Quantity = 0,
                    BasePrice = 15000,
                    ModerationStatus = ModerationStatus.Approved,
                    ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/d/r/drink_pepsi_zero_m_l__2.png.webp"
-               }
-               ,
+               },
+                new Product
+                {
+                    Id = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-84647eb07bfc"),
+                    CategoryId = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),//Đồ uống
+                    SizeId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
+                    ProductName = "Trà chanh hạt chia",
+                    Description = "Trà chanh hạt chia",
+                    Quantity = 0,
+                    BasePrice = 20000,
+                    ModerationStatus = ModerationStatus.Approved,
+                    ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/h/_/h_nh_s_n_ph_m.png"
+                },
+                 new Product
+                 {
+                     Id = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-84647eb07bfd"),
+                     CategoryId = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),//Đồ uống
+                     SizeId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
+                     ProductName = "Mirinda ",
+                     Description = "Mirinda",
+                     Quantity = 0,
+                     BasePrice = 15000,
+                     ModerationStatus = ModerationStatus.Approved,
+                     ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/t/h/th_c_u_ng_-_7_8_1.png"
+                 },
+                 new Product
+                 {
+                     Id = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-84647eb07bfe"),
+                     CategoryId = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),//Đồ uống
+                     SizeId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
+                     ProductName = "7 Up ",
+                     Description = "7 Up",
+                     Quantity = 0,
+                     BasePrice = 15000,
+                     ModerationStatus = ModerationStatus.Approved,
+                     ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/t/h/th_c_u_ng_-_9_10.png"
+                 },
+                 new Product
+                 {
+                     Id = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-84647eb07bff"),
+                     CategoryId = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),//Đồ uống
+                     ProductName = "Nước suối ",
+                     Description = "Nước suối",
+                     Quantity = 0,
+                     BasePrice = 10000,
+                     ModerationStatus = ModerationStatus.Approved,
+                     ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/t/h/th_c_u_ng_-_1th_c_u_ng_-_2.png"
+                 },
+                  new Product
+                  {
+                      Id = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-84647eb08bff"),
+                      CategoryId = Guid.Parse("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),//Đồ uống
+                      ProductName = "MILKIS DELI ",
+                      Description = "MILKIS DELI",
+                      Quantity = 0,
+                      BasePrice = 22000,
+                      ModerationStatus = ModerationStatus.Approved,
+                      ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_-_milkis_menu_web.jpg.webp"
+                  },
                new Product
                {
                    Id = Guid.Parse("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"),
-                   ProductName = "Khoai Tây Chiên (M)",
-                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),
+                   ProductName = "Khoai Tây Chiên",
+                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),//Phần ăn phụ
                    SizeId = Guid.Parse("0d41a8fd-f372-4c77-b5a3-63368e3994bb"),
-                   Description = "Mô tả",
+                   Description = "Khoai Tây Chiên",
                    Quantity = 0,
                    BasePrice = 25000,
                    ModerationStatus = ModerationStatus.Approved,
@@ -290,7 +358,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                new Product
                {
                    Id = Guid.Parse("b487da52-d738-4376-a1e3-c4a4d2fc7ef1"),
-                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),
+                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),//Phần ăn phụ
                    SizeId = Guid.Parse("0d41a8fd-f372-4c77-b5a3-63368e3994bb"),
                    ProductName = "Khoai lắc tuyết xanh",
                    Description = "Mô tả",
@@ -299,25 +367,71 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                    ModerationStatus = ModerationStatus.Approved,
                    ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/d/e/dessert_shake_potato_tuy_t_xanh_.png.webp"
                },
+                new Product
+                {
+                    Id = Guid.Parse("b487da52-d738-4376-a1e3-c4a4d2fc7ef2"),
+                    CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),//Phần ăn phụ
+                    ProductName = "Súp bí đỏ",
+                    Description = "Súp bí đỏ",
+                    Quantity = 0,
+                    BasePrice = 15000,
+                    ModerationStatus = ModerationStatus.Approved,
+                    ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/p/h/ph_n_n_ph_-_5.png"
+                },
+                new Product
+                {
+                    Id = Guid.Parse("b487da52-d738-4376-a1e3-c4a4d2fc7ef3"),
+                    CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),//Phần ăn phụ
+                    ProductName = "Cơm trắng",
+                    Description = "Cơm trắng",
+                    Quantity = 0,
+                    BasePrice = 10000,
+                    ModerationStatus = ModerationStatus.Approved,
+                    ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/p/h/ph_n_n_ph_-_6.png"
+                },
                new Product
                {
                    Id = Guid.Parse("f6a71ac8-78f3-4194-88c9-c2aa9467f93e"),
-                   ProductName = "Gà Sốt HS (1 miếng)",
-                   CategoryId = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
-                   SizeId=null,
-                   Description = "Mô tả",
+                   ProductName = "Gà sốt HS(1 miếng)",
+                   CategoryId = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),//Gà sốt cay
+                   SizeId =null,
+                   Description = "Gà sốt HS(1 miếng)",
                    Quantity = 0,
-                   BasePrice = 41000,
+                   BasePrice = 35000,
                    ModerationStatus = ModerationStatus.Approved,
-                   ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0003_1.png.webp"
+                   ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_7-compressed.jpg"
                },
+                new Product
+                {
+                    Id = Guid.Parse("f6a71ac8-78f3-4194-88c9-c2aa9467f94e"),
+                    ProductName = "Gà sốt cay(2 miếng)",
+                    CategoryId = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),//Gà sốt cay
+                    SizeId = null,
+                    Description = "Gà sốt cay(2 miếng)",
+                    Quantity = 0,
+                    BasePrice = 69000,
+                    ModerationStatus = ModerationStatus.Approved,
+                    ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_6-compressed_1.jpg"
+                },
+                 new Product
+                 {
+                     Id = Guid.Parse("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"),
+                     ProductName = "Cơm gà sốt cay",
+                     CategoryId = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),//Gà sốt cay
+                     SizeId = null,
+                     Description = "Cơm gà sốt cay",
+                     Quantity = 0,
+                     BasePrice = 49000,
+                     ModerationStatus = ModerationStatus.Approved,
+                     ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_5-compressed.jpg"
+                 },
                new Product
                {
                    Id = Guid.Parse("dbc17836-d6f4-46cb-bb9a-77b9c54e7b13"),
                    ProductName = "Gà Nướng (1 miếng)",
-                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),
+                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),//Gà rán
                    SizeId = null,
-                   Description = "Mô tả",
+                   Description = "Gà Nướng (1 miếng)",
                    Quantity = 0,
                    BasePrice = 40000,
                    ModerationStatus = ModerationStatus.Approved,
@@ -327,9 +441,9 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                {
                    Id = Guid.Parse("7b17b539-8168-42c5-8b9f-1c1c783bd423"),
                    ProductName = "Gà Rán (1 miếng)",
-                   CategoryId   = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),
+                   CategoryId   = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),//Gà rán
                    SizeId = null,
-                   Description = "Mô tả",
+                   Description = "Gà Rán (1 miếng)",
                    Quantity = 0,
                    BasePrice = 40000,
                    ModerationStatus = ModerationStatus.Approved,
@@ -339,9 +453,9 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                {
                    Id = Guid.Parse("c1a8f0ee-73c9-4c2f-b10f-fc3d6561d275"),
                    ProductName = "Gà Sốt Bơ Tỏi (1 miếng)",
-                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),
+                   CategoryId = Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),//Gà rán
                    SizeId = null,
-                   Description = "Mô tả",
+                   Description = "Gà Sốt Bơ Tỏi (1 miếng)",
                    Quantity = 0,
                    BasePrice = 41000,
                    ModerationStatus = ModerationStatus.Approved,
@@ -349,10 +463,30 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                }
                );
             builder.Entity<Combo>().HasData(
+                 new Combo
+                 {
+                     Id = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ac"),
+                     CategoryId = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),//Gà sốt cay
+                     ComboName = "Combo cơm gà sốt cay",
+                     ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_4-compressed.jpg",
+                     BasePrice = 60000,
+                     ModerationStatus = ModerationStatus.Approved,
+                     Description = "Cơm Gà Sốt Cay + Nước ngọt",
+                 },
+                 new Combo
+                 {
+                     Id = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),
+                     CategoryId = Guid.Parse("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),//Gà sốt cay
+                     ComboName = "Combo cơm gà sốt cay",
+                     ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_3-compressed.jpg",
+                     BasePrice = 70000,
+                     ModerationStatus = ModerationStatus.Approved,
+                     Description = "Cơm Gà Sốt Cay +Súp bí đỏ+ Nước ngọt",
+                 },
                new Combo
                {
                    Id = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
-                   CategoryId= Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
+                   CategoryId= Guid.Parse("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),//Hamburger
                    ComboName = "Combo Burger Siêu Cay",
                    ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_burger_2.jpg.webp",
                    BasePrice = 65000,
@@ -363,7 +497,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                {
                    Id = Guid.Parse("b2c3d4e5-f6a7-4890-abcd-2345678901bc"),
                    ComboName = "Combo Gà Rán",
-                   CategoryId = Guid.Parse("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"),
+                   CategoryId = Guid.Parse("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"),//Combo gà
                    ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/222281_4.png.webp",
                    BasePrice = 85000,
                    ModerationStatus = ModerationStatus.Approved,
@@ -372,7 +506,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                new Combo
                {
                    Id = Guid.Parse("c3d4e5f6-a7b8-4901-bcde-3456789012cd"),
-                   CategoryId= Guid.Parse("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"),
+                   CategoryId= Guid.Parse("801ebf3e-d50c-48ec-998b-4f04ec7bfc3d"),//Combo gà
                    ComboName = "Combo Gà Nướng",
                    ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/228380.png.webp",
                    BasePrice = 87000,
@@ -381,6 +515,41 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                }
                );
             builder.Entity<ProductCombo>().HasData(
+                new ProductCombo
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = Guid.Parse("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"), // Cơm gà sốt Siêu Cay
+                    ComboId = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),//Combo cơm gà sốt cay
+                    Quantity = 1,
+                },
+                  new ProductCombo
+                  {
+                      Id = Guid.NewGuid(),
+                      ProductId = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), // Pepsi Zero 
+                      ComboId = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),//Combo cơm gà sốt cay
+                      Quantity = 1,
+                  },
+                   new ProductCombo
+                   {
+                       Id = Guid.NewGuid(),
+                       ProductId = Guid.Parse("b487da52-d738-4376-a1e3-c4a4d2fc7ef2"), // súp bí đỏ 
+                       ComboId = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),//Combo cơm gà sốt cay
+                       Quantity = 1,
+                   },
+                 new ProductCombo
+                 {
+                     Id = Guid.NewGuid(),
+                     ProductId = Guid.Parse("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"), // Cơm gà sốt Siêu Cay
+                     ComboId = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ac"),//Combo cơm gà sốt cay
+                     Quantity = 1,
+                 },
+                  new ProductCombo
+                  {
+                      Id = Guid.NewGuid(),
+                      ProductId = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), // Pepsi Zero 
+                      ComboId = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ac"),//Combo cơm gà sốt cay
+                      Quantity = 1,
+                  },
                new ProductCombo
                {
                    Id = Guid.NewGuid(),
@@ -391,14 +560,14 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                new ProductCombo
                {
                    Id = Guid.NewGuid(),
-                   ProductId = Guid.Parse("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), // Khoai Tây Chiên (M)
+                   ProductId = Guid.Parse("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"), // Khoai Tây Chiên 
                    ComboId = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
                    Quantity = 1,
                },
                new ProductCombo
                {
                    Id = Guid.NewGuid(),
-                   ProductId = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), // Pepsi Zero (M)
+                   ProductId = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), // Pepsi Zero 
                    ComboId = Guid.Parse("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
                    Quantity = 1,
                },
@@ -421,7 +590,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                new ProductCombo
                {
                    Id = Guid.NewGuid(),
-                   ProductId = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), // Pepsi Zero (M)
+                   ProductId = Guid.Parse("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"), // Pepsi Zero 
                    ComboId = Guid.Parse("b2c3d4e5-f6a7-4890-abcd-2345678901bc"),
                    Quantity = 1,
                },
@@ -552,7 +721,9 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             }
         }
         public DbSet<Cart> Carts { get; set; }
-        public DbSet<CartProductItem> CartItems { get; set; }
+        public DbSet<CartProductItem> CartProductItems { get; set; }
+        public DbSet<CartComboItem> CartComboItems { get; set; } // Thêm DbSet cho CartComboItem
+        public DbSet<ComboProductItem> ComboProductItems { get; set; } // Thêm DbSet cho ComboProductItem
         public DbSet<Bill> Bill { get; set; }
         public DbSet<BillDetails> BillDetailses { get; set; }
         public DbSet<Combo> Combos { get; set; }

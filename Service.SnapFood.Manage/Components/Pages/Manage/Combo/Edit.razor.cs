@@ -70,7 +70,6 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             if (result.Status == StatusCode.OK)
             {
                 CategoryList = result.Data as List<CategoryDto> ?? new List<CategoryDto>();
-                CategoryList = CategoryList.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
                 ComboModel.CategoryId = CategoryList.First().Id??string.Empty;
             }
         }

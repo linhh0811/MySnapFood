@@ -1,22 +1,24 @@
 ﻿@page "/Quan-Ly/Bill"
+
 @using Service.SnapFood.Manage.Dto
 @using Service.SnapFood.Manage.Dto.BillDto
 @using System.Text.Json
-
-
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using Service.SnapFood.Share.Query
 @using Service.SnapFood.Share.Query.Grid
 
-
+@inject NavigationManager navigation
 @namespace Service.SnapFood.Manage.Components.Pages.Manage.Bill
 
-
-
-<FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="12" Style="width:100%;">
     <h2>Danh sách hóa đơn</h2>
-    <FluentDataGrid @ref="BillGrid"
+
+    <FluentSearch @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
+
+
+    <FluentDataGrid Style="width:100%;" @ref="BillGrid"
+
                     TGridItem="BillDto"
                     ItemsProvider="LoadBills"
                     Pagination="@pagination"
@@ -24,15 +26,14 @@
                     RowSize="DataGridRowSize.Large"
                     ShowHover="true"
                     GenerateHeader="GenerateHeaderOption.Sticky"
-                    GridTemplateColumns="1fr 1.5fr 1.5fr 1.5fr 1fr 1.5fr 1fr">
+                    GridTemplateColumns="1.5fr 1.5fr 1.5fr 1.5fr 2.5fr 3fr">
 
         <TemplateColumn Title="Mã hóa đơn" Context="item">
             @item.BillCode
         </TemplateColumn>
         <TemplateColumn Title="Người dùng" Context="item">
-                @item.FullName
+            @item.FullName
         </TemplateColumn>
-    
         <TemplateColumn Title="Trạng thái" Context="item">
             @item.Status
         </TemplateColumn>
@@ -45,53 +46,65 @@
         <TemplateColumn Title="Ngày tạo" Context="item">
             @item.CreatedDate.ToString("dd/MM/yyyy HH:mm")
         </TemplateColumn>
+        <TemplateColumn Title="" Context="item">
+            <FluentButton Appearance="Appearance.Neutral" OnClick="@(() => GoToDetail(item.Id))" Title="Xem chi tiết">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 5c-7.633 0-11 7-11 7s3.367 7 11 7 11-7 11-7-3.367-7-11-7zm0 12c-2.761 0-5-2.239-5-5s2.239-5
+                     5-5 5 2.239 5 5-2.239 5-5 5zm0-8c-1.654 0-3 1.346-3 3s1.346 3
+                     3 3 3-1.346 3-3-1.346-3-3-3z" />
+                </svg>
+            </FluentButton>
+        </TemplateColumn>
+
+
+   
+
     </FluentDataGrid>
 
-
+    <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefresData" />
 </FluentStack>
 
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
+
     private ApiRequestModel requestRestAPI = new ApiRequestModel();
     protected FluentDataGrid<BillDto> BillGrid { get; set; } = default!;
     protected string SearchKeyword { get; set; } = string.Empty;
     private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
-   
 
     private async ValueTask<GridItemsProviderResult<BillDto>> LoadBills(GridItemsProviderRequest<BillDto> request)
     {
         try
         {
             var baseQuery = new BaseQuery
+            {
+                SearchIn = new List<string> { "BillCode" },
+                Keyword = SearchKeyword,
+                gridRequest = new GridRequest
                 {
-                    SearchIn = new List<string> { "BillCode" },
-                    Keyword = SearchKeyword,
-                    gridRequest = new GridRequest
-                    {
-                        page = (request.StartIndex / pagination.ItemsPerPage) + 1,
-                        pageSize = pagination.ItemsPerPage,
-                        skip = request.StartIndex,
-                        take = pagination.ItemsPerPage,
-                        sort = request.GetSortByProperties()
-                             .Select(s => new Sort
-                             {
-                                 field = s.PropertyName,
-                                 dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
-                             }).ToList()
-                    }
-                };
+                    page = (request.StartIndex / pagination.ItemsPerPage) + 1,
+                    pageSize = pagination.ItemsPerPage,
+                    skip = request.StartIndex,
+                    take = pagination.ItemsPerPage,
+                    sort = request.GetSortByProperties()
+                        .Select(s => new Sort
+                        {
+                            field = s.PropertyName,
+                            dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
+                        }).ToList()
+                }
+            };
+
             requestRestAPI.Endpoint = "api/Bill/GetPaged";
 
             ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
             if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
             {
                 var items = JsonSerializer.Deserialize<List<BillDto>>(dataTable.Data.GetRawText(),
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<BillDto>(); ;
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<BillDto>();
 
-             
-                
                 var totalRecords = dataTable.RecordsTotal ?? items.Count;
                 return GridItemsProviderResult.From(items, totalRecords);
             }
@@ -100,22 +113,35 @@
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Lỗi khi tải danh sách hoa don: {ex.Message}");
+            ToastService.ShowError($"Lỗi khi tải danh sách hóa đơn: {ex.Message}");
             return GridItemsProviderResult.From(new List<BillDto>(), 0);
         }
-
-    }
-
-
-    private async Task RefresData(int pageSize)
-    {
-        pagination.ItemsPerPage = pageSize;
-        await pagination.SetCurrentPageIndexAsync(0);
-        if (BillGrid is not null)
-            await BillGrid.RefreshDataAsync();
     }
    
+     private async Task RefresData(int value)
+    {
+        try
+        {
+            pagination.ItemsPerPage = value;
+            await pagination.SetCurrentPageIndexAsync(0);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách: {ex.Message}");
+        }
+    }
+    private async Task RefreshDataAsync()
+    {
+        await BillGrid.RefreshDataAsync();
+    }
+   
+    private Task GoToDetail(Guid billId)
+    {
+        navigation.NavigateTo($"/bills/user/{billId}");
 
+
+        return Task.CompletedTask;
+    }
 
 
 }

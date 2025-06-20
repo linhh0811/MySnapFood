@@ -4,6 +4,7 @@ using Service.SnapFood.Client.Components;
 using Service.SnapFood.Client.Infrastructure.Service;
 using Service.SnapFood.Share.Interface.Extentions;
 using Blazored.LocalStorage;
+using Service.SnapFood.Client.Components.Layout;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<NavMenu>();
 
 builder.Services.AddHttpClient<ICallServiceRegistry, CallServiceRegistry>();
 builder.Services.AddFluentUIComponents();

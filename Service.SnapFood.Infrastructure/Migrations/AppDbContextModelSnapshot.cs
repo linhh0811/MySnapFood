@@ -412,7 +412,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             DisplayOrder = 5,
-                            ImageUrl = "https://www.lotteria.vn/media/catalog/tmp/category/MENU_DAT_HANG_THU_C_UO_NG_new_3.jpg",
+                            ImageUrl = "https://jollibee.com.vn//media/catalog/category/thucuong.png",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             ModerationStatus = 0
@@ -447,7 +447,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             CategoryName = "Combo gà",
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            DisplayOrder = 0,
+                            DisplayOrder = 7,
                             ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/222278_4.png.webp",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -539,6 +539,36 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     b.ToTable("Combos", (string)null);
 
                     b.HasData(
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ac"),
+                            BasePrice = 60000m,
+                            CategoryId = new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
+                            ComboName = "Combo cơm gà sốt cay",
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Cơm Gà Sốt Cay + Nước ngọt",
+                            ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_burger_2.jpg.webp",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            Quantity = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),
+                            BasePrice = 60000m,
+                            CategoryId = new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
+                            ComboName = "Combo cơm gà sốt cay",
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Cơm Gà Sốt Cay +Súp bí đỏ+ Nước ngọt",
+                            ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_burger_2.jpg.webp",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            Quantity = 0
+                        },
                         new
                         {
                             Id = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
@@ -711,7 +741,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Description = "Mô tả",
+                            Description = "Burger Siêu Cay",
                             ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_burger_2.jpg.webp",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -727,7 +757,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Description = "Mô tả",
+                            Description = "Burger Bulgogi",
                             ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_bulgogi_4.png.webp",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -743,7 +773,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Description = "Mô tả",
+                            Description = "Burger Tôm",
                             ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_shrimp_1_.png.webp",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -754,12 +784,27 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
+                            Id = new Guid("2d8f7e1a-5cbb-4ff1-bcbc-f82b07dcb4ae"),
+                            BasePrice = 55000m,
+                            CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc4"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Burger Double Double",
+                            ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/b/u/burger_shrimp_1_.png.webp",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "Burger Double Double",
+                            Quantity = 0
+                        },
+                        new
+                        {
                             Id = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
                             BasePrice = 15000m,
                             CategoryId = new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Description = "Mô tả",
+                            Description = "Pepsi Zero",
                             ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/d/r/drink_pepsi_zero_m_l__2.png.webp",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -770,17 +815,95 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
+                            Id = new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb07bfc"),
+                            BasePrice = 20000m,
+                            CategoryId = new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Trà chanh hạt chia",
+                            ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/h/_/h_nh_s_n_ph_m.png",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "Trà chanh hạt chia",
+                            Quantity = 0,
+                            SizeId = new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4")
+                        },
+                        new
+                        {
+                            Id = new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb07bfd"),
+                            BasePrice = 15000m,
+                            CategoryId = new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Mirinda",
+                            ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/t/h/th_c_u_ng_-_7_8_1.png",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "Mirinda ",
+                            Quantity = 0,
+                            SizeId = new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4")
+                        },
+                        new
+                        {
+                            Id = new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb07bfe"),
+                            BasePrice = 15000m,
+                            CategoryId = new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "7 Up",
+                            ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/t/h/th_c_u_ng_-_9_10.png",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "7 Up ",
+                            Quantity = 0,
+                            SizeId = new Guid("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4")
+                        },
+                        new
+                        {
+                            Id = new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb07bff"),
+                            BasePrice = 10000m,
+                            CategoryId = new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Nước suối",
+                            ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/t/h/th_c_u_ng_-_1th_c_u_ng_-_2.png",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "Nước suối ",
+                            Quantity = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("85c5e5a3-9a3d-4d9a-a09c-84647eb08bff"),
+                            BasePrice = 22000m,
+                            CategoryId = new Guid("b5b3cc50-ec70-4093-9d10-4c7b0c73f9ca"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "MILKIS DELI",
+                            ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_-_milkis_menu_web.jpg.webp",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "MILKIS DELI ",
+                            Quantity = 0
+                        },
+                        new
+                        {
                             Id = new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"),
                             BasePrice = 25000m,
                             CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Description = "Mô tả",
+                            Description = "Khoai Tây Chiên",
                             ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/d/e/dessert_french_fries_m_i.png.webp",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             ModerationStatus = 0,
-                            ProductName = "Khoai Tây Chiên (M)",
+                            ProductName = "Khoai Tây Chiên",
                             Quantity = 0,
                             SizeId = new Guid("0d41a8fd-f372-4c77-b5a3-63368e3994bb")
                         },
@@ -802,17 +925,77 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f93e"),
-                            BasePrice = 41000m,
-                            CategoryId = new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
+                            Id = new Guid("b487da52-d738-4376-a1e3-c4a4d2fc7ef2"),
+                            BasePrice = 15000m,
+                            CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Description = "Mô tả",
-                            ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0003_1.png.webp",
+                            Description = "Súp bí đỏ",
+                            ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/p/h/ph_n_n_ph_-_5.png",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             ModerationStatus = 0,
-                            ProductName = "Gà Sốt HS (1 miếng)",
+                            ProductName = "Súp bí đỏ",
+                            Quantity = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("b487da52-d738-4376-a1e3-c4a4d2fc7ef3"),
+                            BasePrice = 10000m,
+                            CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc5"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Cơm trắng",
+                            ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/p/h/ph_n_n_ph_-_6.png",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "Cơm trắng",
+                            Quantity = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f93e"),
+                            BasePrice = 35000m,
+                            CategoryId = new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Gà sốt HS(1 miếng)",
+                            ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_7-compressed.jpg",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "Gà sốt HS(1 miếng)",
+                            Quantity = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f94e"),
+                            BasePrice = 69000m,
+                            CategoryId = new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Gà sốt cay(2 miếng)",
+                            ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_6-compressed_1.jpg",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "Gà sốt cay(2 miếng)",
+                            Quantity = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"),
+                            BasePrice = 49000m,
+                            CategoryId = new Guid("aeb6acbb-2490-4d20-b6b4-3e15c1e878c8"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "Cơm gà sốt cay",
+                            ImageUrl = "https://jollibee.com.vn/media/catalog/product/cache/9011257231b13517d19d9bae81fd87cc/g/_/g_s_t_cay_-_5-compressed.jpg",
+                            LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            ModerationStatus = 0,
+                            ProductName = "Cơm gà sốt cay",
                             Quantity = 0
                         },
                         new
@@ -822,7 +1005,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Description = "Mô tả",
+                            Description = "Gà Nướng (1 miếng)",
                             ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/227436_2.png.webp",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -837,7 +1020,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Description = "Mô tả",
+                            Description = "Gà Rán (1 miếng)",
                             ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/l/c/lc0001_4.png.webp",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -852,7 +1035,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             CategoryId = new Guid("eeddb184-0a25-40a4-9e8f-98e905fc4dc6"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Description = "Mô tả",
+                            Description = "Gà Sốt Bơ Tỏi (1 miếng)",
                             ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/m/e/menu_menu_5_.jpg.webp",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -891,7 +1074,47 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("ec3b6595-e7f0-4910-81cf-18423eee1870"),
+                            Id = new Guid("b3150b4d-35f8-4491-bdcd-3aa7f49cb3ec"),
+                            ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ProductId = new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"),
+                            Quantity = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("b1a0315c-0853-49d0-aded-8badb6f48f63"),
+                            ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
+                            Quantity = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("8f153df4-ee1f-4e65-8b12-9cfec1e0d8b6"),
+                            ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ProductId = new Guid("b487da52-d738-4376-a1e3-c4a4d2fc7ef2"),
+                            Quantity = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("06c72e93-caf1-41b0-bcfa-3a938f196d85"),
+                            ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ac"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ProductId = new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"),
+                            Quantity = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("8a58ba64-b519-481c-b89a-e0b33e0e0874"),
+                            ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ac"),
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
+                            Quantity = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("5772dabd-1bbb-4960-b3c8-52b33f2bbd66"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("f4a7b7e8-63b6-4c90-a38a-74c5c8d9d7b1"),
@@ -899,7 +1122,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("72c858c4-9c52-4032-9279-eb1cd5f5bc7d"),
+                            Id = new Guid("2f50e460-b783-4e48-8f15-b6125176385b"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"),
@@ -907,7 +1130,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("bd5c2fc1-4e02-4ec6-b7d6-91e9a208f877"),
+                            Id = new Guid("aaadba1a-b728-4260-803c-59b93c842c2a"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
@@ -915,7 +1138,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("35d915fe-c049-43ed-8db0-7486b084e0fa"),
+                            Id = new Guid("c0325ea1-02e9-4f62-80d4-a1544e28a643"),
                             ComboId = new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("7b17b539-8168-42c5-8b9f-1c1c783bd423"),
@@ -923,7 +1146,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("1be9c5f4-c38d-4f20-8cc3-8d701e1feb59"),
+                            Id = new Guid("87d560ff-a156-405f-a760-1650793b9478"),
                             ComboId = new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"),
@@ -931,7 +1154,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("546fc136-be4e-42fc-9614-718c4bea14db"),
+                            Id = new Guid("3d4f1583-4f55-4484-a371-16a51199be2a"),
                             ComboId = new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
@@ -939,7 +1162,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6b067423-a0b8-44b8-9201-42a19f771dda"),
+                            Id = new Guid("510b1cef-9e47-4a1c-b3f2-2b84ba0acffe"),
                             ComboId = new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("dbc17836-d6f4-46cb-bb9a-77b9c54e7b13"),
@@ -947,7 +1170,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("902371d3-414f-46e1-9cfa-116c4c30f411"),
+                            Id = new Guid("95c5bcf0-4457-46be-b303-df9ae999be26"),
                             ComboId = new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"),
@@ -955,7 +1178,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("388f27d9-2e6f-4c6a-aea5-e9ad8bf8c72d"),
+                            Id = new Guid("cbcfd753-8c6f-4236-8167-9cfa77635455"),
                             ComboId = new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
@@ -1093,7 +1316,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("582e480f-e955-4379-a43b-2a503aacced6"),
+                            Id = new Guid("b5f7799d-6b51-4ec4-ba72-8aea6bde1877"),
                             AdditionalPrice = 0m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1106,7 +1329,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("472b7141-5795-4a21-a7fc-41b454523fd2"),
+                            Id = new Guid("0a7996aa-270e-405e-a54f-5f50130fc59e"),
                             AdditionalPrice = 4000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1119,7 +1342,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("357a2da6-b053-4001-934d-94f9cbc4e924"),
+                            Id = new Guid("5ace72fd-2032-4add-a039-db89e85314a0"),
                             AdditionalPrice = 7000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1144,7 +1367,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("eef9dcd0-deff-4163-9e7e-d1d5bb55946c"),
+                            Id = new Guid("312e21f7-090a-4fe5-8b3c-952918f0132b"),
                             AdditionalPrice = 0m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1157,7 +1380,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("b332029a-b893-4a87-9498-356244f95b3d"),
+                            Id = new Guid("15e81c51-9b5b-4a52-8fef-99bb1545ca15"),
                             AdditionalPrice = 7000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1170,7 +1393,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("f720804d-5b96-4d8c-9682-b10992fb4496"),
+                            Id = new Guid("d1fce29e-39f4-4ae2-af78-fce856d91a33"),
                             AdditionalPrice = 15000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1195,7 +1418,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("fe914748-0fab-4415-aa36-d2ff8f87e255"),
+                            Id = new Guid("22adb910-1044-4531-a6da-d7de2eb2c6f5"),
                             AdditionalPrice = 0m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1208,7 +1431,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("1469c97d-a5a4-4af8-8c74-a22e75453fd5"),
+                            Id = new Guid("59c5ba27-521c-4493-ab0e-8a7432957644"),
                             AdditionalPrice = 10000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1221,7 +1444,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("8b7e5106-0e7b-42ba-a408-ae7b011bd1da"),
+                            Id = new Guid("d32f1eae-7068-429c-9681-256a84c57db5"),
                             AdditionalPrice = 25000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1246,7 +1469,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("5e489bd3-295d-4eac-b1aa-286b32a0c09f"),
+                            Id = new Guid("a655df60-dff5-486d-b2dc-c458bad923da"),
                             AdditionalPrice = 0m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1259,7 +1482,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("dd4b4f7f-ca4c-4479-8fd6-407c461f3551"),
+                            Id = new Guid("7ca33785-5c6c-4840-9419-fbec3dede0dd"),
                             AdditionalPrice = 12000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1272,7 +1495,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("2bf368a1-110e-42bf-b93a-fa10b6bc1b41"),
+                            Id = new Guid("721d966d-2432-4ea7-9cf2-8becdb6e00d1"),
                             AdditionalPrice = 25000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1397,7 +1620,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             ModerationStatus = 0,
-                            Password = "$2a$11$R901jyGPhOLbUt2yW/JqKe4AuIzJy8IfMQKXbzBX78QShz6Pw2iqq",
+                            Password = "$2a$11$CJUnz5pzqPU1zygQKioNd.OZaZRjPIb2aLL/S2/xz9ARh4CMc9biK",
                             StoreId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d0e"),
                             UserType = 1
                         },
@@ -1411,7 +1634,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             ModerationStatus = 0,
-                            Password = "$2a$11$cJ7W6ie5khe2zxxzWgvJtuJ19sFqqYeDCUc5vhu/kasDsa0oyvZl2",
+                            Password = "$2a$11$VvxRD0TEWNf.8hJmjLAIyOcaHX1yCpyhFF1LiAQaK8p1E9pVYgdam",
                             StoreId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d0e"),
                             UserType = 1
                         });
@@ -1443,21 +1666,21 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("b8167f79-758b-4f47-aa9d-a0b617e92723"),
+                            Id = new Guid("be8c4916-0ecb-425e-bb2d-08744e4c6d58"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RoleId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"),
                             UserId = new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e")
                         },
                         new
                         {
-                            Id = new Guid("76215ed2-be54-425d-ac7c-a730f52a5b40"),
+                            Id = new Guid("aa92aceb-d809-40c0-b161-1ac1aac860b1"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RoleId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
                             UserId = new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e")
                         },
                         new
                         {
-                            Id = new Guid("4ebcad87-eb28-4109-936e-456122e40624"),
+                            Id = new Guid("76fae802-6472-4265-992d-5c6cd09f2588"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RoleId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
                             UserId = new Guid("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d4e")

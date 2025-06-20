@@ -155,18 +155,64 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
         }
         public async Task ApproveAsync(Guid id)
         {
-            requestRestAPI.Endpoint = $"api/Combo/{id}/Approve";
-            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
-            if (result.Status == StatusCode.OK)
+            try
             {
-                ToastService.ShowSuccess("Duyệt combo thành công");
-                await ComboGrid.RefreshDataAsync();
+                requestRestAPI.Endpoint = $"api/Combo/{id}/CheckApprove";
+                ResultAPI resultCheck = await CallApi.Put(requestRestAPI, new object());
+                if (resultCheck.Status == StatusCode.OK)
+                {
+                    var productCount = Convert.ToInt32(resultCheck.Data?.ToString());
+                    if (productCount > 0)
+                    {
+                        var parameters = new RejectApproveParameters()
+                        {
+                            Title = "Duyệt",
+                            Content = $"Combo hiện tại có {productCount} sản phẩm không hoạt động.",
+                            Content2 = "Nếu duyệt combo này, sản phẩm trong combo cũng sẽ được duyệt."
+                        };
+                        var dialog = await DialogService.ShowDialogAsync<RejectConfirm>(parameters, new DialogParameters());
+                        var resultDialog = await dialog.Result;
+                        if (resultDialog.Cancelled == false && resultDialog.Data is bool success && success)
+                        {
+                            requestRestAPI.Endpoint = $"api/Combo/{id}/Approve";
+                            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+                            if (result.Status == StatusCode.OK)
+                            {
+                                ToastService.ShowSuccess("Duyệt combo thành công");
+                                await ComboGrid.RefreshDataAsync();
+
+                            }
+                            else
+                            {
+                                ToastService.ShowError("Duyệt combo thất bại!  " + result.Message);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        requestRestAPI.Endpoint = $"api/Combo/{id}/Approve";
+                        ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+                        if (result.Status == StatusCode.OK)
+                        {
+                            ToastService.ShowSuccess("Duyệt combo thành công");
+                            await ComboGrid.RefreshDataAsync();
+
+                        }
+                        else
+                        {
+                            ToastService.ShowError("Duyệt combo thất bại!  " + result.Message);
+                        }
+                    }
+                }
+
 
             }
-            else
+            catch (Exception ex)
             {
-                ToastService.ShowError("Duyệt combo thất bại!  " + result.Message);
+                ToastService.ShowError("Xóa thất bại: " + ex.Message);
             }
+
+            
 
         }
         private async Task DeleteAsync(Guid id)

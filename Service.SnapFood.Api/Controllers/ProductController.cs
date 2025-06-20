@@ -66,7 +66,13 @@ namespace Service.SnapFood.Api.Controllers
             }
             return NoContent();
         }
+        [HttpGet("{Id}/CheckApprove")]
+        public IActionResult CheckApprove(Guid Id)
+        {
+            var result = _productService.CheckApprove(Id);
 
+            return Ok(result);
+        }
         [HttpPut("{Id}/Approve")]
         public async Task<IActionResult> Approve(Guid Id)
         {
@@ -76,6 +82,13 @@ namespace Service.SnapFood.Api.Controllers
                 return BadRequest("Duyệt không thành công");
             }
             return NoContent();
+        }
+        [HttpPut("{Id}/CheckReject")]
+        public IActionResult CheckReject(Guid Id)
+        {
+            var result =  _productService.CheckRejectAsync(Id);
+
+            return Ok(result);
         }
         [HttpPut("{Id}/Reject")]
         public async Task<IActionResult> Reject(Guid Id)

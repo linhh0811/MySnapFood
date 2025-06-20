@@ -1,0 +1,52 @@
+﻿@page "/cart"
+@inherits CartBase
+@using Service.SnapFood.Client.Dto.Cart
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Icons
+<h3>Giỏ hàng của bạn</h3>
+@if (Cart == null || (!Cart.CartProductItems.Any() && !Cart.CartComboItems.Any()))
+{
+    <p>Giỏ hàng của bạn trống.</p>
+    <FluentButton Appearance="Appearance.Accent" @onclick="NavigateToOrderHome">
+        Quay lại mua sắm
+    </FluentButton>
+}
+else
+{
+    <div class="row">
+        <div class="col-lg-8">
+            <FluentDataGrid Items="@CartItems.AsQueryable()" TGridItem="CartItem">
+                <ChildContent>
+                <TemplateColumn Title="Hình ảnh">
+                        <img src="@context.ImageUrl" style="max-height:100px;object-fit:cover;" alt="@context.Name" />
+                    </TemplateColumn>
+                <PropertyColumn Property="@(x => x.Name)" Title="Tên sản phẩm" />
+                <PropertyColumn Property="@(x => x.SizeName)" Title="Kích thước" />
+                <PropertyColumn Property="@(x => x.Price.ToString("N0"))" Title="Giá" />
+                <TemplateColumn  Title="Số lượng">
+                    <FluentNumberField @bind-Value="context.Quantity" Min="1" Style="width:70px;" />
+                    <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateQuantity(context)">
+                        Lưu
+                    </FluentButton>
+                </TemplateColumn>
+                <PropertyColumn Property="@(x => (x.Quantity * x.Price).ToString("N0"))" Title="Tổng" />
+                <TemplateColumn  Title="Hành động">
+                    <FluentButton Appearance="Appearance.Neutral" @onclick="() => RemoveItem(context)">
+                        <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" />
+                    </FluentButton>
+                </TemplateColumn>
+                </ChildContent>
+
+            </FluentDataGrid>
+        </div>
+        <div class="col-lg-4">
+            <FluentCard>
+                <h4>Tóm tắt đơn hàng</h4>
+                <p>Tổng số lượng: @Cart.TotalQuantity</p>
+                <p>Tổng tiền: @Cart.TotalPrice.ToString("N0") đ</p>
+                <FluentButton Appearance="Appearance.Accent" @onclick="CheckOut">Thanh toán</FluentButton>
+                <FluentButton Appearance="Appearance.Neutral" @onclick="ClearCart">Xóa giỏ hàng</FluentButton>
+            </FluentCard>
+        </div>
+    </div>
+}

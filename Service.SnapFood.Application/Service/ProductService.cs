@@ -23,6 +23,43 @@ namespace Service.SnapFood.Application.Service
             _unitOfWork = unitOfWork;
         }
         #region Duyệt, hủy duyệt
+        public Dtos.StringContent CheckApprove(Guid id) // duyệt
+        {
+            var product = _unitOfWork.ProductRepo.GetById(id);
+            if (product is not null)
+            {
+                Dtos.StringContent stringContent = new Dtos.StringContent();
+                string CheckApproveCategory = string.Empty;
+                var category = _unitOfWork.CategoriesRepo.GetById(product.CategoryId);
+                if (category is not null && category.ModerationStatus== ModerationStatus.Rejected)
+                {
+                    CheckApproveCategory = "Phân loại";
+                }
+                string CheckApproveSize = string.Empty;
+                var size = _unitOfWork.SizesRepo.GetById(product.SizeId??Guid.Empty);
+                if (size is not null && size.ModerationStatus == ModerationStatus.Rejected)
+                {
+                    CheckApproveSize = "Size";
+                }
+                if (!string.IsNullOrEmpty(CheckApproveCategory)&&!string.IsNullOrEmpty(CheckApproveSize) )
+                {
+                    stringContent.Content= $"{CheckApproveCategory} và {CheckApproveSize}";
+                }
+                if (string.IsNullOrEmpty(CheckApproveCategory) && !string.IsNullOrEmpty(CheckApproveSize))
+                {
+                    stringContent.Content= CheckApproveSize;
+                }
+                if (!string.IsNullOrEmpty(CheckApproveCategory) && string.IsNullOrEmpty(CheckApproveSize))
+                {
+                    stringContent.Content = CheckApproveCategory;
+                }
+                return stringContent;
+            }
+
+            return new Dtos.StringContent();
+
+
+        }
         public async Task<bool> ApproveAsync(Guid id)//Duyệt
         {
             var product = _unitOfWork.ProductRepo.GetById(id);
@@ -31,21 +68,72 @@ namespace Service.SnapFood.Application.Service
                 product.ModerationStatus= ModerationStatus.Approved;
                 _unitOfWork.ProductRepo.Update(product);
                 await _unitOfWork.CompleteAsync();
+                var category = _unitOfWork.CategoriesRepo.GetById(product.CategoryId);
+                if (category is not null && category.ModerationStatus == ModerationStatus.Rejected)
+                {
+                    category.ModerationStatus = ModerationStatus.Approved;
+                    await _unitOfWork.CompleteAsync();
+
+                }
+                var size = _unitOfWork.SizesRepo.GetById(product.SizeId ?? Guid.Empty);
+                if (size is not null && size.ModerationStatus == ModerationStatus.Rejected)
+                {
+                    size.ModerationStatus = ModerationStatus.Approved;
+                    await _unitOfWork.CompleteAsync();
+
+                }
                 return true;
             }
             return false;
         }
 
+        public int CheckRejectAsync(Guid id) //Hủy duyệt
+        {
+            var comboIds = _unitOfWork.ProductComboRepo
+                .FindWhere(x => x.ProductId == id)
+                .Select(x => x.ComboId)
+                .Distinct();
+
+            var ComboApprovedCount = _unitOfWork.ComboRepo
+                .FindWhere(x => comboIds.Contains(x.Id) && x.ModerationStatus== ModerationStatus.Approved) 
+                .Count();
+
+
+
+            return ComboApprovedCount;
+        }
+
         public async Task<bool> RejectAsync(Guid id) //Hủy duyệt
         {
+           
             var product = _unitOfWork.ProductRepo.GetById(id);
             if (product is not null)
             {
                 product.ModerationStatus = ModerationStatus.Rejected;
                 _unitOfWork.ProductRepo.Update(product);
                 await _unitOfWork.CompleteAsync();
+                var comboIds = _unitOfWork.ProductComboRepo.FindWhere(x => x.ProductId == id).Select(x => x.ComboId);
+                var ComboApprovedIds = _unitOfWork.ComboRepo
+                   .FindWhere(x => comboIds.Contains(x.Id) && x.ModerationStatus == ModerationStatus.Approved)
+                   .Select(x => x.Id);
+                if (ComboApprovedIds.Count() > 0)
+                {
+                    foreach (var comboId in ComboApprovedIds)
+                    {
+                        var combo = _unitOfWork.ComboRepo.GetById(comboId);
+                        if (combo is not null)
+                        {
+                            combo.ModerationStatus = ModerationStatus.Rejected;
+                            _unitOfWork.ComboRepo.Update(combo);
+                            await _unitOfWork.CompleteAsync();
+                        }
+
+                    }
+                }
                 return true;
             }
+           
+           
             return false;
         }
 
@@ -190,10 +278,15 @@ namespace Service.SnapFood.Application.Service
                     Created = m.Created,
                     LastModified = m.LastModified,
                     ModerationStatus = m.ModerationStatus,
+                    CategoryModerationStatus = GetCategoryModerationStatusById(m.CategoryId),
+                    SizeModerationStatus=GetSizeModerationStatusById(m.SizeId??Guid.Empty),
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
                     SizeName = GetSizeNameById(m.SizeId ?? Guid.Empty) ?? null,
                     CategoryName = GetCategoryNameById(m.CategoryId),
+
+                });
+
 
                     CreatedByName = allUsers.FirstOrDefault(u => u.Id == m.CreatedBy)?.FullName ?? "Không xác định",
                     LastModifiedByName = allUsers.FirstOrDefault(u => u.Id == m.LastModifiedBy)?.FullName ?? "Không xác định",
@@ -318,6 +411,32 @@ namespace Service.SnapFood.Application.Service
 
         }
         #endregion
+        private ModerationStatus GetCategoryModerationStatusById(Guid id)
+        {
+
+            var category = _unitOfWork.CategoriesRepo.GetById(id);
+            if (category is null)
+            {
+                return 0;
+            }
+            else
+            {
+                return category.ModerationStatus;
+            }
+        }
+        private ModerationStatus GetSizeModerationStatusById(Guid id)
+        {
+
+            var category = _unitOfWork.SizesRepo.GetById(id);
+            if (category is null)
+            {
+                return 0;
+            }
+            else
+            {
+                return category.ModerationStatus;
+            }
+        }
         private string GetCategoryNameById(Guid id)
         {
 

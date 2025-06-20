@@ -15,6 +15,7 @@ namespace Service.SnapFood.Domain.Interfaces.UnitOfWork
         IBillDetailsRepository BillDetailsRepo { get; }
         ICartRepository CartRepo { get; }
         ICartItemRepository CartItemRepo { get; }
+        ICartComboItemRepository CartComboItemRepo { get; } // Thêm repository cho CartComboItem
         IProductComboRepository ProductComboRepo { get; }
         IAddressRepository AddressRepo { get; }
         IStoresRepository StoresRepo { get; }
@@ -26,11 +27,11 @@ namespace Service.SnapFood.Domain.Interfaces.UnitOfWork
         IUserRoleRepository UserRoleRepo { get; }
         ISizesRepository SizesRepo { get; }
         ICategoriesRepository CategoriesRepo { get; }
-        Task<int> CompleteAsync();
-        int Complete();
+        Task<int> CompleteAsync(Guid UserId = default);
+        int Complete(Guid UserId = default);
         void BeginTransaction();
-        void Commit();
-        Task CommitAsync();
+        void Commit(Guid UserId = default);
+        Task CommitAsync(Guid UserId = default);
         void Rollback();
         Task RollbackAsync();
     }

@@ -33,6 +33,8 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
 
         public ICartItemRepository CartItemRepo { get; private set; }
 
+        public ICartComboItemRepository CartComboItemRepo { get; private set; } // Thêm repository cho CartComboItem
+
         public IProductComboRepository ProductComboRepo { get; private set; }
 
         public IAddressRepository AddressRepo { get; private set; }
@@ -53,9 +55,10 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
         public ISizesRepository SizesRepo { get; private set; }
 
         public ICategoriesRepository CategoriesRepo { get; private set; }
-        public UnitOfWork(AppDbContext context)
+        public UnitOfWork(AppDbContext context, IRequestContext requestContext)
         {
             _context = context;
+            _requestContext = requestContext;
             ProductRepo = new ProductRepository(_context);
             ComboRepo = new ComboRepository(_context);
             CartRepo = new CartRepository(_context);
@@ -63,6 +66,7 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             BillRepo = new BillRepository(_context);
             ProductComboRepo = new ProductComboRepository(_context);
             CartItemRepo = new CartItemRepository(_context);
+            CartComboItemRepo = new CartComboItemRepository(_context); // Khởi tạo repository
             BillDetailsRepo = new BillDetailsRepository(_context);
             AddressRepo = new AddressRepository(_context);
             StoresRepo = new StoresRepository(_context);
@@ -81,12 +85,21 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             _transaction = _context.Database.BeginTransaction();
         }
 
-        public void Commit()
+        public void Commit(Guid UserId = default)
         {
             try
             {
-                var userId = Guid.Parse("f812d8e1-9f1c-4a47-9e47-055243b7551b");
-                _context.SaveChanges(userId);
+                ValidateAndUpdateIds(ref UserId);
+                if (UserId == Guid.Empty)
+                {
+                    var userId = Guid.Parse("f812d8e1-9f1c-4a47-9e47-055243b7551b");
+                    _context.SaveChanges(userId);
+                }
+                else
+                {
+                    _context.SaveChanges(UserId);
+                }
+               
                 _transaction?.Commit();
             }
             catch
@@ -101,12 +114,21 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             }
         }
 
-        public async Task CommitAsync()
+        public async Task CommitAsync(Guid UserId = default)
         {
             try
             {
-                var userId = Guid.Parse("f812d8e1-9f1c-4a47-9e47-055243b7551b");
-                await _context.SaveChangesAsync(userId);
+                ValidateAndUpdateIds(ref UserId);
+                if (UserId == Guid.Empty)
+                {
+                    var userId = Guid.Parse("f812d8e1-9f1c-4a47-9e47-055243b7551b");
+                    await _context.SaveChangesAsync(userId);
+                }
+                else
+                {
+                    await _context.SaveChangesAsync(UserId);
+                }
+                
                 _transaction?.Commit();
             }
             catch
@@ -121,18 +143,46 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             }
         }
 
-        public int Complete()
+        public int Complete(Guid UserId = default)
         {
-            var userId =Guid.Parse("f812d8e1-9f1c-4a47-9e47-055243b7551b");
-            return _context.SaveChanges(userId);
+            ValidateAndUpdateIds(ref UserId);
+            if (UserId==Guid.Empty)
+            {
+                var userId =Guid.Parse("f812d8e1-9f1c-4a47-9e47-055243b7551b");
+                return _context.SaveChanges(userId);
+            }
+            else
+            {
+                return _context.SaveChanges(UserId);
+            }
+                
+            
+
         }
 
-        public async Task<int> CompleteAsync()
+        public async Task<int> CompleteAsync(Guid UserId = default)
         {
-            var userId = Guid.Parse("f812d8e1-9f1c-4a47-9e47-055243b7551b");
-            return await _context.SaveChangesAsync(userId);
+            ValidateAndUpdateIds(ref UserId);
+            if (UserId == Guid.Empty)
+            {
+                var userId = Guid.Parse("f812d8e1-9f1c-4a47-9e47-055243b7551b");
+                return await _context.SaveChangesAsync(userId);
+            }
+            else
+            {
+                return await _context.SaveChangesAsync(UserId);
+            }
+          
         }
 
+        private void ValidateAndUpdateIds(ref Guid UserId)
+        {
+            if (_requestContext.CurrentUser.UserId!=Guid.Empty)
+            {
+                UserId = _requestContext.CurrentUser.UserId;
+            }
+           
+        }
         public void Dispose()
         {
             _transaction?.Dispose();
