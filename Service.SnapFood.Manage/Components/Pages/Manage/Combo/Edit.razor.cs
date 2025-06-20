@@ -326,12 +326,13 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             await ProductGrid.RefreshDataAsync();
             StateHasChanged();
         }
-        private void RemoveProduct(ProductDto product)
+        private async Task  RemoveProduct(ProductDto product)
         {
             _productSelectionManager.RemoveProduct(product);
 
             // Cập nhật danh sách cục bộ
             productDtos = _productSelectionManager.SelectedProducts.ToList();
+            await ProductGrid.RefreshDataAsync();
             StateHasChanged();
         }
         private void HandleQuantityChange(ProductDto product, int newQuantity)
@@ -347,6 +348,14 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             _productSelectionManager.UpdateQuantity(product, newQuantity);
 
             StateHasChanged();
+        }
+        string GetPriceStyle(ProductDto context)
+        {
+            if (context.ModerationStatus == ModerationStatus.Rejected)
+            {
+                return "cursor: pointer; color: gray; text-decoration: line-through;";
+            }
+            return "cursor: pointer;";
         }
     }
 }

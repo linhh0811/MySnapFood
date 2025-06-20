@@ -27,6 +27,9 @@ namespace Service.SnapFood.Domain.Interfaces.UnitOfWork
         IUserRoleRepository UserRoleRepo { get; }
         ISizesRepository SizesRepo { get; }
         ICategoriesRepository CategoriesRepo { get; }
+        IPromotionRepository PromotionRepository { get; }
+        IPromotionItemsRepository PromotionItemsRepository { get; }
+
         Task<int> CompleteAsync(Guid UserId = default);
         int Complete(Guid UserId = default);
         void BeginTransaction();

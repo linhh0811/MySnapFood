@@ -43,7 +43,7 @@ namespace Service.SnapFood.Application.Service
                         Id = m.Id,
                         BillCode = m.BillCode,
                         UserId = m.UserId,
-                        FullName = _unitOfWork.UserRepo.GetById(m.UserId).FullName,
+                        FullName = _unitOfWork.UserRepo.GetById(m.UserId)?.FullName??string.Empty,
                         StoreId = m.StoreId,
                         Status = m.Status,
                         TotalAmount = m.TotalAmount,

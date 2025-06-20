@@ -1,0 +1,130 @@
+﻿@page "/Quan-Ly/Khuyen-Mai"
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Icons
+@using Service.SnapFood.Manage.Dto.Promotion;
+@using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Share.Model.SQL
+@namespace Service.SnapFood.Manage.Components.Pages.Manage.Promotion
+
+
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
+    <h2>Danh sách khuyến mãi</h2>
+
+    <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+            <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd">Thêm mới</FluentButton>
+
+        </FluentStack>
+        <FluentSearch @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
+    </FluentStack>
+    <FluentGridItem Style="width:100%;">
+        <FluentDataGrid @ref="PromotionGrid"
+        TGridItem="PromotionDto"
+        ItemsProvider="@LoadPromotion"
+        Pagination="@pagination"
+        ResizableColumns="false"
+        GridTemplateColumns="0.5fr 1.5fr 1.5fr 1.25fr 1.0fr 1.25fr 1.25fr 1.05fr  1.20fr 1.0fr"
+        RowSize="DataGridRowSize.Large"
+        ShowHover="true"
+        MultiLine="true"
+        GenerateHeader="GenerateHeaderOption.Sticky">
+
+
+            <TemplateColumn Title="#" Style="display:flex;align-items: center;">
+                <span style="cursor: pointer;">
+                    @context.Index
+                </span>
+            </TemplateColumn>
+            <TemplateColumn Title="Tên" Style="display: flex; align-items: center;">
+                <span style="max-height: 80px;color:dodgerblue; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                    @context.PromotionName
+                </span>
+            </TemplateColumn>
+
+            <TemplateColumn Title="Mô tả" >
+                <span style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                    @context.Description
+                </span>
+            </TemplateColumn>
+            <TemplateColumn Title="Loại" Style="display: flex;align-items: center;">
+                <FluentBadge Appearance="Appearance.Neutral">
+                    @context.PromotionType.GetDescription()
+                </FluentBadge>
+            </TemplateColumn>
+            <TemplateColumn Title="Giá trị" Style="display: flex;align-items: center;">
+                <span style="cursor: pointer;">
+                    @context.PromotionValue.ToString("N0") đ
+                </span>
+            </TemplateColumn>
+            <TemplateColumn Title="Bắt đầu" Style="display: flex;align-items: center;">
+                <span style="cursor: pointer;">
+                    @context.StartDate.ToString("dd/MM/yyyy HH:mm:ss")
+                </span>
+            </TemplateColumn>
+            <TemplateColumn Title="Kết thúc" Style="display: flex;align-items: center;">
+                <span style="cursor: pointer;">
+                    @context.EndDate.ToString("dd/MM/yyyy HH:mm:ss")
+                </span>
+            </TemplateColumn>
+            <TemplateColumn Title="Trạng thái KM" Style="display: flex; align-items: center;">
+                <FluentBadge title="Trạng thái khuyến mãi" Appearance="@(context.StartDate<=DateTime.Now &&context.EndDate>=DateTime.Now ? Appearance.Accent : Appearance.Neutral)">
+                    @if(context.StartDate > DateTime.Now)
+                    {
+                        <span>Chưa bắt đầu</span>
+                    }
+                    else if (context.EndDate < DateTime.Now)
+                    {
+                        <span>Đã kết thúc</span>
+                    }
+                    else
+                    {
+                        <span>Đang diễn ra</span>
+                    }
+                </FluentBadge>
+            </TemplateColumn>
+            <TemplateColumn Title="Trạng thái XN" Style="display: flex; align-items: center;">
+                <FluentBadge title="Trạng thái xác nhận" Appearance="@(context.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
+                    @(context.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
+                </FluentBadge>
+            </TemplateColumn>
+            <TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:155px">
+                <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                    @if (context.EndDate > DateTime.Now)
+                    {
+                        @if (context.ModerationStatus != 0)
+                        {
+                            <FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="()=>OpenModalUpdate(context.Id)">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
+                            </FluentButton>
+                        }
+
+                        @if (context.ModerationStatus == 0)
+                        {
+                            <FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id))">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
+                            </FluentButton>
+                        }
+                        else
+                        {
+                            <FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id))">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
+                            </FluentButton>
+                        }
+                        @if (context.ModerationStatus != 0)
+                        {
+                            <FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteAsync(context.Id))">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+                            </FluentButton>
+
+
+                        }
+                    }
+                   
+                </FluentStack>
+            </TemplateColumn>
+        </FluentDataGrid>
+
+        <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefresData" />
+    </FluentGridItem>
+
+</FluentStack>

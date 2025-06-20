@@ -157,17 +157,17 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             try
             {
                 requestRestAPI.Endpoint = $"api/Combo/{id}/CheckApprove";
-                ResultAPI resultCheck = await CallApi.Put(requestRestAPI, new object());
+                ResultAPI resultCheck = await CallApi.Get<Dto.StringContent>(requestRestAPI);
                 if (resultCheck.Status == StatusCode.OK)
                 {
-                    var productCount = Convert.ToInt32(resultCheck.Data?.ToString());
-                    if (productCount > 0)
+                    var resultData = resultCheck.Data as Dto.StringContent ?? new Dto.StringContent();
+                    if (!string.IsNullOrEmpty(resultData.Content))
                     {
                         var parameters = new RejectApproveParameters()
                         {
                             Title = "Duyệt",
-                            Content = $"Combo hiện tại có {productCount} sản phẩm không hoạt động.",
-                            Content2 = "Nếu duyệt combo này, sản phẩm trong combo cũng sẽ được duyệt."
+                            Content = $"{resultData.Content} của combo đang ngừng hoạt động.",
+                            Content2 = $"Nếu duyệt combo này những thành phần liên quan cũng sẽ được duyệt."
                         };
                         var dialog = await DialogService.ShowDialogAsync<RejectConfirm>(parameters, new DialogParameters());
                         var resultDialog = await dialog.Result;
@@ -186,6 +186,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                                 ToastService.ShowError("Duyệt combo thất bại!  " + result.Message);
                             }
                         }
+
                     }
                     else
                     {
@@ -202,14 +203,15 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                             ToastService.ShowError("Duyệt combo thất bại!  " + result.Message);
                         }
                     }
+
+
                 }
-
-
             }
             catch (Exception ex)
             {
-                ToastService.ShowError("Xóa thất bại: " + ex.Message);
+                ToastService.ShowError("Hủy duyệt thất bại: " + ex.Message);
             }
+          
 
             
 

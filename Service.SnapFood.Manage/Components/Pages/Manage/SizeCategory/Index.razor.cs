@@ -113,17 +113,62 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
         }
         public async Task RejectSizeAsync(string id)
         {
-            requestRestAPISize.Endpoint = $"api/Size/{id}/Reject";
-            ResultAPI result = await CallApi.Put(requestRestAPISize, new object());
-            if (result.Status == StatusCode.OK)
+            try
             {
-                ToastService.ShowSuccess("Huỷ duyệt size thành công");
-                await GetSizeTree();
+                requestRestAPI.Endpoint = $"api/Size/{id}/CheckReject";
+                ResultAPI resultCheck = await CallApi.Put(requestRestAPI, new object());
+                if (resultCheck.Status == StatusCode.OK)
+                {
+                    var productCount = Convert.ToInt32(resultCheck.Data?.ToString());
+                    if (productCount > 0)
+                    {
+                        var parameters = new RejectApproveParameters()
+                        {
+                            Title = "Hủy duyệt",
+                            Content = $"Size hiện tại nằm trong {productCount} sản phẩm đang hoạt động.",
+                            Content2 = "Nếu hủy duyệt phân loại này, thành phần liên quan cũng bị hủy duyệt."
+                        };
+                        var dialog = await DialogService.ShowDialogAsync<RejectConfirm>(parameters, new DialogParameters());
+                        var resultDialog = await dialog.Result;
+                        if (resultDialog.Cancelled == false && resultDialog.Data is bool success && success)
+                        {
+                            requestRestAPISize.Endpoint = $"api/Size/{id}/Reject";
+                            ResultAPI result = await CallApi.Put(requestRestAPISize, new object());
+                            if (result.Status == StatusCode.OK)
+                            {
+                                ToastService.ShowSuccess("Huỷ duyệt size thành công");
+                                await GetSizeTree();
+                            }
+                            else
+                            {
+                                ToastService.ShowError("Huỷ duyệt size thất bại!  " + result.Message);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        requestRestAPISize.Endpoint = $"api/Size/{id}/Reject";
+                        ResultAPI result = await CallApi.Put(requestRestAPISize, new object());
+                        if (result.Status == StatusCode.OK)
+                        {
+                            ToastService.ShowSuccess("Huỷ duyệt size thành công");
+                            await GetSizeTree();
+                        }
+                        else
+                        {
+                            ToastService.ShowError("Huỷ duyệt size thất bại!  " + result.Message);
+                        }
+                    }
+                }
+
+
             }
-            else
+            catch (Exception ex)
             {
-                ToastService.ShowError("Huỷ duyệt size thất bại!  " + result.Message);
+                ToastService.ShowError("Hủy duyệt thất bại: " + ex.Message);
             }
+
+          
 
         }
         public async Task ApproveSizeAsync(string id)
@@ -367,7 +412,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
             }
             catch (Exception ex)
             {
-                ToastService.ShowError("Xóa thất bại: " + ex.Message);
+                ToastService.ShowError("Hủy duyệt thất bại: " + ex.Message);
             }
            
 

@@ -742,6 +742,8 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Sizes> Sizes { get; set; }
         public DbSet<Categories> Categories { get; set; }
+        public DbSet<PromotionItem> PromotionItems { get; set; }
+        public DbSet<Promotions> Promotions { get; set; }
 
 
     }

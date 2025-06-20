@@ -79,17 +79,21 @@
                                     @(productDtos.IndexOf(context) + 1)
                                 </span>
                             </TemplateColumn>
-                            <PropertyColumn Property="@(u => u.ProductName)" Title="Tên" Sortable="true" />
+                            <TemplateColumn Title="Tên" Style="display:flex;align-items: center;">
+                                <span style="@GetPriceStyle(context)">
+                                   @context.ProductName
+                                </span>
+                            </TemplateColumn>
                             <TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;width:100%">
-                                <img src="@context.ImageUrl" alt="Ảnh" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
+                                <img src="@context.ImageUrl" alt="Ảnh" style="max-height: 40px; max-width: 60px; object-fit: contain; " />
                             </TemplateColumn>
                             <TemplateColumn Title="Giá bán" Style="display: flex;align-items: center;">
-                                <span style="cursor: pointer; ">
+                                <span style="@GetPriceStyle(context)">
                                     @context.BasePrice.ToString("N0") đ
                                 </span>
                             </TemplateColumn>
                             <TemplateColumn Title="Số lượng" Style="width:auto; display: flex;align-items: center;">
-                                <FluentNumberField @bind-Value="@context.Quantity"
+                                <FluentNumberField Disabled="context.ModerationStatus==ModerationStatus.Rejected" @bind-Value="@context.Quantity"
                                                    @onchange="@((e) => HandleQuantityChange(context, Convert.ToInt32(e.Value)))" Min="1"></FluentNumberField>
                             </TemplateColumn>
                             <TemplateColumn Align="Align.Start">
@@ -122,7 +126,7 @@
                             <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
                                 <h4>Danh sách sản phẩm</h4>
                             </FluentStack>
-                            <FluentSearch Placeholder="Nhập vào từ khóa" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync />
+                            <FluentSearch Placeholder="Nhập vào từ khóa" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync  />
                         </FluentStack>
                         <FluentGridItem Style="width:100%;">
                             <FluentDataGrid @ref="ProductGrid"
@@ -142,7 +146,7 @@
                                     </span>
                                 </TemplateColumn>
                                 <TemplateColumn Title="Tên" Style="display: flex;align-items: center;">
-                                    <span style="cursor: pointer; color: dodgerblue; ">
+                                    <span style="@GetPriceStyle(context)">
                                         @context.ProductName
                                     </span>
                                 </TemplateColumn>
@@ -151,17 +155,17 @@
                                 </TemplateColumn>
 
                                 <TemplateColumn Title="Giá bán" Style="display: flex;align-items: center;">
-                                    <span style="cursor: pointer; ">
+                                    <span style="@GetPriceStyle(context)">
                                         @context.BasePrice.ToString("N0") đ
                                     </span>
                                 </TemplateColumn>
                                 <TemplateColumn Title="Số lượng" Style="display: flex;align-items: center;">
-                                    <FluentNumberField @bind-Value="@context.Quantity"
+                                    <FluentNumberField Disabled="context.ModerationStatus==ModerationStatus.Rejected" @bind-Value="@context.Quantity"
                                                        @onchange="@((e) => HandleQuantityChange(context, Convert.ToInt32(e.Value)))" Min="1"></FluentNumberField>
                                 </TemplateColumn>
                                 <TemplateColumn Style="display: flex; align-items: center;">
                                     <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
-                                        <FluentCheckbox Value="context.IsSelected" @onclick="@(() => HandleProductSelection(context, !context.IsSelected))"></FluentCheckbox>
+                                        <FluentCheckbox Disabled="context.ModerationStatus==ModerationStatus.Rejected" Value="context.IsSelected" @onclick="@(() => HandleProductSelection(context, !context.IsSelected))"></FluentCheckbox>
                                     </FluentStack>
                                 </TemplateColumn>
                             </FluentDataGrid>
