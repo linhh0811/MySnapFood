@@ -17,7 +17,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<NavMenu>(); // ??ng ký NavMenu nh? m?t d?ch v?
+builder.Services.AddScoped<NavMenu>();
 
 builder.Services.AddHttpClient<ICallServiceRegistry, CallServiceRegistry>();
 builder.Services.AddFluentUIComponents();

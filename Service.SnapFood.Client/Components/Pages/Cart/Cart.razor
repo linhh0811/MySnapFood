@@ -7,7 +7,6 @@
 @if (Cart == null || (!Cart.CartProductItems.Any() && !Cart.CartComboItems.Any()))
 {
     <p>Giỏ hàng của bạn trống.</p>
-
     <FluentButton Appearance="Appearance.Accent" @onclick="NavigateToOrderHome">
         Quay lại mua sắm
     </FluentButton>
@@ -16,25 +15,28 @@ else
 {
     <div class="row">
         <div class="col-lg-8">
-            <FluentDataGrid TItem="CartItemBase" Items="CartItems.AsQueryable()">
-                <TemplateColumn TItem="CartItemBase" Title="Hình ảnh">
-                    <img src="@context.ImageUrl" style="max-height:100px;object-fit:cover;" />
-                </TemplateColumn>
+            <FluentDataGrid Items="@CartItems.AsQueryable()" TGridItem="CartItem">
+                <ChildContent>
+                <TemplateColumn Title="Hình ảnh">
+                        <img src="@context.ImageUrl" style="max-height:100px;object-fit:cover;" alt="@context.Name" />
+                    </TemplateColumn>
                 <PropertyColumn Property="@(x => x.Name)" Title="Tên sản phẩm" />
                 <PropertyColumn Property="@(x => x.SizeName)" Title="Kích thước" />
                 <PropertyColumn Property="@(x => x.Price.ToString("N0"))" Title="Giá" />
-                <TemplateColumn TItem="CartItemBase" Title="Số lượng">
+                <TemplateColumn  Title="Số lượng">
                     <FluentNumberField @bind-Value="context.Quantity" Min="1" Style="width:70px;" />
                     <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateQuantity(context)">
                         Lưu
                     </FluentButton>
                 </TemplateColumn>
                 <PropertyColumn Property="@(x => (x.Quantity * x.Price).ToString("N0"))" Title="Tổng" />
-                <TemplateColumn TItem="CartItemBase" Title="Hành động">
+                <TemplateColumn  Title="Hành động">
                     <FluentButton Appearance="Appearance.Neutral" @onclick="() => RemoveItem(context)">
                         <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" />
                     </FluentButton>
                 </TemplateColumn>
+                </ChildContent>
+
             </FluentDataGrid>
         </div>
         <div class="col-lg-4">

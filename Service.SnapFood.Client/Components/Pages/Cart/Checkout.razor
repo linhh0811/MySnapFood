@@ -20,18 +20,25 @@ else
                 {
                     if (item is CartProductItemDto product)
                     {
+                        var price = product.Price;
+                        var quantity = product.Quantity;
+                        var subtotal = price * quantity;
+
                         <div class="row align-items-center border-bottom pb-2">
                             <div class="col-2">
                                 <img src="@product.ImageUrl" class="img-fluid rounded" />
                             </div>
                             <div class="col-10">
                                 <p class="my-1 fw-bold">@product.ProductName</p>
-                                <p class="my-2 text-muted">x @product.Quantity <span class="float-end fw-bold">@(product.Price * product.Quantity).ToString("N0") đ</span></p>
+                                <p class="my-2 text-muted">x @product.Quantity <span class="float-end fw-bold">@subtotal.ToString("N0") đ</span></p>
                             </div>
                         </div>
                     }
                     else if (item is CartComboItemDto combo)
                     {
+                        var price = combo.Price;
+                        var quantity = combo.Quantity;
+                        var subtotal = price * quantity;
                         <div class="row align-items-center border-bottom pb-2">
                             <div class="col-2">
                                 <img src="@combo.ImageUrl" class="img-fluid rounded" />
@@ -42,7 +49,7 @@ else
                                 {
                                     <p style="font-size:12px; margin:0px">@comboItem.Quantity @comboItem.ProductName</p>
                                 }
-                                <p class="my-2 text-muted">x @combo.Quantity <span class="float-end fw-bold">@(combo.Price * combo.Quantity).ToString("N0") đ</span></p>
+                                <p class="my-2 text-muted">x @combo.Quantity <span class="float-end fw-bold">@subtotal.ToString("N0") đ</span></p>
                             </div>
                         </div>
                     }
