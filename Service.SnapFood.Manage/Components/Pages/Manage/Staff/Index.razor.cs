@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory;
 using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Dto.StaffDto;
@@ -190,7 +191,31 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Staff
             }
         }
 
+        private async Task OpenDetailsModal(string Id)
+        {
+            try
+            {
+                var parameters = new EditOrUpdateParameters
+                {
+                    Id = Guid.Parse(Id),
+                    RequestApi = requestRestAPI,
+                };
+                await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
+                {
+                    Title = "Thông tin chi tiết nhân viên",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "600px",
+                    TrapFocus = false
 
+                });
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi mở modal chi tiết: {ex.Message}");
+            }
+        }
         private async Task RefreshDataAsync()
         {
             await StaffGrid.RefreshDataAsync();

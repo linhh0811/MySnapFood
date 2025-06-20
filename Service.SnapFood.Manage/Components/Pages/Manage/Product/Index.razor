@@ -32,11 +32,13 @@
 					@context.Index
 				</span>
 			</TemplateColumn>
+
 			<TemplateColumn Title="Tên" Style="display: flex;align-items: center;">
-				<span style="cursor: pointer; color: dodgerblue; ">
+				<span style="cursor: pointer; color: dodgerblue;" @onclick="()=>OpenDetailsModal(context.Id)">
 					@context.ProductName
 				</span>
 			</TemplateColumn>
+			
 			<TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;">
 				<img src="@context.ImageUrl" alt="Ảnh sản phẩm" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
 			</TemplateColumn>

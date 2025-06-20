@@ -62,6 +62,11 @@ namespace Service.SnapFood.Application.Service
             {
                 var product = _unitOfWork.ProductRepo.GetAll();
                 var size = _unitOfWork.SizesRepo.GetAll();
+
+                // Lấy thông tin người tạo và người sửa
+                var createdByUser = combo.CreatedBy == Guid.Empty ? null : await _unitOfWork.UserRepo.GetByIdAsync(combo.CreatedBy);
+                var modifiedByUser = combo.LastModifiedBy == Guid.Empty ? null : await _unitOfWork.UserRepo.GetByIdAsync(combo.LastModifiedBy);
+
                 // Get combo items
                 var comboItems = _unitOfWork.ProductComboRepo
                     .FindWhere(x => x.ComboId == id)
@@ -104,6 +109,8 @@ namespace Service.SnapFood.Application.Service
                         ModerationStatus = combo.ModerationStatus,
                         CreatedBy = combo.CreatedBy,
                         LastModifiedBy = combo.LastModifiedBy,
+                        CreatedByName = combo.CreatedBy == Guid.Empty ? "Hệ thống" : createdByUser?.FullName ?? "Không xác định",
+                        LastModifiedByName = combo.LastModifiedBy == Guid.Empty ? "Hệ thống" : modifiedByUser?.FullName ?? "Không xác định",
                         ComboItems = comboItems
                     };
                     return comboDto;

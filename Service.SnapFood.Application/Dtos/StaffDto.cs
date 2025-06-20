@@ -15,5 +15,9 @@ namespace Service.SnapFood.Application.Dtos
         public string Email { get; set; } = string.Empty;
         public string Numberphone { get; set; } = string.Empty;
         public ModerationStatus ModerationStatus { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime LastModified { get; set; }
+        public string CreatedByName { get; set; } = string.Empty;
+        public string LastModifiedByName { get; set; } = string.Empty;
     }
 }

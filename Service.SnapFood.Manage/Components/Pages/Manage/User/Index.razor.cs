@@ -95,31 +95,30 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.User
                 ToastService.ShowError($"Lỗi khi thay đổi kích thước trang: {ex.Message}");
             }
         }
-        //private async Task OpenUserDetail(Guid id)
-        //{
-        //    try
-        //    {
-        //        var parameters = new UserDetailParameters
-        //        {
-        //            UserId = id
-        //        };
-        //        var dialog = await DialogService.ShowDialogAsync<UserDetail>(parameters, new DialogParameters
-        //        {
-        //            Title = "Chi tiết người dùng",
-        //            PreventDismissOnOverlayClick = true,
-        //            PreventScroll = true,
-        //            Modal = true
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ToastService.ShowError($"Lỗi khi mở chi tiết người dùng: {ex.Message}");
-        //    }
-        //}
+        private async Task OpenDetailsModal(Guid Id)
+        {
+            try
+            {
+                var parameters = new EditOrUpdateParameters
+                {
+                    Id = Id,
+                    RequestApi = requestRestAPI,
+                };
+                await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
+                {
+                    Title = "Thông tin chi tiết khách hàng",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "600px",
+                    TrapFocus = false
 
-        //private async Task RefreshDataAsync()
-        //{
-        //    await UserGrid.RefreshDataAsync();
-        //}
+                });
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi mở modal chi tiết: {ex.Message}");
+            }
+        }
     }
 }

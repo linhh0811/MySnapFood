@@ -1,0 +1,164 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Icons
+@using Service.SnapFood.Application.Dtos
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+@if (StaffDto != null)
+{
+    <FluentDialogHeader ShowDismiss="true">
+        <FluentStack VerticalAlignment="VerticalAlignment.Center">
+            <FluentIcon Value="@(new Icons.Regular.Size24.Info())" />
+            <FluentLabel Typo="Typography.PaneHeader">
+                @Dialog.Instance.Parameters.Title
+            </FluentLabel>
+        </FluentStack>
+    </FluentDialogHeader>
+
+    <FluentDialogBody>
+        <FluentGrid Spacing="2" AdaptiveRendering="true" Justify="JustifyContent.FlexStart" Style="padding: 4px;">
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Họ tên:</label>
+                    <div>@StaffDto.FullName</div>
+                </div>
+            </FluentGridItem>            
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Email:</label>
+                    <div>@StaffDto.Email</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>SĐT:</label>
+                    <div>@StaffDto.Numberphone</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ngày tạo:</label>
+                    <div>@StaffDto.Created</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ngày sửa gần nhất:</label>
+                    <div>@StaffDto.LastModified</div>
+                </div>
+            </FluentGridItem>
+            
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Trạng thái:</label>
+                    <div>
+                        <FluentBadge Appearance="@(StaffDto.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
+                            @(StaffDto.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
+                        </FluentBadge>
+                    </div>
+
+                </div>
+            </FluentGridItem>
+        </FluentGrid>
+    </FluentDialogBody>
+
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync" Loading="@IsCancelling" Disabled="@IsCancelling">Đóng</FluentButton>
+    </FluentDialogFooter>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <FluentDialogBody>
+        <FluentGridItem md="12">@ErrorMessage</FluentGridItem>
+    </FluentDialogBody>
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync" Loading="@IsCancelling" Disabled="@IsCancelling">Đóng</FluentButton>
+    </FluentDialogFooter>
+}
+else
+{
+    <FluentDialogBody Style="display:flex;justify-content:center;align-items:center;">
+        <FluentProgressRing />
+    </FluentDialogBody>
+}
+
+<style>
+    .row-info {
+        display: grid;
+        grid-template-columns: 50% 50%;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+    }
+
+        .row-info label {
+            font-weight: 500;
+        }
+</style>
+
+@code {
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    [Parameter]
+    public EditOrUpdateParameters Content { get; set; } = new();
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+
+    private bool IsCancelling { get; set; }
+    private StaffDto StaffDto { get; set; } = new StaffDto();
+    private string? ErrorMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Content.Id != Guid.Empty)
+            {
+                StaffDto = await GetStaffById(Content.Id);
+            }
+            else
+            {
+                ErrorMessage = "Không có ID chuyên ngành để lấy thông tin.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi tải dữ liệu: {ex.Message}";
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task<StaffDto> GetStaffById(Guid id)
+    {
+        try
+        {
+            Content.RequestApi.Endpoint = $"api/Staff/{id}";
+            ResultAPI result = await CallApi.Get<StaffDto>(Content.RequestApi);
+            if (result.Status == StatusCode.OK)
+            {
+                return result.Data as StaffDto ?? throw new Exception("Dữ liệu trả về không đúng định dạng StaffDto.");
+            }
+            else
+            {
+                throw new Exception(result.Message ?? "Lỗi khi lấy thông tin.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi lấy thông tin: {ex.Message}";
+            return new StaffDto();
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}
