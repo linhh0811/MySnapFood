@@ -33,7 +33,7 @@
 				</span>
 			</TemplateColumn>
 			<TemplateColumn Title="Họ tên" Style="display: flex;align-items: center;">
-				<span style="cursor: pointer; color: dodgerblue;">
+				<span style="cursor: pointer; color: dodgerblue;" @onclick="() => OpenDetailsModal(context.Id ?? string.Empty)">
 					@context.FullName
 				</span>
 			</TemplateColumn>

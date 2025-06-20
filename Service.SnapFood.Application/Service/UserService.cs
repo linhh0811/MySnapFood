@@ -1,7 +1,9 @@
 ﻿using BCrypt.Net;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
+using Service.SnapFood.Application.Interfaces.Jwt;
 using Service.SnapFood.Domain.Entitys;
+using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.SQL;
@@ -9,10 +11,9 @@ using Service.SnapFood.Share.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using Service.SnapFood.Domain.Enums;
-using Service.SnapFood.Application.Interfaces.Jwt;
+using System.Threading.Tasks;
+using static Azure.Core.HttpHeader;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -36,7 +37,48 @@ namespace Service.SnapFood.Application.Service
             return users.ToList();
         }
 
-        public async Task<User> GetByIdAsync(Guid id)
+        //public async Task<User> GetByIdAsync(Guid id)
+        //{
+        //    if (id == Guid.Empty)
+        //        throw new ArgumentException("ID không hợp lệ");
+
+        //    var user = await _unitOfWork.UserRepo.GetByIdAsync(id);
+        //    if (user == null)
+        //        throw new Exception("Không tìm thấy người dùng");
+
+        //    return user;
+        //}
+        //public async Task<UserDto> GetByIdAsync(Guid id)
+        //{
+        //    if (id == Guid.Empty)
+        //        throw new ArgumentException("ID không hợp lệ");
+
+        //    var user = await _unitOfWork.UserRepo.GetByIdAsync(id);
+        //    if (user == null)
+        //        throw new Exception("Không tìm thấy người dùng");
+
+        //    // Lấy người tạo và người sửa cuối (nếu có)
+        //    var createdByUser = await _unitOfWork.UserRepo.GetByIdAsync(user.CreatedBy);
+        //    var lastModifiedByUser = await _unitOfWork.UserRepo.GetByIdAsync(user.LastModifiedBy);
+
+        //    return new UserDto
+        //    {
+        //        Id = user.Id,
+        //        FullName = user.FullName,
+        //        Email = user.Email,
+        //        UserType = user.UserType,
+        //        ModerationStatus = user.ModerationStatus,
+        //        Created = user.Created,
+        //        LastModified = user.LastModified,
+        //        CreatedBy = user.CreatedBy,
+        //        LastModifiedBy = user.LastModifiedBy,
+        //        CreatedByName = createdByUser?.FullName ?? "Không xác định",
+        //        LastModifiedByName = lastModifiedByUser?.FullName ?? "Không xác định"
+
+        //    };
+        //}
+
+        public async Task<UserDto> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("ID không hợp lệ");
@@ -45,8 +87,40 @@ namespace Service.SnapFood.Application.Service
             if (user == null)
                 throw new Exception("Không tìm thấy người dùng");
 
-            return user;
+            // Xử lý CreatedBy
+            string createdByName = "Hệ thống";
+            if (user.CreatedBy != Guid.Empty)
+            {
+                var createdByUser = await _unitOfWork.UserRepo.GetByIdAsync(user.CreatedBy);
+                createdByName = createdByUser?.FullName ?? "Không xác định";
+            }
+
+            // Xử lý LastModifiedBy
+            string lastModifiedByName = "Hệ thống";
+            if (user.LastModifiedBy != Guid.Empty)
+            {
+                var lastModifiedByUser = await _unitOfWork.UserRepo.GetByIdAsync(user.LastModifiedBy);
+                lastModifiedByName = lastModifiedByUser?.FullName ?? "Không xác định";
+            }
+
+            return new UserDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                UserType = user.UserType,
+                ModerationStatus = user.ModerationStatus,
+                Created = user.Created,
+                LastModified = user.LastModified,
+                CreatedBy = user.CreatedBy,
+                LastModifiedBy = user.LastModifiedBy,
+                CreatedByName = createdByName,
+                LastModifiedByName = lastModifiedByName
+            };
         }
+
+
+
 
         public DataTableJson GetPaged(BaseQuery query)
         {
