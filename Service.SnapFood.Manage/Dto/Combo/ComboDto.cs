@@ -32,5 +32,7 @@ namespace Service.SnapFood.Manage.Dto.Combo
 
         public Guid LastModifiedBy { get; set; }
         public List<ComboProductDto> ComboItems { get; set; } = new();
+        public bool IsSelected { get; set; }
+
     }
 }

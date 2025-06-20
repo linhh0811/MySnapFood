@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components;
 using Service.SnapFood.Share.Model.Commons;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Service.SnapFood.Manage.Infrastructure.Services
 {
@@ -34,6 +35,8 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
 
                 string userId = user.FindFirst("user_id")?.Value ?? string.Empty;
                 string userName = user.Identity.Name ?? string.Empty;
+                string email = user.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+
 
                 if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(userId))
                     return new CurrentUser();
@@ -44,6 +47,7 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
                 {
                     UserId = Guid.Parse(userId),
                     UserName = userName,
+                    Email=email
                 };
 
                 if (currentUser is null)

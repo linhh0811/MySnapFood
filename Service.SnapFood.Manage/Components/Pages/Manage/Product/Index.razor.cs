@@ -272,7 +272,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
             }
             catch (Exception ex)
             {
-                ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
+                ToastService.ShowError($"Lỗi khi mở modal sửa sản phẩm: {ex.Message}");
             }
         }
 

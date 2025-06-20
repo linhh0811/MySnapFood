@@ -336,8 +336,9 @@ namespace Service.SnapFood.Application.Service
                     Description = item.Description,
                     Quantity = 0,
                     BasePrice = item.BasePrice,
-                    //CreatedBy = userId,
-                    //CreatedDate = DateTime.UtcNow,
+
+                    ModerationStatus = ModerationStatus.Rejected,
+
                 };
                 _unitOfWork.ProductRepo.Add(product);
                 await _unitOfWork.CommitAsync();

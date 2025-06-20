@@ -40,6 +40,9 @@ namespace Service.SnapFood.Application.Service.Jwt
             {
                 new Claim(ClaimTypes.Name, authDto.FullName),
                 new Claim("user_id", authDto.Id.ToString()),
+                new Claim(ClaimTypes.Email, authDto.Email),
+
+
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

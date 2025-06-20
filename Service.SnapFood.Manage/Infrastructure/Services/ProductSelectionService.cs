@@ -96,7 +96,8 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
                 ImageUrl = p.ImageUrl,
                 BasePrice = p.BasePrice,
                 Quantity = p.Quantity > 0 ? p.Quantity : 1,
-                IsSelected = true
+                IsSelected = true,
+                ModerationStatus=p.ModerationStatus
             }).ToList() ?? new List<ProductDto>();
         }
 

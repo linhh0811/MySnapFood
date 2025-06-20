@@ -72,6 +72,13 @@ namespace Service.SnapFood.Api.Controllers
             }
             return NoContent();
         }
+        [HttpPut("{Id}/CheckReject")]
+        public IActionResult CheckReject(Guid Id)
+        {
+            var result = _sizeService.CheckReject(Id);
+
+            return Ok(result);
+        }
         [HttpPut("{Id}/Reject")]
         public async Task<IActionResult> Reject(Guid Id)
         {

@@ -1,0 +1,828 @@
+﻿@namespace Service.SnapFood.Manage.Components.Pages.Manage.Promotion
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Category
+@using Service.SnapFood.Manage.Dto.Combo
+@using Service.SnapFood.Manage.Dto.ProductDto
+@using Service.SnapFood.Manage.Dto.Promotion
+@using Service.SnapFood.Manage.Dto.SizeDto
+@using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Enum
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+@using Service.SnapFood.Share.Query.Grid
+@using System.Text.Json
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+<FluentDialogHeader Style="padding:8px">
+    <h3>@(Content.IsEditMode ? "Sửa khuyến mãi" : "Thêm khuyến mãi")</h3>
+</FluentDialogHeader>
+<FluentGrid Spacing="2" Style="padding: 4px">
+    <FluentGridItem md="5">
+
+    </FluentGridItem>
+    <FluentGridItem md="7"></FluentGridItem>
+</FluentGrid>
+<EditForm Model="PromotionModel" OnValidSubmit="HandleSubmit">
+    <FluentGrid Spacing="2" Style="padding: 4px">
+        <FluentGridItem md="4">
+            <FluentCard Style="padding:13px">
+                <DataAnnotationsValidator />
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error" AllowDismiss=false>
+                        @ErrorMessage
+                    </FluentMessageBar>
+                }
+                <FluentStack Orientation="Orientation.Vertical" Gap="15">
+
+                    <FluentTextField Label="Tên khuyến mại" @bind-Value="PromotionModel.PromotionName" Style="width:100%;" />
+                    <ValidationMessage style="color:red" For="@(() => PromotionModel.PromotionName)" />
+
+
+
+
+                    <FluentSelect Items="PromotionTypeOptions"
+                    Label="Phương thức"
+                    @bind-Value="SelectedPromotionType"
+                    OptionText="@(x => x.Value)"
+                    OptionValue="@(x => x.Key)"
+                    Style="width:100%"
+                    Position="SelectPosition.Below">
+                    </FluentSelect>
+
+
+                    <FluentNumberField Label="Giá trị" @bind-Value="PromotionModel.PromotionValue" Style="width:100%;" />
+                    <ValidationMessage style="color:red" For="@(() => PromotionModel.PromotionValue)" />
+
+                    <FluentLabel>Thời gian bắt đầu</FluentLabel>
+                    <FluentStack Orientation="Orientation.Horizontal" Gap="10px">
+                        <FluentDatePicker @bind-Value="StartDate" Style="width:50%"></FluentDatePicker>
+                        <FluentTimePicker @bind-Value="StartDateTime" Style="width:50%"></FluentTimePicker>
+                    </FluentStack>
+
+
+
+                    <FluentLabel>Thời gian kết thúc</FluentLabel>
+                    <FluentStack Orientation="Orientation.Horizontal" Gap="10px">
+                        <FluentDatePicker @bind-Value="EndDate" Style="width:50%"></FluentDatePicker>
+                        <FluentTimePicker @bind-Value="EndDateTime" Style="width:50%"></FluentTimePicker>
+                    </FluentStack>
+
+                    <FluentTextArea Label="Ghi chú" @bind-Value="PromotionModel.Description" Style="width:100%" Rows="5" Resize="TextAreaResize.Both" />
+
+                </FluentStack>
+            </FluentCard>
+
+        </FluentGridItem>
+        <FluentGridItem md="8">
+            <FluentCard Style="padding:13px;padding-top:0;">
+                <FluentTabs @bind-ActiveTabId="@activeid" OnTabChange="HandleOnTabChange" Style="padding:0">
+                    <FluentTab Label="Sản phẩm" Id="tab-1">
+                        <hr />
+                        <FluentStack Orientation="Orientation.Vertical">
+                            <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+                                <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                                    <h4>Danh sách sản phẩm</h4>
+                                </FluentStack>
+                                <FluentSearch Placeholder="Nhập vào từ khóa" />
+                            </FluentStack>
+                            <FluentGridItem Style="width:100%;">
+                                <FluentDataGrid @ref="ProductGrid"
+                                TGridItem="ProductDto"
+                                ItemsProvider="@LoadProduct"
+                                Pagination="@paginationProduct"
+                                ResizableColumns="false"
+                                GridTemplateColumns="0.75fr 2.0fr 1.25fr 1.25fr 0.45fr"
+                                RowSize="DataGridRowSize.Large"
+                                ShowHover="true"
+                                GenerateHeader="GenerateHeaderOption.Sticky"
+                                Style="max-height:350px;overflow-y: auto; overflow-x: hidden;">
+
+                                    <TemplateColumn Title="#" Style="display:flex;align-items: center;" Context="item">
+                                        <span style="cursor: pointer;">
+                                            @item.Index
+                                        </span>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Tên" Style="display: flex;align-items: center;" Context="item">
+                                        <span style="@GetPriceStyle(item.ModerationStatus)">
+                                            @item.ProductName
+                                        </span>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;" Context="item">
+                                        <img src="@item.ImageUrl" alt="Ảnh sản phẩm" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
+                                    </TemplateColumn>
+
+                                    <TemplateColumn Title="Giá bán" Style="display: flex;align-items: center;" Context="item">
+                                        <span style="@GetPriceStyle(item.ModerationStatus)">
+                                            @item.BasePrice.ToString("N0") đ
+                                        </span>
+                                    </TemplateColumn>
+
+                                    <TemplateColumn Style="display: flex; align-items: center;" Context="item">
+                                        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                                            <FluentCheckbox Disabled="item.ModerationStatus==ModerationStatus.Rejected" Value="item.IsSelected" @onclick="@(() => HandleProductSelection(item, !item.IsSelected))"></FluentCheckbox>
+                                        </FluentStack>
+                                    </TemplateColumn>
+                                </FluentDataGrid>
+
+                                <Paginator PaginationState="@paginationProduct" SelectedPageSizeChanged="RefresDataProduct" />
+                            </FluentGridItem>
+                        </FluentStack>
+                    </FluentTab>
+                    <FluentTab Label="Combo" Id="tab-2">
+                        <hr />
+                        <FluentStack Orientation="Orientation.Vertical">
+                            <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+                                <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                                    <h4>Danh sách combo</h4>
+                                </FluentStack>
+                                <FluentSearch Placeholder="Nhập vào từ khóa" />
+                            </FluentStack>
+
+                            <FluentGridItem Style="width:100%; max-height:340px;overflow-y: auto; overflow-x: hidden;">
+                                <FluentDataGrid @ref="ComboGrid"
+                                TGridItem="ComboDto"
+                                ItemsProvider="@LoadCombo"
+                                Pagination="@paginationCombo"
+                                ResizableColumns="false"
+                                GridTemplateColumns="0.75fr 1.5fr 1.0fr 1.5fr 1.0fr 0.45fr"
+                                RowSize="DataGridRowSize.Large"
+                                ShowHover="true"
+                                MultiLine="true"
+                                GenerateHeader="GenerateHeaderOption.Sticky">
+
+                                    <TemplateColumn Title="#" Style="display:flex;align-items: center;" Context="combo">
+                                        <span style="cursor: pointer;">
+                                            @combo.Index
+                                        </span>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Tên" Style="display: flex;align-items: center;" Context="combo">
+                                        <span style="@GetPriceStyle(combo.ModerationStatus)">
+                                            @combo.ComboName
+                                        </span>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;" Context="combo">
+                                        <img src="@combo.ImageUrl" alt="Ảnh sản phẩm" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Sản phẩm" Style="display:flex;align-items: center;" Context="combo">
+                                        <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                                            @foreach (var item in combo.ComboItems)
+                                            {
+                                                <div style="cursor: pointer;">
+                                                    @if (item.ModerationStatus == ModerationStatus.Approved)
+                                                    {
+                                                        @item.ProductName
+                                                    }
+                                                    else
+                                                    {
+                                                        <span style="color: gray; text-decoration: line-through;">@item.ProductName</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </TemplateColumn>
+
+                                    <TemplateColumn Title="Giá bán" Style="display: flex;align-items: center;" Context="combo">
+                                        <span style="@GetPriceStyle(combo.ModerationStatus)">
+                                            @combo.BasePrice.ToString("N0") đ
+                                        </span>
+                                    </TemplateColumn>
+
+                                    <TemplateColumn Style="display: flex; align-items: center;" Context="combo">
+                                        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                                            <FluentCheckbox Disabled="combo.ModerationStatus==ModerationStatus.Rejected" Value="combo.IsSelected" @onclick="@(() => HandleComboSelection(combo, !combo.IsSelected))"></FluentCheckbox>
+                                        </FluentStack>
+                                    </TemplateColumn>
+                                </FluentDataGrid>
+
+
+                            </FluentGridItem>
+                            <Paginator PaginationState="@paginationCombo" SelectedPageSizeChanged="RefresDataCombo" />
+                        </FluentStack>
+                    </FluentTab>
+                    <FluentTab Label="Đã chọn" Id="tab-3">
+                        <hr />
+                        <FluentStack Orientation="Orientation.Vertical">
+                            <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+                                <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                                    <h4>Danh sách đã chọn</h4>
+                                </FluentStack>
+                                <FluentSearch Placeholder="Nhập vào từ khóa" />
+                            </FluentStack>
+
+                            <FluentGridItem Style="width:100%; max-height:340px;overflow-y: auto; overflow-x: hidden;">
+                                <FluentDataGrid @ref="SelectedGrid"
+                                TGridItem="PromotionItemDto"
+                                ItemsProvider="@LoadSelected"
+                                Pagination="@paginationSelected"
+                                ResizableColumns="false"
+                                GridTemplateColumns="0.40fr 1.5fr 1.0fr 0.8fr 0.8fr 0.45fr"
+                                RowSize="DataGridRowSize.Large"
+                                ShowHover="true"
+                                MultiLine="true"
+                                GenerateHeader="GenerateHeaderOption.Sticky">
+
+                                    <TemplateColumn Title="#" Style="display:flex;align-items: center;" Context="DaChon">
+                                        <span style="cursor: pointer;">
+                                            @(PromotionModel.PromotionItems.IndexOf(DaChon) + 1)
+                                        </span>
+                                    </TemplateColumn>
+                                    <TemplateColumn Style="align-items: center;" Title="Tên" Context="DaChon">
+                                        <span style="@GetPriceStyle(DaChon.ModerationStatus);font-size:16px;">
+                                            @DaChon.ItemName
+                                        </span>
+                                        @if (DaChon.ItemType == ItemType.Combo)
+                                        {
+                                            <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
+                                                @foreach (var item in DaChon.ComboItems)
+                                                {
+                                                    <div style="cursor: pointer;font-size:12px;">
+                                                        @if (item.ModerationStatus == ModerationStatus.Approved)
+                                                        {
+                                                            @item.ProductName
+                                                        }
+                                                        else
+                                                        {
+                                                            <span style="color: gray; text-decoration: line-through;">@item.ProductName</span>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;" Context="DaChon">
+                                        <img src="@DaChon.ImageUrl" alt="Ảnh sản phẩm" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
+                                    </TemplateColumn>
+
+                                    <TemplateColumn Title="Giá bán" Style="display: flex;align-items: center;" Context="DaChon">
+                                        <span style="@GetPriceStyle(DaChon.ModerationStatus)">
+                                            @DaChon.BasePrice.ToString("N0") đ
+                                        </span>
+                                    </TemplateColumn>
+                                    <TemplateColumn Title="Phân loại" Style="display: flex;align-items: center;" Context="DaChon">
+                                        <span>@DaChon.ItemType.GetDescription()</span>
+                                    </TemplateColumn>
+
+
+                                    <TemplateColumn Style="display: flex; align-items: center;" Context="DaChon">
+                                        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                                            <FluentButton Title="Gỡ bỏ"
+                                            Style="display: inline-block;"
+                                            OnClick="@(() => RemoveSelect(DaChon.ItemId))">
+                                                <FluentIcon Value="@(new Icons.Regular.Size20.PresenceBlocked())" />
+                                            </FluentButton>
+                                        </FluentStack>
+                                    </TemplateColumn>
+                                </FluentDataGrid>
+
+
+                            </FluentGridItem>
+                            <Paginator PaginationState="@paginationSelected" SelectedPageSizeChanged="RefresDataSelected" />
+                        </FluentStack>
+                    </FluentTab>
+
+                </FluentTabs>
+            </FluentCard>
+        </FluentGridItem>
+    </FluentGrid>
+
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="@HideDialog">Hủy</FluentButton>
+        <FluentButton Appearance="Appearance.Accent"
+        Type="ButtonType.Submit"
+        Disabled="@isSaving">
+            @if (isSaving)
+            {
+                <span>Đang lưu...</span>
+            }
+            else
+            {
+                <span>Lưu</span>
+            }
+        </FluentButton>
+    </FluentDialogFooter>
+</EditForm>
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private ImageService ImageUploadService { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
+    private Dictionary<String, String> PromotionTypeOptions = new Dictionary<string, string>();
+    private string SelectedPromotionType = "1";
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private PromotionDto PromotionModel { get; set; } = new PromotionDto();
+    private string? ErrorMessage;
+    private bool isSaving = false;
+
+    private DateTime? StartDate { get; set; } = DateTime.Today;
+    private DateTime? StartDateTime { get; set; } = DateTime.Today.AddHours(DateTime.Now.Hour).AddMinutes(DateTime.Now.Minute);
+
+    private DateTime? EndDate { get; set; } = DateTime.Today.AddDays(1);
+    private DateTime? EndDateTime { get; set; } = DateTime.Today.AddDays(1).AddHours(DateTime.Now.Hour).AddMinutes(DateTime.Now.Minute);
+
+    private DateTime CombinedStartDateTime =>
+        StartDate?.Date.Add(StartDateTime?.TimeOfDay ?? TimeSpan.Zero) ?? DateTime.Now;
+
+    private DateTime CombinedEndDateTime =>
+        EndDate?.Date.Add(EndDateTime?.TimeOfDay ?? TimeSpan.Zero) ?? DateTime.Now.AddDays(1);
+    FluentTab? changedto;
+    string? activeid = "tab-1";
+
+
+
+    private void HandleOnTabChange(FluentTab tab)
+    {
+        changedto = tab;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        GetPromotionType();
+        if (Content.IsEditMode)
+        {
+            await GetPromotion();
+        }
+
+    }
+    private async Task GetPromotion()
+    {
+        ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+        requestRestAPI.Endpoint = $"api/Promotion/{Content.Id}";
+        ResultAPI result = await CallApi.Get<PromotionDto>(requestRestAPI);
+        if (result.Status == StatusCode.OK)
+        {
+            var promotionModelResult = result.Data as PromotionDto ?? new PromotionDto();
+            if (promotionModelResult is not null)
+            {
+                PromotionModel.PromotionName = promotionModelResult.PromotionName;
+                PromotionModel.PromotionValue = promotionModelResult.PromotionValue;
+                PromotionModel.Description = promotionModelResult.Description;
+                PromotionModel.PromotionType = promotionModelResult.PromotionType;
+                PromotionModel.Id = promotionModelResult.Id;
+                PromotionModel.PromotionItems = promotionModelResult.PromotionItems ?? new List<PromotionItemDto>();
+
+                StartDate = promotionModelResult.StartDate.Date;
+                StartDateTime = promotionModelResult.StartDate.TimeOfDay == TimeSpan.Zero ? DateTime.Now : promotionModelResult.StartDate;
+
+                EndDate = promotionModelResult.EndDate.Date;
+                EndDateTime = promotionModelResult.EndDate.TimeOfDay == TimeSpan.Zero ? DateTime.Now.AddDays(1) : promotionModelResult.EndDate;
+
+                SelectedPromotionType = promotionModelResult.PromotionType.ToString();
+
+            }
+
+
+            await ProductGrid.RefreshDataAsync();
+            await ComboGrid.RefreshDataAsync();
+            await SelectedGrid.RefreshDataAsync();
+
+
+        }
+
+
+    }
+    private async Task<bool> CreatePromotion(PromotionDto createRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            if (CombinedStartDateTime > CombinedEndDateTime)
+            {
+                isSaving = false;
+                ErrorMessage = "Thời gian kết thúc phải sau thời gian bắt đầu";
+                return false;
+            }
+            if (!Enum.TryParse<PromotionType>(SelectedPromotionType, out var promotionType))
+            {
+                isSaving = false;
+                ErrorMessage = "Loại khuyến mãi không hợp lệ";              
+                return false;
+            }
+            if (createRequest.PromotionItems is null || !createRequest.PromotionItems.Any())
+            {
+                isSaving = false;
+                ErrorMessage = "Chưa có sản phẩm/combo được chọn";
+                return false;
+            }
+
+            requestRestAPI.Endpoint = "api/Promotion";
+            createRequest.PromotionType = promotionType;
+            createRequest.StartDate = CombinedStartDateTime;
+            createRequest.EndDate = CombinedEndDateTime;
+
+            ResultAPI result = await CallApi.Post<PromotionDto>(requestRestAPI, createRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Thêm khuyến mãi thành công.");
+                return true;
+            }
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Thêm khuyến mãi thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            isSaving = false;
+            ErrorMessage = "Thêm khuyến mãi thất bại: " + ex.Message;
+            return false;
+        }
+    }
+    private async Task<bool> UpdatePromotion(Guid id, PromotionDto updateRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            if (CombinedStartDateTime > CombinedEndDateTime)
+            {
+                isSaving = false;
+                ErrorMessage = "Thời gian kết thúc phải sau thời gian bắt đầu";
+                return false;
+            }
+            if (!Enum.TryParse<PromotionType>(SelectedPromotionType, out var promotionType))
+            {
+
+                ErrorMessage = "Loại khuyến mãi không hợp lệ";
+                isSaving = false;
+                return false;
+            }
+            if (updateRequest.PromotionItems is null || !updateRequest.PromotionItems.Any())
+            {
+                ErrorMessage = "Chưa có sản phẩm/combo được chọn";
+                isSaving = false;
+                return false;
+            }
+            requestRestAPI.Endpoint = $"api/Promotion/{id}";
+            updateRequest.PromotionType = promotionType;
+            updateRequest.StartDate = CombinedStartDateTime;
+            updateRequest.EndDate = CombinedEndDateTime;
+
+            ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Sửa khuyến mãi thành công.");
+                return true;
+            }
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Sửa khuyến mãi thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            isSaving = false;
+            ErrorMessage = "Sửa khuyến mãi thất bại: " + ex.Message;
+            return false;
+        }
+    }
+    private void GetPromotionType()
+    {
+        PromotionTypeOptions = Enum.GetValues(typeof(PromotionType))
+        .Cast<PromotionType>()
+        .ToDictionary(
+            e => (e).ToString(),
+            e => e.GetDescription()
+        );
+
+    }
+    private async Task HandleSubmit()
+    {
+        bool result = false;
+
+        if (Content.IsEditMode)
+        {
+            result = await UpdatePromotion(Content.Id, PromotionModel);
+            StateHasChanged();
+        }
+        else
+        {
+            result = await CreatePromotion(PromotionModel);
+        }
+
+        if (result)
+        {
+            await Dialog.CloseAsync();
+            await Content.OnRefresh.InvokeAsync();
+        }
+
+
+    }
+    private async Task HideDialog()
+    {
+        await Dialog.CloseAsync();
+    }
+
+    #region sản phẩm
+    protected FluentDataGrid<ProductDto> ProductGrid { get; set; } = default!;
+    protected string SearchKeywordProduct { get; set; } = string.Empty;
+    private PaginationState paginationProduct = new PaginationState { ItemsPerPage = 10 };
+
+
+    private async ValueTask<GridItemsProviderResult<ProductDto>> LoadProduct(GridItemsProviderRequest<ProductDto> request)
+    {
+        try
+        {
+            var baseQuery = new BaseQuery
+                {
+                    SearchIn = new List<string> { "ProductName" },
+                    Keyword = SearchKeywordProduct,
+                    gridRequest = new GridRequest
+                    {
+                        page = (request.StartIndex / paginationProduct.ItemsPerPage) + 1,
+                        pageSize = paginationProduct.ItemsPerPage,
+                        skip = request.StartIndex,
+                        take = paginationProduct.ItemsPerPage,
+                        sort = request.GetSortByProperties()
+                                     .Select(s => new Sort
+                                     {
+                                         field = s.PropertyName,
+                                         dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
+                                     }).ToList()
+                    }
+                };
+            ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+            requestRestAPI.Endpoint = "api/Product/GetPaged";
+
+            ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
+            if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+            {
+                var items = JsonSerializer.Deserialize<List<ProductDto>>(dataTable.Data.GetRawText(),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ProductDto>();
+                foreach (var item in PromotionModel.PromotionItems)
+                {
+
+                    var product = items.FirstOrDefault(x => x.Id == item.ItemId);
+                    if (product is not null)
+                    {
+                        product.IsSelected = true;
+                        item.ItemName = product.ProductName;
+                        item.ImageUrl = product.ImageUrl;
+                        item.BasePrice = product.BasePrice; 
+                    }
+
+                }
+
+                var totalRecords = dataTable.RecordsTotal ?? items.Count;
+                return GridItemsProviderResult.From(items, totalRecords);
+            }
+            StateHasChanged();
+            return GridItemsProviderResult.From(new List<ProductDto>(), 0);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách sản phẩm: {ex.Message}");
+            return GridItemsProviderResult.From(new List<ProductDto>(), 0);
+        }
+
+    }
+    private async Task RefresDataProduct(int value)
+    {
+        try
+        {
+            paginationProduct.ItemsPerPage = value;
+            await paginationProduct.SetCurrentPageIndexAsync(0);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách: {ex.Message}");
+        }
+    }
+    private async Task RefreshDataProductAsync()
+    {
+        await ProductGrid.RefreshDataAsync();
+    }
+
+    private async Task HandleProductSelection(ProductDto product, bool isSelected)
+    {
+        product.IsSelected = isSelected;
+
+        if (isSelected)
+        {
+            PromotionItemDto promotionItemDto = new PromotionItemDto()
+                {
+                    ItemId = product.Id,
+                    ItemName = product.ProductName,
+                    ImageUrl = product.ImageUrl,
+                    BasePrice = product.BasePrice,
+                    IsSelected = true,
+                    ItemType = ItemType.Product
+                };
+            PromotionModel.PromotionItems.Add(promotionItemDto);
+            await SelectedGrid.RefreshDataAsync();
+            StateHasChanged();
+        }
+        else
+        {
+            await RemoveSelect(product.Id);
+        }
+
+
+
+
+    }
+    private async Task RemoveSelect(Guid id)
+    {
+        var promotionRemove = PromotionModel.PromotionItems.Find(x => x.ItemId == id);
+        if (promotionRemove is not null)
+        {
+            PromotionModel.PromotionItems.Remove(promotionRemove);
+        }
+        await SelectedGrid.RefreshDataAsync();
+        await ProductGrid.RefreshDataAsync();
+        await ComboGrid.RefreshDataAsync();
+
+
+        StateHasChanged();
+    }
+
+    #endregion
+
+    #region combo
+    protected FluentDataGrid<ComboDto> ComboGrid { get; set; } = default!;
+    protected string SearchKeywordCombo { get; set; } = string.Empty;
+    private PaginationState paginationCombo = new PaginationState { ItemsPerPage = 10 };
+
+
+    private async ValueTask<GridItemsProviderResult<ComboDto>> LoadCombo(GridItemsProviderRequest<ComboDto> request)
+    {
+        try
+        {
+            var baseQuery = new BaseQuery
+                {
+                    SearchIn = new List<string> { "ComboName" },
+                    Keyword = SearchKeywordCombo,
+                    gridRequest = new GridRequest
+                    {
+                        page = (request.StartIndex / paginationCombo.ItemsPerPage) + 1,
+                        pageSize = paginationCombo.ItemsPerPage,
+                        skip = request.StartIndex,
+                        take = paginationCombo.ItemsPerPage,
+                        sort = request.GetSortByProperties()
+                                         .Select(s => new Sort
+                                         {
+                                             field = s.PropertyName,
+                                             dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
+                                         }).ToList()
+                    }
+                };
+            ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+
+            requestRestAPI.Endpoint = "api/Combo/GetPaged";
+
+            ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
+            if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+            {
+                var items = JsonSerializer.Deserialize<List<ComboDto>>(dataTable.Data.GetRawText(),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ComboDto>();
+
+                foreach (var item in PromotionModel.PromotionItems)
+                {
+
+                    var combo = items.FirstOrDefault(x => x.Id == item.ItemId);
+                    if (combo is not null)
+                    {
+                        combo.IsSelected = true;
+                        item.ItemName = combo.ComboName;
+                        item.ImageUrl = combo.ImageUrl;
+                        item.BasePrice = combo.BasePrice;
+                        item.ComboItems = combo.ComboItems;
+                    }
+                }
+
+                var totalRecords = dataTable.RecordsTotal ?? items.Count;
+                return GridItemsProviderResult.From(items, totalRecords);
+            }
+            StateHasChanged();
+            return GridItemsProviderResult.From(new List<ComboDto>(), 0);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách sản phẩm: {ex.Message}");
+            return GridItemsProviderResult.From(new List<ComboDto>(), 0);
+        }
+
+    }
+    private async Task RefresDataCombo(int value)
+    {
+        try
+        {
+            paginationCombo.ItemsPerPage = value;
+            await paginationCombo.SetCurrentPageIndexAsync(0);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách: {ex.Message}");
+        }
+    }
+    private async Task RefreshDataCombotAsync()
+    {
+        await ComboGrid.RefreshDataAsync();
+    }
+    string GetPriceStyle(ModerationStatus ModerationStatus)
+    {
+        if (ModerationStatus == ModerationStatus.Rejected)
+        {
+            return "cursor: pointer; color: gray; text-decoration: line-through;";
+        }
+        return "cursor: pointer;";
+    }
+    private async Task HandleComboSelection(ComboDto combo, bool isSelected)
+    {
+        combo.IsSelected = isSelected;
+
+        if (isSelected)
+        {
+            PromotionItemDto promotionItemDto = new PromotionItemDto()
+                {
+                    ItemId = combo.Id,
+                    ItemName = combo.ComboName,
+                    ImageUrl = combo.ImageUrl,
+                    BasePrice = combo.BasePrice,
+                    IsSelected = true,
+                    ItemType = ItemType.Combo,
+                    ComboItems = combo.ComboItems
+                };
+            PromotionModel.PromotionItems.Add(promotionItemDto);
+
+        }
+        else
+        {
+            await RemoveSelect(combo.Id);
+        }
+        await SelectedGrid.RefreshDataAsync();
+        StateHasChanged();
+
+
+    }
+    #endregion
+    #region Đã chọn
+    protected FluentDataGrid<PromotionItemDto> SelectedGrid { get; set; } = default!;
+    protected string SearchKeywordSelected { get; set; } = string.Empty;
+    private PaginationState paginationSelected = new PaginationState { ItemsPerPage = 10 };
+
+    private async ValueTask<GridItemsProviderResult<PromotionItemDto>> LoadSelected(GridItemsProviderRequest<PromotionItemDto> request)
+    {
+        try
+        {
+            // Lọc dữ liệu dựa trên từ khóa tìm kiếm
+            var items = string.IsNullOrEmpty(SearchKeywordSelected)
+                ? PromotionModel.PromotionItems
+                : PromotionModel.PromotionItems
+                    .Where(x => x.ItemName.Contains(SearchKeywordSelected, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+            // Áp dụng phân trang
+            var totalRecords = items.Count;
+            var pagedItems = items
+                .Skip(request.StartIndex)
+                .Take(paginationSelected.ItemsPerPage)
+                .ToList();
+
+            return await Task.FromResult(GridItemsProviderResult.From(pagedItems, totalRecords));
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách đã chọn: {ex.Message}");
+            return GridItemsProviderResult.From(new List<PromotionItemDto>(), 0);
+        }
+    }
+
+    private async Task RefresDataSelected(int value)
+    {
+        try
+        {
+            paginationSelected.ItemsPerPage = value;
+            await paginationSelected.SetCurrentPageIndexAsync(0);
+            await SelectedGrid.RefreshDataAsync();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách đã chọn: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshDataSelectedAsync()
+    {
+        await SelectedGrid.RefreshDataAsync();
+    }
+
+    private async Task HandleSearchSelectedKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await RefreshDataSelectedAsync();
+        }
+    }
+    #endregion
+}

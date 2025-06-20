@@ -17,25 +17,60 @@ namespace Service.SnapFood.Application.Service
     internal class ComboService : IComboService
     {
         private readonly IUnitOfWork _unitOfWork;
+
         public ComboService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+            
         }
         #region Duyệt, hủy duyệt
-        public int CheckApproveAsync(Guid id)
+        public Dtos.StringContent CheckApproveAsync(Guid id)
         {
-            var productIds = _unitOfWork.ProductComboRepo
+            var combo = _unitOfWork.ComboRepo.GetById(id);
+
+            if (combo is not null)
+            {
+                Dtos.StringContent stringContent = new Dtos.StringContent();
+                string CheckProduct = string.Empty;
+                var productIds = _unitOfWork.ProductComboRepo
                  .FindWhere(x => x.ComboId == id)
                  .Select(x => x.ProductId)
                  .Distinct();
 
-            var productRejectCount = _unitOfWork.ProductRepo
-                .FindWhere(x => productIds.Contains(x.Id) && x.ModerationStatus == ModerationStatus.Rejected)
-                .Count();
+                var productRejectCount = _unitOfWork.ProductRepo
+                    .FindWhere(x => productIds.Contains(x.Id) && x.ModerationStatus == ModerationStatus.Rejected)
+                    .Count();
+
+                if (productRejectCount > 0)
+                {
+                    CheckProduct = $"{productRejectCount} Sản phẩm";
+                }
+
+                string CheckCategory = string.Empty;
+
+                var categoryReject = _unitOfWork.CategoriesRepo.GetById(combo.CategoryId);
+                if (categoryReject is not null && categoryReject.ModerationStatus == ModerationStatus.Rejected)
+                {
+                    CheckCategory = "Phân loại";
+                }
+                if (!string.IsNullOrEmpty(CheckProduct) && !string.IsNullOrEmpty(CheckCategory))
+                {
+                    stringContent.Content = $"{CheckProduct} và {CheckCategory}";
+                }
+                if (string.IsNullOrEmpty(CheckProduct) && !string.IsNullOrEmpty(CheckCategory))
+                {
+                    stringContent.Content = CheckCategory;
+                }
+                if (!string.IsNullOrEmpty(CheckProduct) && string.IsNullOrEmpty(CheckCategory))
+                {
+                    stringContent.Content = CheckProduct;
+                }
+                return stringContent;
+            }
+            return new Dtos.StringContent();
 
 
 
-            return productRejectCount;
         }
         public async Task<bool> ApproveAsync(Guid id)
         {
@@ -52,7 +87,7 @@ namespace Service.SnapFood.Application.Service
 
                 var productRejectIds = _unitOfWork.ProductRepo
                     .FindWhere(x => productIds.Contains(x.Id) && x.ModerationStatus == ModerationStatus.Rejected)
-                    .Select(x=>x.Id);
+                    .Select(x => x.Id);
                 foreach (var productId in productRejectIds)
                 {
                     var product = _unitOfWork.ProductRepo.GetById(productId);
@@ -61,8 +96,31 @@ namespace Service.SnapFood.Application.Service
                         product.ModerationStatus = ModerationStatus.Approved;
                         _unitOfWork.ProductRepo.Update(product);
                         await _unitOfWork.CompleteAsync();
+                        var category = _unitOfWork.CategoriesRepo.GetById(product.CategoryId);
+                        if (category is not null && category.ModerationStatus == ModerationStatus.Rejected)
+                        {
+                            category.ModerationStatus = ModerationStatus.Approved;
+                            await _unitOfWork.CompleteAsync();
+
+                        }
+                        var size = _unitOfWork.SizesRepo.GetById(product.SizeId ?? Guid.Empty);
+                        if (size is not null && size.ModerationStatus == ModerationStatus.Rejected)
+                        {
+                            size.ModerationStatus = ModerationStatus.Approved;
+                            await _unitOfWork.CompleteAsync();
+
+                        }
                     }
                 }
+                var categoryReject = _unitOfWork.CategoriesRepo.GetById(combo.CategoryId);
+                if (categoryReject is not null && categoryReject.ModerationStatus == ModerationStatus.Rejected)
+                {
+
+                    categoryReject.ModerationStatus = ModerationStatus.Approved;
+                    _unitOfWork.CategoriesRepo.Update(categoryReject);
+
+                }
+
                 return true;
             }
             return false;
@@ -108,9 +166,9 @@ namespace Service.SnapFood.Application.Service
                         ProductId = x.ProductId,
                         Quantity = x.Quantity,
                         ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
-                        CategoryName = _unitOfWork.CategoriesRepo.GetById(product.FirstOrDefault(p=>p.Id == x.ProductId).CategoryId)?.CategoryName ?? "",
+                        CategoryName = _unitOfWork.CategoriesRepo.GetById(product.FirstOrDefault(p => p.Id == x.ProductId)?.CategoryId??Guid.Empty)?.CategoryName ?? "",
 
-                        Sizes = size.Where(s => s.ParentId == product.FirstOrDefault(p=>p.Id ==x.ProductId)?.SizeId && s.ModerationStatus == ModerationStatus.Approved&&s.ParentId!=null)
+                        Sizes = size.Where(s => s.ParentId == product.FirstOrDefault(p => p.Id == x.ProductId)?.SizeId && s.ModerationStatus == ModerationStatus.Approved && s.ParentId != null)
 
                                     .Select(s => new SizeDto
                                     {
@@ -121,7 +179,7 @@ namespace Service.SnapFood.Application.Service
                                     }).OrderBy(s => s.DisplayOrder).ToList()
                     })
                     .ToList();
-                
+
 
                 // Get category name
                 var category = _unitOfWork.CategoriesRepo.GetById(combo.CategoryId);
@@ -149,7 +207,7 @@ namespace Service.SnapFood.Application.Service
                     return comboDto;
                 }
 
-               
+
             }
             return null;
         }
@@ -161,7 +219,7 @@ namespace Service.SnapFood.Application.Service
                 q => q, // Bỏ hoàn toàn điều kiện Where
                 query.gridRequest,
                 ref totalRecords
-            ).Include(x=>x.Category);
+            ).Include(x => x.Category);
 
             // Lấy danh sách ID combo để tối ưu truy vấn
             var comboIds = dataQuery.Select(m => m.Id).ToList();
@@ -177,7 +235,7 @@ namespace Service.SnapFood.Application.Service
                         ProductId = x.ProductId,
                         Quantity = x.Quantity,
                         ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
-                        ModerationStatus= _unitOfWork.ProductRepo.GetById(x.ProductId)?.ModerationStatus??0
+                        ModerationStatus = _unitOfWork.ProductRepo.GetById(x.ProductId)?.ModerationStatus ?? 0
 
                     }).ToList()
                 );
@@ -197,7 +255,7 @@ namespace Service.SnapFood.Application.Service
                     Created = m.Created,
                     LastModified = m.LastModified,
                     ModerationStatus = m.ModerationStatus,
-                    CategoryModerationStatus=_unitOfWork.CategoriesRepo.GetById(m.CategoryId)?.ModerationStatus??0,
+                    CategoryModerationStatus = _unitOfWork.CategoriesRepo.GetById(m.CategoryId)?.ModerationStatus ?? 0,
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
                     ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>()
@@ -207,7 +265,7 @@ namespace Service.SnapFood.Application.Service
             dataTableJson.querytext = dataQuery.ToString();
             return dataTableJson;
         }
-      
+
         #endregion
         #region Thêm, sửa, xóa
         public async Task<Guid> CreateAsync(ComboDto item)
@@ -227,7 +285,7 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Ảnh trống");
                 }
-                if (item.Quantity<=0)
+                if (item.BasePrice <= 0)
                 {
                     throw new Exception("Giá nhỏ hơn 0");
                 }
@@ -242,6 +300,7 @@ namespace Service.SnapFood.Application.Service
                     ImageUrl = item.ImageUrl,
                     BasePrice = item.BasePrice,
                     Description = item.Description,
+                    ModerationStatus = ModerationStatus.Rejected,
                 };
                 _unitOfWork.ComboRepo.Add(combo);
                 await _unitOfWork.CompleteAsync();
@@ -334,7 +393,7 @@ namespace Service.SnapFood.Application.Service
                 {
                     foreach (var comboItem in item.ComboItems)
                     {
-                        if (comboItem.Quantity<=0)
+                        if (comboItem.Quantity <= 0)
                         {
                             throw new Exception($"Số lượng của sản phẩm: {comboItem.ProductName} nhỏ hơn 0");
                         }

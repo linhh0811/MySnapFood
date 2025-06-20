@@ -33,7 +33,7 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
 
         public ICartItemRepository CartItemRepo { get; private set; }
 
-        public ICartComboItemRepository CartComboItemRepo { get; private set; } // Thêm repository cho CartComboItem
+        public ICartComboItemRepository CartComboItemRepo { get; private set; } 
 
         public IProductComboRepository ProductComboRepo { get; private set; }
 
@@ -55,6 +55,11 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
         public ISizesRepository SizesRepo { get; private set; }
 
         public ICategoriesRepository CategoriesRepo { get; private set; }
+
+        public IPromotionRepository PromotionRepository { get; private set; }
+
+        public IPromotionItemsRepository PromotionItemsRepository { get; private set; }
+
         public UnitOfWork(AppDbContext context, IRequestContext requestContext)
         {
             _context = context;
@@ -78,6 +83,8 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             UserRoleRepo= new UserRoleRepository(_context);
             SizesRepo = new SizesRepository(_context);
             CategoriesRepo = new CategoriesRepository(_context);
+            PromotionRepository = new PromotionRepository(_context);
+            PromotionItemsRepository = new PromotionItemsRepository(_context);
         }
 
         public void BeginTransaction()

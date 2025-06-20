@@ -18,5 +18,7 @@ namespace Service.SnapFood.Domain.Entitys
         public virtual Categories Category { get; set; } = null!;
         public virtual List<ProductCombo> ProductComboes { get; set; } = null!;
         public virtual List<CartComboItem> CartItemes { get; set; } = null!;
+        public virtual List<PromotionItem>? PromotionItems { get; set; }
+
     }
 }
