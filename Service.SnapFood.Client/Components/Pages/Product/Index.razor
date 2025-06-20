@@ -7,6 +7,8 @@
 @using Service.SnapFood.Share.Query
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
+@using Microsoft.AspNetCore.Components.Authorization
+@using Service.SnapFood.Client.Components.Layout
 <div class="container row">
 
     @foreach (var product in ProductDto)
@@ -48,12 +50,16 @@
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] private NavMenu NavMenu { get; set; } = default!;
     [Parameter]
     public List<CategoryDto> Categories { get; set; } = new List<CategoryDto>();
     [Parameter]
     public CategoryDto OnCategorySelected { get; set; } = new CategoryDto();
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private List<ProductDto> ProductDto = new List<ProductDto>();
+    [Parameter] public ViewParameters Content { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,6 +113,12 @@
             var parameters = new ViewParameters
                 {
                     Id = id,
+
+                    OnRefresh = EventCallback.Factory.Create(this, async () =>
+                     {
+                         await NavMenu.RefreshCartItemCount(); // Gọi cập nhật số lượng
+                     })
+
                 };
             var dialog = await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
                 {
@@ -131,6 +143,61 @@
         if (!string.IsNullOrEmpty(sizeId))
         {
             await OpenModalAdd(productId);
+        }
+        else
+        {
+            await AddProductToCart(productId, null);
+        }
+    }
+    private async Task AddProductToCart(Guid productId, Guid? sizeId)
+    {
+        try
+        {
+            // Lấy thông tin xác thực người dùng
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var userIdClaim = user.FindFirst("user_id");
+
+            // Kiểm tra xem người dùng đã đăng nhập chưa
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+            {
+                ToastService.ShowError("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.");
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            // Tạo đối tượng DTO để gửi lên API
+            var addToCartDto = new
+            {
+                UserId = userId,
+                ProductId = productId,
+                SizeId = sizeId, // Nếu sizeId là null, dùng Guid mặc định
+                Quantity = 1 // Số lượng mặc định
+            };
+
+            // Cấu hình và gọi API
+            Console.WriteLine($"Sending to API: {JsonSerializer.Serialize(addToCartDto)}");
+            var requestRestAPI = new ApiRequestModel
+                {
+                    Endpoint = "api/cart/addproduct"
+                };
+
+            var result = await CallApi.Post<object>(requestRestAPI, addToCartDto);
+
+            // Xử lý kết quả từ API
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Đã thêm sản phẩm vào giỏ hàng.");
+                await NavMenu.RefreshCartItemCount(); // Cập nhật số lượng giỏ hàng
+            }
+            else
+            {
+                ToastService.ShowError($"Không thể thêm sản phẩm: {result.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi: {ex.Message}");
         }
     }
 }

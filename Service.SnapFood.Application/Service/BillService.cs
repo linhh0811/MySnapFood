@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
@@ -10,12 +11,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Service.SnapFood.Application.Service
 {
     public class BillService : IBillService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private object query;
 
         public BillService(IUnitOfWork unitOfWork)
         {
@@ -191,6 +194,28 @@ namespace Service.SnapFood.Application.Service
             if (isCreate && (await _unitOfWork.BillRepo.GetAllAsync()).Any(b => b.BillCode == item.BillCode))
                 throw new ArgumentException("Mã hóa đơn đã tồn tại", nameof(item.BillCode));
         }
+
+        
         #endregion
+    public async Task<List<BillDetailsDto>> GetBillDetailsByBillIdAsync(Guid billId)
+        {
+            var allDetails = await _unitOfWork.BillDetailsRepo.GetAllAsync(); // Trả về IEnumerable<BillDetails>
+
+            var result = allDetails
+                .Where(b => b.BillId == billId) // Lọc theo BillId
+                .Select(b => new BillDetailsDto
+                {
+                    ItemsName = b.ItemsName,
+                    ImageUrl = b.ImageUrl,
+                    Quantity = b.Quantity,
+                    Price = b.Price,
+                    PriceEndow = b.PriceEndow
+                })
+                .ToList(); // Chuyển sang List
+
+            return result;
+       
+        }
+
     }
 }

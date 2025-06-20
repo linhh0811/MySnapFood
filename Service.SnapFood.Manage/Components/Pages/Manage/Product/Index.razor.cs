@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Service.SnapFood.Manage.Components.Pages.Manage.Product;
 using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Dto.ProductDto;
@@ -274,6 +275,34 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
                 ToastService.ShowError($"Lỗi khi mở modal sửa sản phẩm: {ex.Message}");
             }
         }
+
+
+        private async Task OpenDetailsModal(Guid Id)
+        {
+            try
+            {
+                var parameters = new EditOrUpdateParameters
+                {
+                    Id = Id,
+                    RequestApi = requestRestAPI,
+                };
+                await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
+                {
+                    Title = "Thông tin chi tiết sản phẩm",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "600px",
+                    TrapFocus = false
+
+                });
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi mở modal chi tiết: {ex.Message}");
+            }
+        }
+
         private async Task RefreshDataAsync()
         {
             await ProductGrid.RefreshDataAsync();

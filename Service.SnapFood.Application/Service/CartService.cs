@@ -61,6 +61,7 @@ namespace Service.SnapFood.Application.Service
 
         public async Task AddProductToCartAsync(AddProductToCartDto item)
         {
+            Console.WriteLine($"Processing cart for UserId: {item.UserId}, ProductId: {item.ProductId}, SizeId: {item.SizeId}, Quantity: {item.Quantity}");
             var cart = await GetOrCreateCartAsync(item.UserId);
             var product = await _unitOfWork.ProductRepo.GetByIdAsync(item.ProductId);
             if (product == null)
@@ -72,6 +73,18 @@ namespace Service.SnapFood.Application.Service
             {
                 throw new Exception("Sản phẩm chưa được duyệt");
             }
+
+            // Kiểm tra SizeId có hợp lệ không (giả sử có bảng Sizes và liên kết với Product)
+            if (item.SizeId.HasValue && item.SizeId != Guid.Empty)
+            {
+                var size = await _unitOfWork.SizesRepo.GetByIdAsync(item.SizeId.Value);
+                if (size == null)
+                {
+                    throw new Exception("Kích thước không hợp lệ");
+                }
+            }
+
+
 
             var existingItem = cart.CartProductItems
                 .FirstOrDefault(ci => ci.ProductId == item.ProductId && ci.SizeId == item.SizeId);
@@ -93,9 +106,17 @@ namespace Service.SnapFood.Application.Service
                 await _unitOfWork.CartItemRepo.AddAsync(cartItem);
             }
 
-            await _unitOfWork.CompleteAsync();
+            try
+            {
+                await _unitOfWork.CompleteAsync();
+                Console.WriteLine("Cart updated successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to save cart: {ex}");
+                throw;
+            }
         }
-
         public async Task ClearCart(Guid cartId)
         {
             var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsync(cartId);
@@ -138,7 +159,7 @@ namespace Service.SnapFood.Application.Service
                     SizeId = ci.SizeId,
                     Quantity = ci.Quantity,
                     ProductName = ci.Product.ProductName,
-                    SizeName = ci.Size.SizeName,
+                    SizeName = ci.Size != null ? ci.Size.SizeName : "",
                     ImageUrl = ci.Product.ImageUrl,
                     Price = ci.Product.BasePrice
                 }).ToList(),

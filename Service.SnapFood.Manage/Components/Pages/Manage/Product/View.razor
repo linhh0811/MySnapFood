@@ -1,0 +1,193 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Icons
+@using Service.SnapFood.Application.Dtos
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+@if (ProductDto != null)
+{
+    <FluentDialogHeader ShowDismiss="true">
+        <FluentStack VerticalAlignment="VerticalAlignment.Center">
+            <FluentIcon Value="@(new Icons.Regular.Size24.Info())" />
+            <FluentLabel Typo="Typography.PaneHeader">
+                @Dialog.Instance.Parameters.Title
+            </FluentLabel>
+        </FluentStack>
+    </FluentDialogHeader>
+
+    <FluentDialogBody>
+        <FluentGrid Spacing="2" AdaptiveRendering="true" Justify="JustifyContent.FlexStart" Style="padding: 4px;">
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Tên sản phẩm:</label>
+                    <div>@ProductDto.ProductName</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Hình ảnh:</label>
+                    <div><img src="@ProductDto.ImageUrl" alt="Ảnh" style="max-height: 80px; max-width: 100px; object-fit: contain;" /></div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Size:</label>
+                    <div>@ProductDto.SizeName</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Phân loại:</label>
+                    <div>@ProductDto.CategoryName</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Giá bán:</label>
+                    <div>@ProductDto.BasePrice</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Đã bán:</label>
+                    <div>@ProductDto.Quantity</div>
+                </div>
+            </FluentGridItem>            
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ngày tạo:</label>
+                    <div>@ProductDto.Created</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ngày sửa gần nhất:</label>
+                    <div>@ProductDto.LastModified</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Người tạo:</label>
+                    <div>@ProductDto.CreatedByName</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Người sửa gần nhất:</label>
+                    <div>@ProductDto.LastModifiedByName</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Trạng thái:</label>
+                    <div>
+                        <FluentBadge Appearance="@(ProductDto.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
+                            @(ProductDto.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
+                        </FluentBadge>
+                    </div>
+
+                </div>
+            </FluentGridItem>
+        </FluentGrid>
+    </FluentDialogBody>
+
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync" Loading="@IsCancelling" Disabled="@IsCancelling">Đóng</FluentButton>
+    </FluentDialogFooter>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <FluentDialogBody>
+        <FluentGridItem md="12">@ErrorMessage</FluentGridItem>
+    </FluentDialogBody>
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync" Loading="@IsCancelling" Disabled="@IsCancelling">Đóng</FluentButton>
+    </FluentDialogFooter>
+}
+else
+{
+    <FluentDialogBody Style="display:flex;justify-content:center;align-items:center;">
+        <FluentProgressRing />
+    </FluentDialogBody>
+}
+
+<style>
+    .row-info {
+        display: grid;
+        grid-template-columns: 50% 50%;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+    }
+
+        .row-info label {
+            font-weight: 500;
+        }
+</style>
+
+@code {
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    [Parameter]
+    public EditOrUpdateParameters Content { get; set; } = new();
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+
+    private bool IsCancelling { get; set; }
+    private ProductDto ProductDto { get; set; } = new ProductDto();
+    private string? ErrorMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Content.Id != Guid.Empty)
+            {
+                ProductDto = await GetProductById(Content.Id);
+            }
+            else
+            {
+                ErrorMessage = "Không có ID chuyên ngành để lấy thông tin.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi tải dữ liệu: {ex.Message}";
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task<ProductDto> GetProductById(Guid id)
+    {
+        try
+        {
+            Content.RequestApi.Endpoint = $"api/Product/{id}";
+            ResultAPI result = await CallApi.Get<ProductDto>(Content.RequestApi);
+            if (result.Status == StatusCode.OK)
+            {
+                return result.Data as ProductDto ?? throw new Exception("Dữ liệu trả về không đúng định dạng ProductDto.");
+            }
+            else
+            {
+                throw new Exception(result.Message ?? "Lỗi khi lấy thông tin.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi lấy thông tin: {ex.Message}";
+            return new ProductDto();
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

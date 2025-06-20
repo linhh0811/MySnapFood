@@ -26,6 +26,11 @@ builder.Services.AddHttpClient<ICallServiceRegistry, CallServiceRegistry>(client
 builder.Services.AddFluentUIComponents(options => options.ValidateClassNames = false);
 builder.Services.AddScoped<ImageService>(); 
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("https://localhost:7213/")
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

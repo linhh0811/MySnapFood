@@ -22,5 +22,7 @@ namespace Service.SnapFood.Application.Dtos
         public DateTime LastModified { get; set; }
         public Guid CreatedBy { get; set; }
         public Guid LastModifiedBy { get; set; }
+        public string CreatedByName { get; set; } = string.Empty;
+        public string LastModifiedByName { get; set; } = string.Empty;
     }
 }

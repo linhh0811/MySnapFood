@@ -153,7 +153,12 @@ namespace Service.SnapFood.Application.Service
             if (product is not null)
             {
                 var category = _unitOfWork.CategoriesRepo.GetById(product.CategoryId);
-                ProductDto productDto = new ProductDto()
+
+                // Lấy thông tin người tạo và người sửa
+                var createdByUser = await _unitOfWork.UserRepo.GetByIdAsync(product.CreatedBy);
+                var modifiedByUser = await _unitOfWork.UserRepo.GetByIdAsync(product.LastModifiedBy);
+
+                var productDto = new ProductDto()
                 {
                     Id = product.Id,
                     CategoryId = product.CategoryId,
@@ -163,10 +168,23 @@ namespace Service.SnapFood.Application.Service
                     ProductName = product.ProductName,
                     Description = product.Description,
                     BasePrice = product.BasePrice,
-                    ModerationStatus = product.ModerationStatus
+                    Quantity = product.Quantity,
+                    ModerationStatus = product.ModerationStatus,
+                    Created = product.Created,
+                    LastModified = product.LastModified,
+                    CreatedBy = product.CreatedBy,
+                    LastModifiedBy = product.LastModifiedBy,
+                    CreatedByName = product.CreatedBy == Guid.Empty ? "Hệ thống" : createdByUser?.FullName ?? "Không xác định",
+                    LastModifiedByName = product.LastModifiedBy == Guid.Empty ? "Hệ thống" : modifiedByUser?.FullName ?? "Không xác định"
                 };
+
                 if (product.SizeId is not null)
                 {
+                    // Lấy tên size hiện tại
+                    var size = await _unitOfWork.SizesRepo.GetByIdAsync(product.SizeId.Value);
+                    productDto.SizeName = size?.SizeName ?? string.Empty;
+
+                    // Lấy danh sách size con (nếu có)
                     var sizes = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == product.SizeId && x.ModerationStatus == ModerationStatus.Approved);
                     var sizeDtos = sizes.Select(x => new SizeDto()
                     {
@@ -181,19 +199,70 @@ namespace Service.SnapFood.Application.Service
 
                 return productDto;
             }
+
             return null;
         }
+
+
+
+        //public DataTableJson GetPaged(BaseQuery query)
+        //{
+        //    try
+        //    {
+        //        int totalRecords = 0;
+        //        var dataQuery = _unitOfWork.ProductRepo.FilterData(
+        //            q => q, // Bỏ hoàn toàn điều kiện Where
+        //            query.gridRequest,
+        //            ref totalRecords
+        //        );
+        //        var data = dataQuery.ToList()
+        //        .Select((m, i) => new ProductDto
+        //        {
+        //            Id = m.Id,
+        //            Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
+        //            CategoryId = m.CategoryId,
+        //            SizeId = m.SizeId,
+        //            ImageUrl = m.ImageUrl,
+        //            ProductName = m.ProductName,
+        //            Description = m.Description,
+        //            Quantity = m.Quantity,
+        //            BasePrice = m.BasePrice,
+        //            Created = m.Created,
+        //            LastModified = m.LastModified,
+        //            ModerationStatus = m.ModerationStatus,
+        //            CreatedBy = m.CreatedBy,
+        //            LastModifiedBy = m.LastModifiedBy,
+        //            SizeName = GetSizeNameById(m.SizeId ?? Guid.Empty) ?? null,
+        //            CategoryName =GetCategoryNameById(m.CategoryId),
+        //        });
+
+
+        //        DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
+        //        dataTableJson.querytext = dataQuery.ToString();
+        //        return dataTableJson;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception(ex.Message);
+
+        //    }
+
+        //}
 
         public DataTableJson GetPaged(BaseQuery query)
         {
             try
             {
                 int totalRecords = 0;
+
+                var allUsers = _unitOfWork.UserRepo.GetAll().ToList();
+
                 var dataQuery = _unitOfWork.ProductRepo.FilterData(
-                    q => q, // Bỏ hoàn toàn điều kiện Where
+                    q => q, 
                     query.gridRequest,
                     ref totalRecords
                 );
+
                 var data = dataQuery.ToList()
                 .Select((m, i) => new ProductDto
                 {
@@ -215,8 +284,13 @@ namespace Service.SnapFood.Application.Service
                     LastModifiedBy = m.LastModifiedBy,
                     SizeName = GetSizeNameById(m.SizeId ?? Guid.Empty) ?? null,
                     CategoryName = GetCategoryNameById(m.CategoryId),
+
                 });
 
+
+                    CreatedByName = allUsers.FirstOrDefault(u => u.Id == m.CreatedBy)?.FullName ?? "Không xác định",
+                    LastModifiedByName = allUsers.FirstOrDefault(u => u.Id == m.LastModifiedBy)?.FullName ?? "Không xác định",
+                });
 
                 DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
                 dataTableJson.querytext = dataQuery.ToString();
@@ -225,10 +299,9 @@ namespace Service.SnapFood.Application.Service
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
-
             }
-            
         }
+
         #endregion
 
         #region thêm, sửa, xóa
@@ -263,6 +336,7 @@ namespace Service.SnapFood.Application.Service
                     Description = item.Description,
                     Quantity = 0,
                     BasePrice = item.BasePrice,
+
                     ModerationStatus = ModerationStatus.Rejected,
 
                 };

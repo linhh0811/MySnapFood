@@ -122,13 +122,13 @@ namespace Service.SnapFood.Application.Service
                 <p>Trân trọng,<br>Hệ thống quản lý</p>
                 <p>-----------------------------------------------------------------</p>
                 <p>
-                    <img src='https://i.imgur.com/llw3FXb.jpeg' alt='Logo' width='285px' height='165px'/>
+                    <img src='https://iili.io/FfGg4uS.png' alt='Logo' width='285px' height='195px'/> 
                 </p>
                 <p>
-                    <h3><strong>BeeFood - Hệ thống quản lý cửa hàng</strong></h3> <br>
+                    <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3> <br>
                     <strong>Address:</strong> 13, Trinh Van Bo, Nam Tu Liem, Ha noi <br>
                     <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
-                    <strong>Email:</strong> beefoodvn@gmail.com | beefoodadmin03@gmail.com
+                    <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
                 </p>
             ";
 
@@ -185,13 +185,13 @@ namespace Service.SnapFood.Application.Service
                 <p>Trân trọng,<br>Hệ thống quản lý</p>
                 <p>-----------------------------------------------------------------</p>
                 <p>
-                    <img src='https://i.imgur.com/llw3FXb.jpeg' alt='Logo' width='285px' height='165px'/>
+                    <img src='https://iili.io/FfGg4uS.png' alt='Logo' width='285px' height='195px'/>
                 </p>
                 <p>
-                    <h3><strong>BeeFood - Hệ thống quản lý cửa hàng</strong></h3>
+                    <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>
                     <strong>Address:</strong> 13, Trinh Van Bo, Nam Tu Liem, Ha noi <br>
                     <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
-                    <strong>Email:</strong> beefoodvn@gmail.com | beefoodadmin03@gmail.com
+                    <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
                 </p>
             ";
             await _emailService.SendEmailAsync(item.Email, subject, body);

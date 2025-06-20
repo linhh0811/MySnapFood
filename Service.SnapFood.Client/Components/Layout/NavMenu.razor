@@ -25,7 +25,7 @@
                 <ul class="navbar-nav navbar-right">
 
                     <FluentNavLink Href="/cart">
-                        <FluentCounterBadge Count="1" Appearance="Appearance.Accent">
+                        <FluentCounterBadge Count="@CartItemCount" Appearance="Appearance.Accent">
                             <FluentButton Title="Giỏ hàng" Appearance="Appearance.Stealth">
                                 <FluentIcon Value="@(new Icons.Regular.Size24.Cart())" Color="@Color.Neutral" />
                             </FluentButton>
@@ -84,7 +84,7 @@
     [Parameter]
     public EventCallback<bool> OpenMenuThongTin { get; set; }
 
-    private int CartItemCount = 0;
+    public int CartItemCount { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -159,6 +159,46 @@
     // Thêm phương thức công khai để các component khác gọi
     public async Task RefreshCartItemCount()
     {
+        try
+        {
+            if (CurrentUser == null || CurrentUser.UserId == Guid.Empty)
+            {
+                CartItemCount = 0;
+                return;
+            }
+
+            var request = new ApiRequestModel { Endpoint = $"api/cart/quantity/{CurrentUser.UserId}" };
+            var result = await CallApi.Get<int>(request);
+
+            CartItemCount = result.Status == StatusCode.OK && result.Data is int count ? count : 0;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            CartItemCount = 0;
+            Console.WriteLine($"Lỗi khi tải số lượng giỏ hàng: {ex.Message}");
+        }
+
+
         // await LoadCartItemCount();
+        // try
+        // {
+        //     var request = new ApiRequestModel { Endpoint = $"api/cart/quantity/{CurrentUser.UserId}" };
+        //     var result = await CallApi.Get<int>(request);
+        //     if (result.Status == StatusCode.OK && result.Data != null)
+        //     {
+        //         CartItemCount = (int)result.Data;
+        //     }
+        //     else
+        //     {
+        //         CartItemCount = 0;
+        //     }
+        // }
+        // catch (Exception ex)
+        // {
+        //     CartItemCount = 0;
+        //     ToastService.ShowError($"Lỗi khi tải số lượng giỏ hàng: {ex.Message}");
+        // }
+        // StateHasChanged();
     }
 }
