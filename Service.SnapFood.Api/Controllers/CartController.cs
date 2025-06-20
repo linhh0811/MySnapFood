@@ -39,7 +39,7 @@ namespace Service.SnapFood.Api.Controllers
             try
             {
                 await _cartService.AddComboToCartAsync(item);
-                return Ok("Combo added to cart successfully.");
+                return Ok(new { message = "Combo added to cart successfully." });
             }
             catch (Exception ex)
             {
@@ -53,12 +53,17 @@ namespace Service.SnapFood.Api.Controllers
         {
             try
             {
+                if (item == null || item.ProductId == Guid.Empty || item.Quantity <= 0)
+                {
+                    return BadRequest(new { error = "Dữ liệu không hợp lệ" });
+                }
                 await _cartService.AddProductToCartAsync(item);
-                return Ok("Product added to cart successfully.");
+                return Ok(new { message = "Product added to cart successfully" });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error adding product to cart: {ex}"); // Thêm logging
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -69,7 +74,7 @@ namespace Service.SnapFood.Api.Controllers
             try
             {
                 await _cartService.UpdateCartItemAsync(cartItemId, quantity);
-                return Ok("Cart item updated successfully.");
+                return Ok(new { message = "Cart item update successfully." });
             }
             catch (Exception ex)
             {
@@ -84,7 +89,7 @@ namespace Service.SnapFood.Api.Controllers
             try
             {
                 await _cartService.RemoveCartItemAsync(cartItemId);
-                return Ok("Cart item removed successfully.");
+                return Ok(new { message = "Cart item removed successfully." });
             }
             catch (Exception ex)
             {
@@ -99,7 +104,7 @@ namespace Service.SnapFood.Api.Controllers
             try
             {
                 await _cartService.ClearCart(cartId);
-                return Ok("Cart cleared successfully.");
+                return Ok(new { message = "Cart cleared successfully." });
             }
             catch (Exception ex)
             {
@@ -114,7 +119,7 @@ namespace Service.SnapFood.Api.Controllers
             try
             {
                 await _cartService.CheckOut(item);
-                return Ok("Checkout successful.");
+                return Ok(new { message = "Checkout successful." });
             }
             catch (Exception ex)
             {

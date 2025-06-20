@@ -20,10 +20,10 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
 
         protected CartDto Cart { get; set; } = new CartDto();
-        protected List<CartItemBase> CartItems { get; set; } = new List<CartItemBase>();
+        protected List<CartItem> CartItems { get; set; } = new List<CartItem>();
         protected Guid UserId { get; set; }
 
-        public abstract class CartItemBase
+        public class CartItem
         {
             public Guid Id { get; set; }
             public string Name { get; set; } = string.Empty;
@@ -33,8 +33,17 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             public string ImageUrl { get; set; } = string.Empty;
         }
 
-        public class CartProductItem : CartItemBase { }
-        public class CartComboItem : CartItemBase { }
+        public class CartProductItem : CartItem { }
+        public class CartComboItem : CartItem { }
+        private CancellationTokenSource _cts = new();
+
+       
+
+        public void Dispose()
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+        }
 
         protected override async Task OnInitializedAsync()
         {
@@ -46,24 +55,27 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             }
 
             UserId = CurrentUser.UserId;
-            await LoadCart();
+            try
+            {
+                await LoadCart(_cts.Token);
+            }
+            catch (OperationCanceledException) { }
         }
-
         protected void NavigateToOrderHome()
         {
             Navigation.NavigateTo("/Order-Home");
         }
 
-        protected async Task LoadCart()
+        protected async Task LoadCart(CancellationToken token)
         {
             try
             {
                 var request = new ApiRequestModel { Endpoint = $"api/cart/{UserId}" };
-                var result = await CallApi.Get<CartDto>(request);
-                if (result.Status == StatusCode.OK && result.Data != null)
+                var result = await CallApi.Get<CartDto>(request).WaitAsync(token);
+                if (!token.IsCancellationRequested && result.Status == StatusCode.OK && result.Data != null)
                 {
                     Cart = (CartDto)result.Data;
-                    CartItems = Cart.CartProductItems.Select(p => new CartProductItem
+                    CartItems = Cart.CartProductItems.Select(p => new CartItem
                     {
                         Id = p.Id,
                         Name = p.ProductName,
@@ -71,31 +83,30 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                         Price = p.Price,
                         Quantity = p.Quantity,
                         ImageUrl = p.ImageUrl
-                    }).Cast<CartItemBase>().Concat(
-                        Cart.CartComboItems.Select(c => new CartComboItem
-                        {
-                            Id = c.Id,
-                            Name = c.ComboName,
-                            SizeName = c.SizeName,
-                            Price = c.Price,
-                            Quantity = c.Quantity,
-                            ImageUrl = c.ImageUrl
-                        })).ToList();
+                    }).Concat(Cart.CartComboItems.Select(c => new CartItem
+                    {
+                        Id = c.Id,
+                        Name = c.ComboName,
+                        SizeName = c.SizeName,
+                        Price = c.Price,
+                        Quantity = c.Quantity,
+                        ImageUrl = c.ImageUrl
+                    })).ToList();
                     StateHasChanged();
-                    await NavMenu.RefreshCartItemCount(); // Cập nhật số lượng trong NavMenu
+                    await NavMenu.RefreshCartItemCount();
                 }
-                else
+                else if (!token.IsCancellationRequested)
                 {
                     ToastService.ShowError("Không thể tải giỏ hàng.");
                 }
             }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 ToastService.ShowError($"Lỗi khi tải giỏ hàng: {ex.Message}");
             }
         }
-
-        protected async Task RemoveItem(CartItemBase item)
+        protected async Task RemoveItem(CartItem item)
         {
             try
             {
@@ -103,7 +114,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 var result = await CallApi.Delete(request);
                 if (result.Status == StatusCode.OK)
                 {
-                    await LoadCart(); // Tải lại giỏ hàng và cập nhật NavMenu trong LoadCart
+                    await LoadCart(_cts.Token); // Tải lại giỏ hàng và cập nhật NavMenu trong LoadCart
                     ToastService.ShowSuccess("Đã xóa mục khỏi giỏ hàng.");
                 }
                 else
@@ -117,7 +128,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             }
         }
 
-        protected async Task UpdateQuantity(CartItemBase item)
+        protected async Task UpdateQuantity(CartItem item)
         {
             try
             {
@@ -125,7 +136,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 var result = await CallApi.Put(request, item.Quantity);
                 if (result.Status == StatusCode.OK)
                 {
-                    await LoadCart(); // Tải lại giỏ hàng và cập nhật NavMenu trong LoadCart
+                    await LoadCart(_cts.Token); // Tải lại giỏ hàng và cập nhật NavMenu trong LoadCart
                     ToastService.ShowSuccess("Đã cập nhật số lượng.");
                 }
                 else
@@ -152,7 +163,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 var result = await CallApi.Delete(request);
                 if (result.Status == StatusCode.OK)
                 {
-                    await LoadCart(); // Tải lại giỏ hàng và cập nhật NavMenu trong LoadCart
+                    await LoadCart(_cts.Token); // Tải lại giỏ hàng và cập nhật NavMenu trong LoadCart
                     ToastService.ShowSuccess("Đã xóa giỏ hàng.");
                 }
                 else

@@ -5,6 +5,8 @@
 @using Service.SnapFood.Client.Components.Pages.Auth
 @using Service.SnapFood.Share.Model.Commons
 @using Microsoft.AspNetCore.Components.Authorization;
+@using Service.SnapFood.Client.Components.Layout;
+@using System.Text.Json
 
 @inherits ComponentBase
 @implements IDialogContentComponent<ViewParameters>
@@ -43,7 +45,7 @@
                             </div>
                         }
                     }
-                    █
+                    
                 </div>
             </FluentCard>
             <FluentCard Style="height:30%; margin-top:10px; display: flex; align-items: center;">
@@ -113,8 +115,10 @@
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] private NavMenu NavMenu { get; set; } = default!;
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
     [Parameter] public ViewParameters Content { get; set; } = new();
+    [Parameter] public EventCallback OnCartUpdated { get; set; }
 
     private ApiRequestModel requestRestAPI = new ApiRequestModel();
     private ProductDto ProductModel = new ProductDto();
@@ -175,7 +179,6 @@
             isSaving = true;
             StateHasChanged();
 
-            // Get UserId from AuthenticationState
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
             var userIdClaim = user.FindFirst("user_id");
@@ -186,7 +189,12 @@
                 return;
             }
 
-            // Prepare DTO for API call
+            if (SelectedSizeId == Guid.Empty)
+            {
+                ToastService.ShowError("Vui lòng chọn kích thước.");
+                return;
+            }
+
             var addToCartDto = new
             {
                 UserId = userId,
@@ -195,7 +203,7 @@
                 Quantity = Quantity
             };
 
-            // Call API to add product to cart
+            Console.WriteLine($"Sending to API: {JsonSerializer.Serialize(addToCartDto)}"); // Thêm logging
             requestRestAPI.Endpoint = "api/cart/addproduct";
             var result = await CallApi.Post<object>(requestRestAPI, addToCartDto);
 
@@ -203,10 +211,12 @@
             {
                 ToastService.ShowSuccess("Đã thêm sản phẩm vào giỏ hàng.");
                 await Dialog.CloseAsync();
+               // await NavMenu.RefreshCartItemCount();
+                await OnCartUpdated.InvokeAsync();
             }
             else
             {
-                ToastService.ShowError("Không thể thêm sản phẩm vào giỏ hàng.");
+                ToastService.ShowError($"Không thể thêm sản phẩm: {result.Message}");
             }
         }
         catch (Exception ex)
@@ -219,7 +229,6 @@
             StateHasChanged();
         }
     }
-
     private async Task HideDialog()
     {
         await Dialog.CloseAsync();
