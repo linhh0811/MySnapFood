@@ -1,0 +1,201 @@
+﻿@page "/Khuyen-Mai"
+@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.Promotion
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Enum
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+<hr />
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <div class="navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto" style="width:100%">
+                    <FluentHorizontalScroll Style="width: 80%; margin: 0 auto;">
+                        @foreach (var item in promotionDtos)
+                        {
+                            <li class="nav-item mx-3" style="min-width:230px;">
+                                <FluentCard>
+                                    <a class="nav-link text-muted fw-bold fs-5 active " href="Khuyen-Mai/#@item.Id" style="text-align:center">
+                                        <p>@item.PromotionName</p>
+                                        <p style="font-size:12px;">@item.StartDate.ToString("HH:mm - dd/MM") ⮕ @item.EndDate.ToString("HH:mm - dd/MM")</p>
+                                    </a>
+                                </FluentCard>
+
+                            </li>
+                        }
+                    </FluentHorizontalScroll>
+
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<hr />
+<main>
+    @foreach (var item in promotionDtos)
+    {
+        <section id="@item.Id" class="py-3">
+            <div class="container row">
+                <h3>@item.PromotionName: </h3>
+                <p style="font-size:16px;">@item.StartDate.ToString("HH:mm - dd/MM") ⮕ @item.EndDate.ToString("HH:mm - dd/MM")</p>
+                @foreach (var i in item.PromotionItems)
+                {
+
+                    decimal priceEndown=i.BasePrice;
+                    if (item.PromotionType == PromotionType.Amount)
+                    {
+                        priceEndown = i.BasePrice - item.PromotionValue;
+                    }
+                    else if (item.PromotionType == PromotionType.FixedPrice)
+                    {
+                        priceEndown = item.PromotionValue;
+                    }
+
+                    @if (i.ItemType == ItemType.Product)
+                    {
+                        <div class="col-md-3 col-sm-6 mb-4">
+                            <FluentCard class="h-100 position-relative" style="min-height: 300px;">
+                                <img src="@i.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@i.ItemName" />
+                                <div style="padding: 0; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px;">@i.ItemName</FluentLabel>
+                                        @if (!string.IsNullOrEmpty(i.SizeName))
+                                        {
+                                            <p class="card-title" style="margin: 0;padding:0px;padding-bottom:20px;">@i.SizeName</p>
+                                        }
+                                        else if (!string.IsNullOrEmpty(i.CategoryName))
+                                        {
+                                            <p class="card-title" style="margin: 0;padding:0px;">@i.CategoryName</p>
+
+                                        }
+                                    </div>
+                                    
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                            @i.BasePrice.ToString("N0") đ
+                                        </FluentLabel>
+                                       
+                                        @if (i.BasePrice > priceEndown)
+                                        {
+                                            var discountPercent = Math.Round(((i.BasePrice - priceEndown) / i.BasePrice) * 100);
+                                            <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                                -@discountPercent%
+                                            </FluentLabel>
+                                        }
+                                    </div>
+                                </div>
+                                <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                                    <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                                        @priceEndown.ToString("N0") đ
+                                    </FluentLabel>
+                                    <FluentButton Appearance="Appearance.Accent"
+                                                  Title="Thêm sản phẩm"
+                                                  Style="padding: 0; margin-left: auto;"
+                                                  Type="ButtonType.Submit">
+                                        +
+                                    </FluentButton>
+                                </div>
+                            </FluentCard>
+                        </div>
+                    }
+                    else if (i.ItemType == ItemType.Combo)
+                    {
+                        <div class="col-md-3 col-sm-6 mb-4">
+                            <FluentCard class="h-100 position-relative" style="min-height: 420px;">
+                                <img src="@i.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@i.ItemName" />
+                                <div style=" min-height: 140px;display: flex; flex-direction: column; justify-content: space-between;padding-bottom:20px;">
+                                    <div>
+                                        <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px">@i.ItemName</FluentLabel>
+                                        @foreach (var item in i.ComboItems)
+                                        {
+                                            <p class="card-title" style="margin: 0;">@item.ProductName</p>
+                                        }
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; padding-top:10px;">
+                                        <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                            @i.BasePrice.ToString("N0") đ
+                                        </FluentLabel>
+                                        @if (i.BasePrice > priceEndown)
+                                        {
+                                            var discountPercent = Math.Round(((i.BasePrice - priceEndown) / i.BasePrice) * 100);
+                                            <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                                -@discountPercent%
+                                            </FluentLabel>
+                                        }
+                                    </div>
+                                </div>
+                                <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                                    <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                                        @priceEndown.ToString("N0") đ
+                                    </FluentLabel>
+                                    <FluentButton Appearance="Appearance.Accent"
+                                                  Title="Thêm combo"
+                                                  Style="padding: 0; margin-left: auto;"
+                                                  Type="ButtonType.Submit"
+                                                  OnClick="()=>OpenModalComboAdd(i.ItemId)">
+                                        +
+                                    </FluentButton>
+                                </div>
+                            </FluentCard>
+                        </div>
+                    }
+
+
+                }
+            </div>
+        </section>
+    }
+
+</main>
+
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private List<PromotionDto> promotionDtos = new List<PromotionDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetPromotion();
+    }
+    private async Task GetPromotion()
+    {
+        requestRestAPI.Endpoint = $"api/Promotion";
+        ResultAPI result = await CallApi.Get<List<PromotionDto>>(requestRestAPI);
+        if (result.Status == StatusCode.OK)
+        {
+            promotionDtos = result.Data as List<PromotionDto> ?? new List<PromotionDto>();
+        }
+        else
+        {
+            ToastService.ShowError("Không thể tải thông tin khuyến mãi.");
+        }
+    }
+    private async Task OpenModalComboAdd(Guid id)
+    {
+        try
+        {
+            var parameters = new ViewParameters
+                {
+                    Id = id,
+                };
+            var dialog = await DialogService.ShowDialogAsync<Combo.View>(parameters, new DialogParameters
+                {
+                    Title = "Thêm Combo",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "900px",
+                    ShowTitle = false,
+                    ShowDismiss = false
+
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
+        }
+    }
+}

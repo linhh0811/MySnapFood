@@ -17,9 +17,9 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult GetPromotionActivate()
         {
-            var combo =  _promotionService.GetAll();
+            var combo =  _promotionService.GetPromotionActivate();
             return Ok(combo);
         }
         [HttpGet("{id}")]

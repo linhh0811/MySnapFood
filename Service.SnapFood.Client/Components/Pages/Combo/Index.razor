@@ -7,7 +7,6 @@
 @using Service.SnapFood.Share.Query
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
-<div class="container row">
     @foreach (var combo in ComboDto)
     {
         <div class="col-md-3 col-sm-6 mb-4">
@@ -37,7 +36,6 @@
             </FluentCard>
         </div>
     }
-</div>
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;

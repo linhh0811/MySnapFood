@@ -16,9 +16,11 @@
         </button>
         <div class="collapse navbar-collapse fs-4" id="navbarNav">
             <ul class="navbar-nav mx-auto">
-                <FluentNavLink Href="/">Trang chủ</FluentNavLink>
-                <FluentSpacer Width="15" />
-                <FluentNavLink Href="/Order-Home">Đặt hàng</FluentNavLink>
+                <FluentNavLink Href="/"  Style="@(IsActive("/") ? "color:red; font-weight:600;" : "")">Trang chủ</FluentNavLink>
+                <FluentSpacer Width="25" />
+                <FluentNavLink Href="/Dat-Hang" Style="@(IsActive("/Dat-Hang") ? "color:red; font-weight:600;" : "")">Đặt hàng</FluentNavLink>
+                <FluentSpacer Width="25" />
+                <FluentNavLink Href="/Khuyen-Mai" Style="@(IsActive("/Khuyen-Mai") ? "color:red; font-weight:600;" : "")">Khuyến mãi</FluentNavLink>
             </ul>
             @if (CurrentUser.UserId != Guid.Empty)
             {
@@ -200,5 +202,12 @@
         //     ToastService.ShowError($"Lỗi khi tải số lượng giỏ hàng: {ex.Message}");
         // }
         // StateHasChanged();
+
+
+    }
+    private bool IsActive(string href)
+    {
+        var currentPath = new Uri(Navigation.Uri).AbsolutePath.ToLower();
+        return currentPath == href.ToLower();
     }
 }
