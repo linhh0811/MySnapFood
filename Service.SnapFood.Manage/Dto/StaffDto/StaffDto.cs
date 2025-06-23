@@ -16,5 +16,9 @@ namespace Service.SnapFood.Manage.Dto.StaffDto
         [RegularExpression(@"^0\d{9}$", ErrorMessage ="SĐT không hợp lệ!")]
         public string Numberphone { get; set; } = string.Empty;
         public int ModerationStatus { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime LastModified { get; set; }
+        public string CreatedByName { get; set; } = string.Empty;
+        public string LastModifiedByName { get; set; } = string.Empty;
     }
 }

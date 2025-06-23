@@ -9,8 +9,6 @@
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Authorization
 @using Service.SnapFood.Client.Components.Layout
-<div class="container row">
-
     @foreach (var product in ProductDto)
     {
         <div class="col-md-3 col-sm-6 mb-4">
@@ -45,7 +43,6 @@
 
     }
 
-</div>
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;

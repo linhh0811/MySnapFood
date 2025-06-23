@@ -1,13 +1,14 @@
 ﻿using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
+using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
 using Service.SnapFood.Share.Model.Commons;
-using Service.SnapFood.Share.Model.Enum;
 using Service.SnapFood.Share.Model.SQL;
 using Service.SnapFood.Share.Query;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,9 +23,9 @@ namespace Service.SnapFood.Application.Service
             _unitOfWork = unitOfWork;   
         }
         #region get dữ liệu     
-        public List<PromotionDto> GetAll()
+        public List<PromotionDto> GetPromotionActivate()
         {
-            var promotions = _unitOfWork.PromotionRepository.GetAll()
+            var promotions = _unitOfWork.PromotionRepository.FindWhere(x=>x.StartDate<=DateTime.Now&&x.EndDate>DateTime.Now&&x.ModerationStatus==ModerationStatus.Approved).ToList()
                 .Select(p => new PromotionDto
                 {
                     Id = p.Id,
@@ -38,8 +39,58 @@ namespace Service.SnapFood.Application.Service
                     LastModified = p.LastModified,
                     CreatedBy = p.CreatedBy,
                     LastModifiedBy = p.LastModifiedBy,
-                    Description=p.Description
+                    Description=p.Description,
+                   
+                    PromotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.PromotionId == p.Id).Select(x => new PromotionItemDto()
+                    {
+                        Id = x.Id,
+                        PromotionId = x.PromotionId,
+                        ItemId = x.ItemId,
+                        ItemType = x.ItemType
+                    }).ToList()
                 }).ToList();
+            foreach (var item in promotions)
+            {
+                foreach (var i in item.PromotionItems)
+                {
+                    if (i.ItemType==ItemType.Product)
+                    {
+                        var product = _unitOfWork.ProductRepo.GetById(i.ItemId);
+                        if (product is not null)
+                        {
+                            i.ItemName = product.ProductName;
+                            i.ImageUrl = product.ImageUrl;
+                            i.BasePrice=product.BasePrice;
+                            i.SizeName = GetSizeNameById(product.SizeId??Guid.Empty);
+                            i.CategoryName = GetCategoryNameById(product.CategoryId);
+
+                        }
+
+                    }
+                    else if (i.ItemType==ItemType.Combo)
+                    {
+                        var combo = _unitOfWork.ComboRepo.GetById(i.ItemId);
+
+                        if (combo is not null)
+                        {
+                            i.ItemName = combo.ComboName;
+                            i.ImageUrl = combo.ImageUrl;
+                            i.BasePrice = combo.BasePrice;
+                            i.ComboItems = _unitOfWork.ProductComboRepo
+                                .FindWhere(x => x.ComboId == i.ItemId)
+                                .Select(x => new ComboProductDto
+                                {
+                                    ProductId = x.ProductId,
+                                    Quantity = x.Quantity,
+                                    ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
+                       
+                                })
+                                .ToList();
+
+                        }
+                    }
+                }
+            }
             return promotions;
         }
 
@@ -98,9 +149,33 @@ namespace Service.SnapFood.Application.Service
                     ModerationStatus = m.ModerationStatus,        
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
-                   Description=m.Description
+                    Description=m.Description,
+                    PromotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.PromotionId == m.Id).Select(x => new PromotionItemDto()
+                    {
+                        Id = x.Id,
+                        PromotionId = x.PromotionId,
+                        ItemId = x.ItemId,
+                        ItemType = x.ItemType
+                    }).ToList()
                 });
 
+                foreach (var promotion in data)
+                {
+                    foreach(var promotionItem in promotion.PromotionItems)
+                    {
+                        if (promotionItem.ItemType== Domain.Enums.ItemType.Product)
+                        {
+                            var product = _unitOfWork.ProductRepo.GetById(promotionItem.ItemId);
+                            if (product is not null)
+                            {
+                                promotionItem.ItemName = product.ProductName;
+                                promotionItem.ImageUrl = product.ImageUrl;
+                                promotionItem.BasePrice = product.BasePrice;
+                            }
+                        }
+                        else if(promotionItem.ItemType == Domain.Enums.ItemType.Combo) { }
+                    }
+                }
 
                 DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
                 dataTableJson.querytext = dataQuery.ToString();
@@ -319,6 +394,38 @@ namespace Service.SnapFood.Application.Service
         }
         #endregion
 
+        private string GetCategoryNameById(Guid id)
+        {
+
+            var category = _unitOfWork.CategoriesRepo.GetById(id);
+            if (category is null)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return category.CategoryName;
+            }
+        }
+        private string? GetSizeNameById(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return null;
+            }
+            var sizes = _unitOfWork.SizesRepo.GetById(id);
+            if (sizes is not null)
+            {
+                var sizeChild = _unitOfWork.SizesRepo.FindWhere(x => x.ParentId == sizes.Id && x.ModerationStatus == ModerationStatus.Approved).OrderBy(x => x.DisplayOrder);
+                var nameSize = sizes.SizeName + "(" + string.Join(", ", sizeChild.Select(x => x.SizeName)) + ")";
+                return nameSize;
+            }
+            else
+            {
+                return null;
+            }
+
+        }
 
     }
 }

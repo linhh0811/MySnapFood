@@ -14,12 +14,12 @@
                     @foreach (var category in categoryDtos)
                     {
                         <li style="width: 170px;" class="nav-item mx-3">
-                            <div @onclick="()=>SelectCategory(category)">
+                            <div @onclick="()=>SelectCategory(category)" style="cursor: pointer;">
                                 <img src="@category.ImageUrl"
                                 style="height: 70px; width: 100%; object-fit: cover;"
                                 alt="@category.CategoryName">
                                 <div style="text-align: center;">
-                                    <a class="nav-link text-muted fw-bold fs-5 active"><p style="@(category.Id == CategorySelect.Id ? "color: red;":"" )">@category.CategoryName</p></a>
+                                    <a class="nav-link text-muted fw-bold fs-5 active"><p style="@(category.Id == CategorySelect.Id ? "color: red;":"" ); ">@category.CategoryName</p></a>
                                 </div>
                             </div>
 

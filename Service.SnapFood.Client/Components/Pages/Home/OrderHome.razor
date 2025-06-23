@@ -1,4 +1,4 @@
-﻿@page "/Order-Home"
+﻿@page "/Dat-Hang"
 @using Service.SnapFood.Client.Components.Pages.Category
 @using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Category
@@ -11,8 +11,11 @@
 <br/>
 <CategoryOrderHome  OnCategorySelected="OnCategorySelected"></CategoryOrderHome>
 <hr />
-<Service.SnapFood.Client.Components.Pages.Product.Index  OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Product.Index>
-<Service.SnapFood.Client.Components.Pages.Combo.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Combo.Index>
+<div class="container row">
+    <Service.SnapFood.Client.Components.Pages.Product.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Product.Index>
+    <Service.SnapFood.Client.Components.Pages.Combo.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Combo.Index>
+</div>
+
 
 @code {
     private CategoryDto categorySelected = new();

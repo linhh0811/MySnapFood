@@ -67,19 +67,28 @@
                 </span>
             </TemplateColumn>
             <TemplateColumn Title="Trạng thái KM" Style="display: flex; align-items: center;">
-                <FluentBadge title="Trạng thái khuyến mãi" Appearance="@(context.StartDate<=DateTime.Now &&context.EndDate>=DateTime.Now ? Appearance.Accent : Appearance.Neutral)">
-                    @if(context.StartDate > DateTime.Now)
+                <FluentBadge title="Trạng thái khuyến mãi" Appearance="@(context.StartDate<=DateTime.Now &&context.EndDate>=DateTime.Now&&context.ModerationStatus == 0 ? Appearance.Accent : Appearance.Neutral)">
+                    @if (context.ModerationStatus != 0)
                     {
-                        <span>Chưa bắt đầu</span>
-                    }
-                    else if (context.EndDate < DateTime.Now)
-                    {
-                        <span>Đã kết thúc</span>
+                        <span>Chưa phê duyệt</span>
+
                     }
                     else
                     {
-                        <span>Đang diễn ra</span>
+                        @if (context.StartDate > DateTime.Now)
+                        {
+                            <span>Chưa bắt đầu</span>
+                        }
+                        else if (context.EndDate < DateTime.Now)
+                        {
+                            <span>Đã kết thúc</span>
+                        }
+                        else
+                        {
+                            <span>Đang diễn ra</span>
+                        }
                     }
+                    
                 </FluentBadge>
             </TemplateColumn>
             <TemplateColumn Title="Trạng thái XN" Style="display: flex; align-items: center;">

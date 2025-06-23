@@ -35,5 +35,7 @@ namespace Service.SnapFood.Manage.Dto.ProductDto
         public string CategoryName { get; set; } = string.Empty;
         public string? SizeName { get; set; }
         public bool IsSelected { get; set; }
+        public string CreatedByName { get; set; } = string.Empty;
+        public string LastModifiedByName { get; set; } = string.Empty;
     }
 }
