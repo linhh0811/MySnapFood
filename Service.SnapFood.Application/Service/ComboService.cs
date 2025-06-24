@@ -258,7 +258,9 @@ namespace Service.SnapFood.Application.Service
                     CategoryModerationStatus = _unitOfWork.CategoriesRepo.GetById(m.CategoryId)?.ModerationStatus ?? 0,
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
-                    ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>()
+                    ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>(),
+                    PriceEndown= GetPriceEndown(m.Id)
+
                 });
 
             DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
@@ -422,5 +424,20 @@ namespace Service.SnapFood.Application.Service
 
         }
         #endregion
+        private decimal GetPriceEndown(Guid ComboId)
+        {
+            var promotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.ItemId == ComboId).ToList();
+            foreach (var item in promotionItems)
+            {
+                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now);
+                if (promotions.Count() > 0)
+                {
+                    var promotion = promotions.First();
+                    return promotion.PromotionValue;
+                }
+            }
+            return 0;
+
+        }
     }
 }

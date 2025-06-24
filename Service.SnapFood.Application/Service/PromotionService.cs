@@ -49,47 +49,45 @@ namespace Service.SnapFood.Application.Service
                         ItemType = x.ItemType
                     }).ToList()
                 }).ToList();
-            foreach (var item in promotions)
+            foreach (var promotion in promotions)
             {
-                foreach (var i in item.PromotionItems)
+                var filteredItems = new List<PromotionItemDto>();
+                foreach (var item in promotion.PromotionItems)
                 {
-                    if (i.ItemType==ItemType.Product)
+                    if (item.ItemType == ItemType.Product)
                     {
-                        var product = _unitOfWork.ProductRepo.GetById(i.ItemId);
-                        if (product is not null)
+                        var product = _unitOfWork.ProductRepo.GetById(item.ItemId);
+                        if (product is not null && product.ModerationStatus == ModerationStatus.Approved)
                         {
-                            i.ItemName = product.ProductName;
-                            i.ImageUrl = product.ImageUrl;
-                            i.BasePrice=product.BasePrice;
-                            i.SizeName = GetSizeNameById(product.SizeId??Guid.Empty);
-                            i.CategoryName = GetCategoryNameById(product.CategoryId);
-
+                            item.ItemName = product.ProductName;
+                            item.ImageUrl = product.ImageUrl;
+                            item.BasePrice = product.BasePrice;
+                            item.SizeName = GetSizeNameById(product.SizeId ?? Guid.Empty);
+                            item.CategoryName = GetCategoryNameById(product.CategoryId);
+                            filteredItems.Add(item);
                         }
-
                     }
-                    else if (i.ItemType==ItemType.Combo)
+                    else if (item.ItemType == ItemType.Combo)
                     {
-                        var combo = _unitOfWork.ComboRepo.GetById(i.ItemId);
-
-                        if (combo is not null)
+                        var combo = _unitOfWork.ComboRepo.GetById(item.ItemId);
+                        if (combo is not null && combo.ModerationStatus == ModerationStatus.Approved)
                         {
-                            i.ItemName = combo.ComboName;
-                            i.ImageUrl = combo.ImageUrl;
-                            i.BasePrice = combo.BasePrice;
-                            i.ComboItems = _unitOfWork.ProductComboRepo
-                                .FindWhere(x => x.ComboId == i.ItemId)
+                            item.ItemName = combo.ComboName;
+                            item.ImageUrl = combo.ImageUrl;
+                            item.BasePrice = combo.BasePrice;
+                            item.ComboItems = _unitOfWork.ProductComboRepo
+                                .FindWhere(x => x.ComboId == item.ItemId)
                                 .Select(x => new ComboProductDto
                                 {
                                     ProductId = x.ProductId,
                                     Quantity = x.Quantity,
-                                    ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
-                       
-                                })
-                                .ToList();
-
+                                    ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName
+                                }).ToList();
+                            filteredItems.Add(item);
                         }
                     }
                 }
+                promotion.PromotionItems = filteredItems;
             }
             return promotions;
         }

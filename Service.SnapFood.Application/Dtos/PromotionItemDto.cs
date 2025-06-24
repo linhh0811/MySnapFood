@@ -1,4 +1,5 @@
 ﻿using Service.SnapFood.Domain.Enums;
+using Service.SnapFood.Share.Model.SQL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,5 +21,6 @@ namespace Service.SnapFood.Application.Dtos
         public string? CategoryName { get; set; }
 
         public string? SizeName { get; set; }
+        public ModerationStatus ModerationStatus { get; set; }
     }
 }
