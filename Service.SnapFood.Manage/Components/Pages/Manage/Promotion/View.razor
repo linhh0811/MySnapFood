@@ -1,0 +1,247 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+@using Microsoft.FluentUI.AspNetCore.Components.Icons
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Promotion
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Enum
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+@if (PromotionDto != null)
+{
+    <FluentDialogHeader ShowDismiss="true">
+        <FluentStack VerticalAlignment="VerticalAlignment.Center">
+            <FluentIcon Value="@(new Icons.Regular.Size24.Info())" />
+            <FluentLabel Typo="Typography.PaneHeader">
+                @Dialog.Instance.Parameters.Title
+            </FluentLabel>
+        </FluentStack>
+    </FluentDialogHeader>
+
+    <FluentDialogBody>
+        <FluentGrid Spacing="2" AdaptiveRendering="true" Justify="JustifyContent.FlexStart" Style="padding: 4px;">
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Tên sản phẩm:</label>
+                    <div>@PromotionDto.PromotionName</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Mô tả:</label>
+                    @if (string.IsNullOrEmpty(PromotionDto.Description))
+                    {
+                        <div>Trống</div>
+                    }
+                    else
+                    {
+                        <div>@PromotionDto.Description</div>
+                    }
+
+                </div>
+            </FluentGridItem>
+
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Phân loại:</label>
+                    <div>
+                        <FluentBadge Appearance="Appearance.Accent">
+                            @if (PromotionDto.PromotionType == PromotionType.FixedPrice)
+                            {
+                                <span>Giảm còn giá cố định</span>
+                            }
+                            else if (PromotionDto.PromotionType == PromotionType.Amount)
+                            {
+                                <span>Giảm số tiền</span>
+                            }
+                        </FluentBadge>
+                    </div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Giá trị:</label>
+                    <div>@PromotionDto.PromotionValue.ToString("N0") đ</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>TG bắt đầu:</label>
+                    <div>@PromotionDto.StartDate.ToString("dd/MM/yyyy HH:mm:ss")</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>TG kết thúc:</label>
+                    <div>@PromotionDto.EndDate.ToString("dd/MM/yyyy HH:mm:ss")</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Trạng thái KM:</label>
+                    <div>
+                        <FluentBadge title="Trạng thái khuyến mãi" Appearance="@(PromotionDto.StartDate<=DateTime.Now &&PromotionDto.EndDate>=DateTime.Now&&PromotionDto.ModerationStatus == 0 ? Appearance.Accent : Appearance.Neutral)">
+                            @if (PromotionDto.ModerationStatus != 0)
+                            {
+                                <span>Chưa phê duyệt</span>
+
+                            }
+                            else
+                            {
+                                @if (PromotionDto.StartDate > DateTime.Now)
+                                {
+                                    <span>Chưa bắt đầu</span>
+                                }
+                                else if (PromotionDto.EndDate < DateTime.Now)
+                                {
+                                    <span>Đã kết thúc</span>
+                                }
+                                else
+                                {
+                                    <span>Đang diễn ra</span>
+                                }
+                            }
+
+                        </FluentBadge>
+                    </div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Trạng thái:</label>
+                    <div>
+                        <FluentBadge Appearance="@(PromotionDto.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
+                            @(PromotionDto.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
+                        </FluentBadge>
+                    </div>
+
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ngày tạo:</label>
+                    <div>@PromotionDto.Created</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ngày sửa gần nhất:</label>
+                    <div>@PromotionDto.LastModified</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Người tạo:</label>
+                    <div>@PromotionDto.CreatedByName</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Người sửa gần nhất:</label>
+                    <div>@PromotionDto.LastModifiedByName</div>
+                </div>
+            </FluentGridItem>
+
+        </FluentGrid>
+    </FluentDialogBody>
+
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync" Loading="@IsCancelling" Disabled="@IsCancelling">Đóng</FluentButton>
+    </FluentDialogFooter>
+
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <FluentDialogBody>
+        <FluentGridItem md="12">@ErrorMessage</FluentGridItem>
+    </FluentDialogBody>
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync" Loading="@IsCancelling" Disabled="@IsCancelling">Đóng</FluentButton>
+    </FluentDialogFooter>
+}
+else
+{
+    <FluentDialogBody Style="display:flex;justify-content:center;align-items:center;">
+        <FluentProgressRing />
+    </FluentDialogBody>
+}
+
+<style>
+    .row-info {
+        display: grid;
+        grid-template-columns: 50% 50%;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+    }
+
+        .row-info label {
+            font-weight: 500;
+        }
+</style>
+
+@code {
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    [Parameter]
+    public EditOrUpdateParameters Content { get; set; } = new();
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+
+    private bool IsCancelling { get; set; }
+    private PromotionDto PromotionDto { get; set; } = new PromotionDto();
+    private string? ErrorMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Content.Id != Guid.Empty)
+            {
+                PromotionDto = await GetPromotionById(Content.Id);
+            }
+            else
+            {
+                ErrorMessage = "Không có ID  để lấy thông tin.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi tải dữ liệu: {ex.Message}";
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task<PromotionDto> GetPromotionById(Guid id)
+    {
+        try
+        {
+            Content.RequestApi.Endpoint = $"api/Promotion/{id}";
+            ResultAPI result = await CallApi.Get<PromotionDto>(Content.RequestApi);
+            if (result.Status == StatusCode.OK)
+            {
+                return result.Data as PromotionDto ?? throw new Exception("Dữ liệu trả về không đúng định dạng PromotionDto.");
+            }
+            else
+            {
+                throw new Exception(result.Message ?? "Lỗi khi lấy thông tin.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi lấy thông tin: {ex.Message}";
+            return new PromotionDto();
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

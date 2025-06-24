@@ -9,37 +9,65 @@
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Authorization
 @using Service.SnapFood.Client.Components.Layout
-    @foreach (var product in ProductDto)
-    {
-        <div class="col-md-3 col-sm-6 mb-4">
-            <FluentCard class="h-100 position-relative" style="min-height: 300px;">
-                <img src="@product.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@product.ProductName" />
-                <div style="padding: 0; min-height: 120px;">
-                    <FluentLabel Typo="Typography.H5">@product.ProductName</FluentLabel>
+@foreach (var product in ProductDto)
+{
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <FluentCard class="h-100 position-relative" style="min-height: 380px;">
+            <img src="@product.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@product.ProductName" />
+            <div style="padding: 0; min-height: 100px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px;">@product.ProductName</FluentLabel>
                     @if (!string.IsNullOrEmpty(product.SizeName))
                     {
-                        <p class="card-title" style="margin: 0;padding-top:10px;">@product.SizeName</p>
-                    }else
+                        <p class="card-title" style="margin: 0;padding:0px;padding-bottom:20px;">@product.SizeName</p>
+                    }
+                    else if (!string.IsNullOrEmpty(product.CategoryName))
                     {
-                        <p class="card-title" style="margin: 0;padding-top:10px">@product.CategoryName</p>
+                        <p class="card-title" style="margin: 0;padding:0px;">@product.CategoryName</p>
 
                     }
+                </div>
+                @if (product.PriceEndown > 0)
+                {
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                            @product.BasePrice.ToString("N0") đ
+                        </FluentLabel>
 
-                </div>
-                <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
-                    <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
-                        @product.BasePrice.ToString("N0") đ
-                    </FluentLabel>
-                    <FluentButton Appearance="Appearance.Accent"
-                                  Title="Thêm sản phẩm"
-                                  Style="padding: 0; margin-left: auto;"
-                                  Type="ButtonType.Submit"
-                                  OnClick="() => HandleClick(product.Id, product.SizeId)">
-                        +
-                    </FluentButton>
-                </div>
-            </FluentCard>
-        </div>
+                        @if (product.BasePrice > product.PriceEndown)
+                        {
+                            var discountPercent = Math.Round(((product.BasePrice - product.PriceEndown) / product.BasePrice) * 100);
+                            <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                -@discountPercent%
+                            </FluentLabel>
+                        }
+                    </div>
+                }
+
+            </div>
+            <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                    @if (product.PriceEndown > 0)
+                    {
+                        <span>@product.PriceEndown.ToString("N0") đ</span>
+                    }
+                    else
+                    {
+                        <span>@product.BasePrice.ToString("N0") đ</span>
+
+                    }
+                    
+                </FluentLabel>
+                <FluentButton Appearance="Appearance.Accent"
+                              Title="Thêm sản phẩm"
+                              Style="padding: 0; margin-left: auto;"
+                              Type="ButtonType.Submit"
+                              OnClick="()=>HandleClick(product.Id,product.SizeId)">
+                    +
+                </FluentButton>
+            </div>
+        </FluentCard>
+    </div>
 
     }
 

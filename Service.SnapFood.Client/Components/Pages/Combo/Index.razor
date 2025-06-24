@@ -7,34 +7,59 @@
 @using Service.SnapFood.Share.Query
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
-    @foreach (var combo in ComboDto)
-    {
-        <div class="col-md-3 col-sm-6 mb-4">
-            <FluentCard class="h-100 position-relative" style="min-height: 400px;">
-                <img src="@combo.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@combo.ComboName" />
-                <div style="padding-bottom: 40px; min-height: 120px;">
+@foreach (var combo in ComboDto)
+{
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <FluentCard class="h-100 position-relative" style="min-height: 400px;">
+            <img src="@combo.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@combo.ComboName" />
+            <div style=" min-height: 120px;display: flex; flex-direction: column; justify-content: space-between;padding-bottom:40px;">
+                <div>
                     <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px">@combo.ComboName</FluentLabel>
                     @foreach (var item in combo.ComboItems)
                     {
                         <p class="card-title" style="margin: 0;">@item.ProductName</p>
                     }
                 </div>
-                <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
-                    <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
-                        @combo.BasePrice.ToString("N0") đ
-                    </FluentLabel>
-                    <FluentButton Appearance="Appearance.Accent"
-                                  Title="Thêm combo"
+                @if (combo.PriceEndown>0)
+                {
+                    <div style="display: flex; align-items: center; gap: 10px; padding-top:10px;">
+                        <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                            @combo.BasePrice.ToString("N0") đ
+                        </FluentLabel>
+                        @if (combo.BasePrice > combo.PriceEndown)
+                        {
+                            var discountPercent = Math.Round(((combo.BasePrice - combo.PriceEndown) / combo.BasePrice) * 100);
+                            <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                -@discountPercent%
+                            </FluentLabel>
+                        }
+                    </div>
+                }
 
-                                  Style="padding: 0; margin-left: auto;"
+            </div>
+            <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                    @if (combo.PriceEndown>0)
+                    {
+                        <span>@combo.PriceEndown.ToString("N0") đ</span>
+                    }
+                    else
+                    {
+                        <span>@combo.BasePrice.ToString("N0") đ</span>
 
-                                  Type="ButtonType.Submit"
-                                  OnClick="()=>OpenModalAdd(combo.Id)">
-                        +
-                    </FluentButton>
-                </div>
-            </FluentCard>
-        </div>
+                    }
+                    
+                </FluentLabel>
+                <FluentButton Appearance="Appearance.Accent"
+                              Title="Thêm combo"
+                              Style="padding: 0; margin-left: auto;"
+                              Type="ButtonType.Submit"
+                              OnClick="()=>OpenModalAdd(combo.Id)">
+                    +
+                </FluentButton>
+            </div>
+        </FluentCard>
+    </div>
     }
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;

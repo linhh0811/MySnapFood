@@ -26,7 +26,10 @@ namespace Service.SnapFood.Manage.Dto.Promotion
         public Guid CreatedBy { get; set; }
 
         public Guid LastModifiedBy { get; set; }
+        public string CreatedByName { get; set; } = string.Empty;
+        public string LastModifiedByName { get; set; } = string.Empty;
         public List<PromotionItemDto> PromotionItems { get; set; } = new List<PromotionItemDto>();
+
 
     }
 }
