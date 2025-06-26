@@ -20,5 +20,7 @@ namespace Service.SnapFood.Client.Dto.Promotion
         public string? CategoryName { get; set; }
 
         public string? SizeName { get; set; }
+        public decimal PriceEndown { get; set; }
+
     }
 }

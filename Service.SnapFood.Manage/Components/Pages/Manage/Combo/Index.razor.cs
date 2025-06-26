@@ -9,6 +9,10 @@ using System.Text.Json;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Components.Pages.Manage.Combo;
+using Service.SnapFood.Manage.Dto.Category;
+using Service.SnapFood.Share.Model.SQL;
+using Service.SnapFood.Manage.Infrastructure.Services;
+using Service.SnapFood.Share.Query.QueryDto;
 
 namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
 {
@@ -21,12 +25,46 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
         protected FluentDataGrid<ComboDto> ComboGrid { get; set; } = default!;
         protected string SearchKeyword { get; set; } = string.Empty;
         private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+        private Dictionary<String, String> _SelectTrangThai = new Dictionary<string, string>();
+        private string SelectedTrangThai = "-1";
+        private string CategoryId = Guid.Empty.ToString();
+        private List<CategoryDto> CategoryList { get; set; } = new List<CategoryDto>();
+
+        protected override async Task OnInitializedAsync()
+        {
+            GetSelectTrangThai();
+            await GetCategory();
+        }
+        private async Task GetCategory()
+        {
+            ApiRequestModel requestRestAPI = new ApiRequestModel();
+            requestRestAPI.Endpoint = $"api/Category/";
+            ResultAPI result = await CallApi.Get<List<CategoryDto>>(requestRestAPI);
+            if (result.Status == StatusCode.OK)
+            {
+                CategoryList = result.Data as List<CategoryDto> ?? new List<CategoryDto>();
+                CategoryDto cateogry = new CategoryDto()
+                {
+                    Id = Guid.Empty.ToString(),
+                    CategoryName = "Chọn phân loại"
+                };
+                CategoryList.Insert(0, cateogry);
+                CategoryId = CategoryList.First().Id ?? string.Empty;
+            }
+        }
         private async ValueTask<GridItemsProviderResult<ComboDto>> LoadCombo(GridItemsProviderRequest<ComboDto> request)
         {
             try
             {
-                var baseQuery = new BaseQuery
+                if (!Enum.TryParse<ModerationStatus>(SelectedTrangThai, out var selectedTrangThai))
                 {
+                    selectedTrangThai = ModerationStatus.None; // Mặc định nếu không parse được
+                }
+                var baseQuery = new ProductQuery
+                {
+                    ModerationStatus=selectedTrangThai,
+                    CategoryId = string.IsNullOrEmpty(CategoryId) ? Guid.Empty : Guid.Parse(CategoryId),
                     SearchIn = new List<string> { "ComboName" },
                     Keyword = SearchKeyword,
                     gridRequest = new GridRequest
@@ -272,6 +310,18 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             {
                 ToastService.ShowError($"Lỗi khi mở modal chi tiết: {ex.Message}");
             }
+        }
+
+        private void GetSelectTrangThai()
+        {
+            _SelectTrangThai = Enum.GetValues(typeof(ModerationStatus))
+                .Cast<ModerationStatus>()
+                .OrderBy(e => e == ModerationStatus.None ? 0 : 1)
+                .ThenBy(e => e)
+                .ToDictionary(
+                    e => e.ToString(),
+                    e => e.GetDescription()
+                );
         }
     }
 }

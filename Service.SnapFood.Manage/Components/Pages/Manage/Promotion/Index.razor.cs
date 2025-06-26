@@ -217,7 +217,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Promotion
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
                     Modal = true,
-                    Width = "600px",
+                    Width = "700px",
                     TrapFocus = false
 
                 });
