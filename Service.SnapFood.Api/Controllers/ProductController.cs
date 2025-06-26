@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Share.Query;
+using Service.SnapFood.Share.Query.QueryDto;
 
 namespace Service.SnapFood.Api.Controllers
 {
@@ -33,7 +34,7 @@ namespace Service.SnapFood.Api.Controllers
             return Ok(result);
         }
         [HttpPost("GetPaged")]
-        public IActionResult GetPage(BaseQuery query)
+        public IActionResult GetPage(ProductQuery query)
         {
             var result = _productService.GetPaged(query);
             return Ok(result);

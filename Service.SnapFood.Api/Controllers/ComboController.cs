@@ -4,6 +4,7 @@ using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Application.Service;
 using Service.SnapFood.Share.Query;
+using Service.SnapFood.Share.Query.QueryDto;
 
 namespace Service.SnapFood.Api.Controllers
 {
@@ -35,7 +36,7 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         [HttpPost("GetPaged")]
-        public IActionResult GetPage(BaseQuery query)
+        public IActionResult GetPage(ComboQuery query)
         {
             var result = _comboService.GetPaged(query);
             return Ok(result);

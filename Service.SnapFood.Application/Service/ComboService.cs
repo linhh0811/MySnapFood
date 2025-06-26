@@ -2,10 +2,12 @@
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
+using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.SQL;
 using Service.SnapFood.Share.Query;
+using Service.SnapFood.Share.Query.QueryDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -212,11 +214,12 @@ namespace Service.SnapFood.Application.Service
             return null;
         }
 
-        public DataTableJson GetPaged(BaseQuery query)
+        public DataTableJson GetPaged(ComboQuery query)
         {
             int totalRecords = 0;
             var dataQuery = _unitOfWork.ComboRepo.FilterData(
-                q => q, // Bỏ hoàn toàn điều kiện Where
+                q => q.Where(x => query.ModerationStatus == ModerationStatus.None ? true : x.ModerationStatus == query.ModerationStatus)
+                    .Where(x => query.CategoryId == Guid.Empty ? true : x.CategoryId == query.CategoryId),
                 query.gridRequest,
                 ref totalRecords
             ).Include(x => x.Category);
@@ -259,7 +262,7 @@ namespace Service.SnapFood.Application.Service
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
                     ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>(),
-                    PriceEndown= GetPriceEndown(m.Id)
+                    PriceEndown= GetPriceEndown(m.Id,m.BasePrice)
 
                 });
 
@@ -424,7 +427,7 @@ namespace Service.SnapFood.Application.Service
 
         }
         #endregion
-        private decimal GetPriceEndown(Guid ComboId)
+        private decimal GetPriceEndown(Guid ComboId, decimal BasePrice)
         {
             var promotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.ItemId == ComboId).ToList();
             foreach (var item in promotionItems)
@@ -433,7 +436,23 @@ namespace Service.SnapFood.Application.Service
                 if (promotions.Count() > 0)
                 {
                     var promotion = promotions.First();
-                    return promotion.PromotionValue;
+                    if (promotion.PromotionType == PromotionType.FixedPrice)
+                    {
+                        return promotion.PromotionValue;
+
+                    }
+                    else if (promotion.PromotionType == PromotionType.Amount)
+                    {
+                        if ((BasePrice - promotion.PromotionValue) <= 0)
+                        {
+                            return 1000;
+                        }
+                        else
+                        {
+                            return BasePrice - promotion.PromotionValue;
+                        }
+
+                    }
                 }
             }
             return 0;

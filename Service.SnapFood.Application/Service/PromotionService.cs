@@ -117,8 +117,46 @@ namespace Service.SnapFood.Application.Service
                     PromotionId = x.PromotionId,
                     ItemId = x.ItemId,
                     ItemType = x.ItemType
-                }).ToList()
+                }).ToList(),
+                CreatedByName=(await _unitOfWork.UserRepo.GetByIdAsync(promotion.CreatedBy))?.Email??"Không xác định",
+                LastModifiedByName = (await _unitOfWork.UserRepo.GetByIdAsync(promotion.LastModifiedBy))?.Email ?? "Không xác định",
+
+
             };
+            foreach (var promotionItem in promotionDto.PromotionItems)
+            {
+                if (promotionItem.ItemType == ItemType.Product)
+                {
+                    var product = _unitOfWork.ProductRepo.GetById(promotionItem.ItemId);
+                    if (product is not null)
+                    {
+                        promotionItem.ItemName = product.ProductName;
+                        promotionItem.ImageUrl = product.ImageUrl;
+                        promotionItem.BasePrice = product.BasePrice;
+                        promotionItem.ItemType = ItemType.Product;
+                    }
+                }
+                else if (promotionItem.ItemType == ItemType.Combo)
+                {
+                    var combo = _unitOfWork.ComboRepo.GetById(promotionItem.ItemId);
+                    if (combo is not null && combo.ModerationStatus == ModerationStatus.Approved)
+                    {
+                        promotionItem.ItemName = combo.ComboName;
+                        promotionItem.ImageUrl = combo.ImageUrl;
+                        promotionItem.BasePrice = combo.BasePrice;
+                        promotionItem.ComboItems = _unitOfWork.ProductComboRepo
+                            .FindWhere(x => x.ComboId == promotionItem.ItemId)
+                            .Select(x => new ComboProductDto
+                            {
+                                ProductId = x.ProductId,
+                                Quantity = x.Quantity,
+                                ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName
+                            }).ToList();
+                        promotionItem.ItemType = ItemType.Combo;
+
+                    }
+                }
+            }
             return promotionDto;
         }
 
@@ -213,7 +251,7 @@ namespace Service.SnapFood.Application.Service
                     PromotionType = item.PromotionType,
                     StartDate = item.StartDate,
                     EndDate = item.EndDate,
-                    ModerationStatus = ModerationStatus.Pending,
+                    ModerationStatus = ModerationStatus.Rejected,
                     Description = item.Description,
                 };
                 _unitOfWork.PromotionRepository.Add(promotion);

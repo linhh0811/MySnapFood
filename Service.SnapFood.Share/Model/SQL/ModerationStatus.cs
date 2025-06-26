@@ -9,25 +9,15 @@ namespace Service.SnapFood.Share.Model.SQL
 {
     public enum ModerationStatus
     {
+        [Description("Chọn trạng thái")]
+        None = -1,
+
         [Description("Đã duyệt")]
         Approved = 0,
 
-        [Description("Chờ duyệt")]
-        Pending = 1,
-
-        [Description("Từ chối")]
+        [Description("Chưa phê duyệt")]
         Rejected = 2,
 
-        [Description("Chờ xem xét")]
-        PendingReview = 3,
-
-        [Description("Chờ phê duyệt")]
-        PendingApproval = 4,
-
-        [Description("Nháp")]
-        Draft = 5,
-
-        [Description("Hủy hoặc Xóa")]
-        Cancelled = 6
+       
     }
 }

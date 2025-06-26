@@ -14,7 +14,29 @@
             <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd">Thêm mới</FluentButton>
 
         </FluentStack>
-        <FluentSearch Placeholder="Nhập vào từ khóa" />
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <FluentSelect @bind-Value="CategoryId"
+                          @bind-Value:after="RefreshDataAsync"
+                          Items="CategoryList"
+                          OptionText="@(x => x.CategoryName)"
+                          OptionValue="@(x => x.Id)"
+                          Nullable="true"
+                          Style="width:100%;"
+                          Height="220px"
+                          Position="SelectPosition.Below"
+                          Width="150px;">
+            </FluentSelect>
+            <FluentSelect Items="_SelectTrangThai"
+                          @bind-Value="SelectedTrangThai"
+                          @bind-Value:after="RefreshDataAsync"
+                          OptionText="@(x => x.Value)"
+                          OptionValue="@(x => x.Key)"
+                          Style="width:100%"
+                          Position="SelectPosition.Below"
+                          Width="150px;">
+            </FluentSelect>
+            <FluentSearch Style="min-width:200px;" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
+        </div>
     </FluentStack>
     <FluentGridItem Style="width:100%;">
         <FluentDataGrid @ref="ComboGrid"
