@@ -1,4 +1,4 @@
-﻿using Service.SnapFood.Share.Model.Enum;
+﻿using Service.SnapFood.Client.Enums;
 
 namespace Service.SnapFood.Client.Dto.BillDetails
 {
