@@ -112,6 +112,36 @@ namespace Service.SnapFood.Api.Controllers
             }
         }
 
+        // DELETE: api/cart/removecombo/{cartComboItemId}
+        [HttpDelete("removecombo/{cartComboItemId}")]
+        public async Task<IActionResult> RemoveComboItem(Guid cartComboItemId)
+        {
+            try
+            {
+                await _cartService.RemoveComboItemAsync(cartComboItemId);
+                return Ok(new { message = "Combo item removed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // PUT: api/cart/updatecombo/{cartComboItemId}
+        [HttpPut("updatecombo/{cartComboItemId}")]
+        public async Task<IActionResult> UpdateComboItem(Guid cartComboItemId, [FromBody] int quantity)
+        {
+            try
+            {
+                await _cartService.UpdateComboItemAsync(cartComboItemId, quantity);
+                return Ok(new { message = "Combo item updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         // POST: api/cart/checkout
         [HttpPost("checkout")]
         public async Task<IActionResult> CheckOut([FromBody] CheckOutDto item)

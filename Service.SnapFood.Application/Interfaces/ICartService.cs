@@ -13,6 +13,8 @@ namespace Service.SnapFood.Application.Interfaces
         Task<CartDto> GetCartByIdUserAsync(Guid userId);
         Task RemoveCartItemAsync(Guid cartItemId);
         Task UpdateCartItemAsync(Guid cartItemId, int quantity);
+        Task RemoveComboItemAsync(Guid cartComboItemId);
+        Task UpdateComboItemAsync(Guid cartComboItemId, int quantity);
         Task<int> GetCartQuantityAsync(Guid userId); // Thêm phương thức mới trả về số lượng
     }
 }

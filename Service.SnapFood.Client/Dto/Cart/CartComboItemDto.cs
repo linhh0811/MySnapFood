@@ -4,7 +4,7 @@
     {
         public Guid Id { get; set; }
         public Guid ComboId { get; set; }
-        public Guid SizeId { get; set; }
+        public Guid? SizeId { get; set; }
         public int Quantity { get; set; }
         public string ComboName { get; set; } = string.Empty;
         public string SizeName { get; set; } = string.Empty;
