@@ -1,5 +1,5 @@
 ﻿using Service.SnapFood.Manage.Dto.Combo;
-using Service.SnapFood.Share.Model.Enum;
+using Service.SnapFood.Manage.Enums;
 using Service.SnapFood.Share.Model.SQL;
 
 namespace Service.SnapFood.Manage.Dto.Promotion

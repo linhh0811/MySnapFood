@@ -4,15 +4,9 @@ using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
+using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.SQL;
-using Service.SnapFood.Share.Query;
-using Service.SnapFood.Share.Query.QueryDto;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -23,7 +17,7 @@ namespace Service.SnapFood.Application.Service
         public ComboService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            
+
         }
         #region Duyệt, hủy duyệt
         public Dtos.StringContent CheckApproveAsync(Guid id)
@@ -168,7 +162,7 @@ namespace Service.SnapFood.Application.Service
                         ProductId = x.ProductId,
                         Quantity = x.Quantity,
                         ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
-                        CategoryName = _unitOfWork.CategoriesRepo.GetById(product.FirstOrDefault(p => p.Id == x.ProductId)?.CategoryId??Guid.Empty)?.CategoryName ?? "",
+                        CategoryName = _unitOfWork.CategoriesRepo.GetById(product.FirstOrDefault(p => p.Id == x.ProductId)?.CategoryId ?? Guid.Empty)?.CategoryName ?? "",
 
                         Sizes = size.Where(s => s.ParentId == product.FirstOrDefault(p => p.Id == x.ProductId)?.SizeId && s.ModerationStatus == ModerationStatus.Approved && s.ParentId != null)
 
@@ -262,7 +256,7 @@ namespace Service.SnapFood.Application.Service
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
                     ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>(),
-                    PriceEndown= GetPriceEndown(m.Id,m.BasePrice)
+                    PriceEndown = GetPriceEndown(m.Id, m.BasePrice)
 
                 });
 

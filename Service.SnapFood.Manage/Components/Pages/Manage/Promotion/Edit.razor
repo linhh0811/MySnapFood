@@ -6,9 +6,10 @@
 @using Service.SnapFood.Manage.Dto.ProductDto
 @using Service.SnapFood.Manage.Dto.Promotion
 @using Service.SnapFood.Manage.Dto.SizeDto
+@using Service.SnapFood.Manage.Enums
 @using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Manage.Query
 @using Service.SnapFood.Share.Interface.Extentions
-@using Service.SnapFood.Share.Model.Enum
 @using Service.SnapFood.Share.Model.SQL
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using Service.SnapFood.Share.Query
@@ -490,6 +491,7 @@
     {
         PromotionTypeOptions = Enum.GetValues(typeof(PromotionType))
         .Cast<PromotionType>()
+        .Where(e => e != PromotionType.None)
         .ToDictionary(
             e => (e).ToString(),
             e => e.GetDescription()

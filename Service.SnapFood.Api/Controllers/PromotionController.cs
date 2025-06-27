@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
-using Service.SnapFood.Share.Query;
+using Service.SnapFood.Domain.Query;
 
 namespace Service.SnapFood.Api.Controllers
 {
@@ -19,7 +18,7 @@ namespace Service.SnapFood.Api.Controllers
         [HttpGet]
         public IActionResult GetPromotionActivate()
         {
-            var combo =  _promotionService.GetPromotionActivate();
+            var combo = _promotionService.GetPromotionActivate();
             return Ok(combo);
         }
         [HttpGet("{id}")]
@@ -34,7 +33,7 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         [HttpPost("GetPaged")]
-        public IActionResult GetPage(BaseQuery query)
+        public IActionResult GetPage(PromotionQuery query)
         {
             var result = _promotionService.GetPaged(query);
             return Ok(result);
@@ -68,7 +67,7 @@ namespace Service.SnapFood.Api.Controllers
             }
             return NoContent();
         }
-       
+
         [HttpPut("{Id}/Approve")]
         public async Task<IActionResult> Approve(Guid Id)
         {

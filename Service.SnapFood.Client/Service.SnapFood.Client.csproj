@@ -18,4 +18,8 @@
     <ProjectReference Include="..\Service.SnapFood.Share\Service.SnapFood.Share.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Query\" />
+  </ItemGroup>
+
 </Project>

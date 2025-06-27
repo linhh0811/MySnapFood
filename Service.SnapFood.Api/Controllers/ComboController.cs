@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
-using Service.SnapFood.Application.Service;
-using Service.SnapFood.Share.Query;
-using Service.SnapFood.Share.Query.QueryDto;
+using Service.SnapFood.Domain.Query;
 
 namespace Service.SnapFood.Api.Controllers
 {

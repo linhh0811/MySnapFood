@@ -3,15 +3,9 @@ using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
+using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.SQL;
-using Service.SnapFood.Share.Query;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -20,12 +14,12 @@ namespace Service.SnapFood.Application.Service
         private readonly IUnitOfWork _unitOfWork;
         public PromotionService(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork;   
+            _unitOfWork = unitOfWork;
         }
         #region get dữ liệu     
         public List<PromotionDto> GetPromotionActivate()
         {
-            var promotions = _unitOfWork.PromotionRepository.FindWhere(x=>x.StartDate<=DateTime.Now&&x.EndDate>DateTime.Now&&x.ModerationStatus==ModerationStatus.Approved).ToList()
+            var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now && x.ModerationStatus == ModerationStatus.Approved).ToList()
                 .Select(p => new PromotionDto
                 {
                     Id = p.Id,
@@ -39,8 +33,8 @@ namespace Service.SnapFood.Application.Service
                     LastModified = p.LastModified,
                     CreatedBy = p.CreatedBy,
                     LastModifiedBy = p.LastModifiedBy,
-                    Description=p.Description,
-                   
+                    Description = p.Description,
+
                     PromotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.PromotionId == p.Id).Select(x => new PromotionItemDto()
                     {
                         Id = x.Id,
@@ -54,7 +48,7 @@ namespace Service.SnapFood.Application.Service
                 var filteredItems = new List<PromotionItemDto>();
                 foreach (var item in promotion.PromotionItems)
                 {
-                    if (item.ItemType == ItemType.Product)
+                    if (item.ItemType == Domain.Enums.ItemType.Product)
                     {
                         var product = _unitOfWork.ProductRepo.GetById(item.ItemId);
                         if (product is not null && product.ModerationStatus == ModerationStatus.Approved)
@@ -67,7 +61,7 @@ namespace Service.SnapFood.Application.Service
                             filteredItems.Add(item);
                         }
                     }
-                    else if (item.ItemType == ItemType.Combo)
+                    else if (item.ItemType == Domain.Enums.ItemType.Combo)
                     {
                         var combo = _unitOfWork.ComboRepo.GetById(item.ItemId);
                         if (combo is not null && combo.ModerationStatus == ModerationStatus.Approved)
@@ -94,7 +88,7 @@ namespace Service.SnapFood.Application.Service
 
         public async Task<PromotionDto?> GetByIdAsync(Guid id)
         {
-            var promotion =await _unitOfWork.PromotionRepository.GetByIdAsync(id);
+            var promotion = await _unitOfWork.PromotionRepository.GetByIdAsync(id);
             if (promotion == null)
                 return null;
             var promotionDto = new PromotionDto()
@@ -118,14 +112,14 @@ namespace Service.SnapFood.Application.Service
                     ItemId = x.ItemId,
                     ItemType = x.ItemType
                 }).ToList(),
-                CreatedByName=(await _unitOfWork.UserRepo.GetByIdAsync(promotion.CreatedBy))?.Email??"Không xác định",
+                CreatedByName = (await _unitOfWork.UserRepo.GetByIdAsync(promotion.CreatedBy))?.Email ?? "Không xác định",
                 LastModifiedByName = (await _unitOfWork.UserRepo.GetByIdAsync(promotion.LastModifiedBy))?.Email ?? "Không xác định",
 
 
             };
             foreach (var promotionItem in promotionDto.PromotionItems)
             {
-                if (promotionItem.ItemType == ItemType.Product)
+                if (promotionItem.ItemType == Domain.Enums.ItemType.Product)
                 {
                     var product = _unitOfWork.ProductRepo.GetById(promotionItem.ItemId);
                     if (product is not null)
@@ -133,10 +127,10 @@ namespace Service.SnapFood.Application.Service
                         promotionItem.ItemName = product.ProductName;
                         promotionItem.ImageUrl = product.ImageUrl;
                         promotionItem.BasePrice = product.BasePrice;
-                        promotionItem.ItemType = ItemType.Product;
+                        promotionItem.ItemType = Domain.Enums.ItemType.Product;
                     }
                 }
-                else if (promotionItem.ItemType == ItemType.Combo)
+                else if (promotionItem.ItemType == Domain.Enums.ItemType.Combo)
                 {
                     var combo = _unitOfWork.ComboRepo.GetById(promotionItem.ItemId);
                     if (combo is not null && combo.ModerationStatus == ModerationStatus.Approved)
@@ -152,7 +146,7 @@ namespace Service.SnapFood.Application.Service
                                 Quantity = x.Quantity,
                                 ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName
                             }).ToList();
-                        promotionItem.ItemType = ItemType.Combo;
+                        promotionItem.ItemType = Domain.Enums.ItemType.Combo;
 
                     }
                 }
@@ -160,13 +154,15 @@ namespace Service.SnapFood.Application.Service
             return promotionDto;
         }
 
-        public DataTableJson GetPaged(BaseQuery query)
+        public DataTableJson GetPaged(PromotionQuery query)
         {
             try
             {
                 int totalRecords = 0;
                 var dataQuery = _unitOfWork.PromotionRepository.FilterData(
-                    q => q, // Bỏ hoàn toàn điều kiện Where
+                     q => q.Where(x => query.ModerationStatus == ModerationStatus.None ? true : x.ModerationStatus == query.ModerationStatus)
+                    .Where(x => query.PromotionType == PromotionType.None ? true : x.PromotionType == query.PromotionType),
+
                     query.gridRequest,
                     ref totalRecords
                 );
@@ -182,10 +178,10 @@ namespace Service.SnapFood.Application.Service
                     EndDate = m.EndDate,
                     Created = m.Created,
                     LastModified = m.LastModified,
-                    ModerationStatus = m.ModerationStatus,        
+                    ModerationStatus = m.ModerationStatus,
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
-                    Description=m.Description,
+                    Description = m.Description,
                     PromotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.PromotionId == m.Id).Select(x => new PromotionItemDto()
                     {
                         Id = x.Id,
@@ -197,9 +193,9 @@ namespace Service.SnapFood.Application.Service
 
                 foreach (var promotion in data)
                 {
-                    foreach(var promotionItem in promotion.PromotionItems)
+                    foreach (var promotionItem in promotion.PromotionItems)
                     {
-                        if (promotionItem.ItemType== Domain.Enums.ItemType.Product)
+                        if (promotionItem.ItemType == Domain.Enums.ItemType.Product)
                         {
                             var product = _unitOfWork.ProductRepo.GetById(promotionItem.ItemId);
                             if (product is not null)
@@ -209,7 +205,7 @@ namespace Service.SnapFood.Application.Service
                                 promotionItem.BasePrice = product.BasePrice;
                             }
                         }
-                        else if(promotionItem.ItemType == Domain.Enums.ItemType.Combo) { }
+                        else if (promotionItem.ItemType == Domain.Enums.ItemType.Combo) { }
                     }
                 }
 
@@ -235,7 +231,7 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Tên khuyến mại trống");
                 }
-            
+
                 if (item.PromotionValue <= 0)
                 {
                     throw new Exception("Giá trị nhỏ hơn 0");
@@ -257,21 +253,22 @@ namespace Service.SnapFood.Application.Service
                 _unitOfWork.PromotionRepository.Add(promotion);
                 await _unitOfWork.CompleteAsync();
                 if (item.PromotionItems != null && item.PromotionItems.Any())
-                    {
+                {
                     foreach (var promotionItemDto in item.PromotionItems)
                     {
-                        if (promotionItemDto.ItemType==Domain.Enums.ItemType.Product)
+                        if (promotionItemDto.ItemType == Domain.Enums.ItemType.Product)
                         {
                             var promotionItem = new PromotionItem
                             {
                                 PromotionId = promotion.Id,
-                                ProductId = promotionItemDto.ItemId, 
+                                ProductId = promotionItemDto.ItemId,
                                 ItemId = promotionItemDto.ItemId,
                                 ItemType = promotionItemDto.ItemType,
                             };
 
                             _unitOfWork.PromotionItemsRepository.Add(promotionItem);
-                        }else if(promotionItemDto.ItemType == Domain.Enums.ItemType.Combo)
+                        }
+                        else if (promotionItemDto.ItemType == Domain.Enums.ItemType.Combo)
                         {
                             var promotionItem = new PromotionItem
                             {
@@ -325,7 +322,7 @@ namespace Service.SnapFood.Application.Service
                     throw new Exception("Sản phẩm trống");
                 }
 
-              
+
                 promotion.PromotionName = item.PromotionName;
                 promotion.PromotionType = item.PromotionType;
                 promotion.PromotionValue = item.PromotionValue;
@@ -389,7 +386,7 @@ namespace Service.SnapFood.Application.Service
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var promotion =await _unitOfWork.PromotionRepository.GetByIdAsync(id);
+            var promotion = await _unitOfWork.PromotionRepository.GetByIdAsync(id);
             if (promotion == null)
                 return false;
             _unitOfWork.PromotionRepository.Delete(promotion);

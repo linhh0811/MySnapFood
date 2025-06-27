@@ -1,18 +1,16 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Service.SnapFood.Manage.Components.Share;
+using Service.SnapFood.Manage.Dto;
+using Service.SnapFood.Manage.Dto.Category;
 using Service.SnapFood.Manage.Dto.Combo;
+using Service.SnapFood.Manage.Infrastructure.Services;
+using Service.SnapFood.Manage.Query;
 using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
-using Service.SnapFood.Share.Query.Grid;
-using Service.SnapFood.Share.Query;
-using System.Text.Json;
-using Service.SnapFood.Manage.Dto;
-using Service.SnapFood.Manage.Components.Share;
-using Service.SnapFood.Manage.Components.Pages.Manage.Combo;
-using Service.SnapFood.Manage.Dto.Category;
 using Service.SnapFood.Share.Model.SQL;
-using Service.SnapFood.Manage.Infrastructure.Services;
-using Service.SnapFood.Share.Query.QueryDto;
+using Service.SnapFood.Share.Query.Grid;
+using System.Text.Json;
 
 namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
 {
@@ -63,7 +61,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                 }
                 var baseQuery = new ProductQuery
                 {
-                    ModerationStatus=selectedTrangThai,
+                    ModerationStatus = selectedTrangThai,
                     CategoryId = string.IsNullOrEmpty(CategoryId) ? Guid.Empty : Guid.Parse(CategoryId),
                     SearchIn = new List<string> { "ComboName" },
                     Keyword = SearchKeyword,
@@ -118,7 +116,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                 {
                     PreventDismissOnOverlayClick = true,
                     Title = null,
-                    ShowDismiss =false,
+                    ShowDismiss = false,
                     PreventScroll = true,
                     Modal = true,
                     Width = "1400px",
@@ -135,7 +133,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             {
                 var parameters = new EditOrUpdateParameters
                 {
-                    Id=id,
+                    Id = id,
                     IsEditMode = true,
                     OnRefresh = EventCallback.Factory.Create(this, RefreshDataAsync),
                 };
@@ -250,9 +248,9 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             {
                 ToastService.ShowError("Hủy duyệt thất bại: " + ex.Message);
             }
-          
 
-            
+
+
 
         }
         private async Task DeleteAsync(Guid id)

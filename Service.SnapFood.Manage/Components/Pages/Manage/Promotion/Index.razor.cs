@@ -1,14 +1,16 @@
 ﻿
 using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
-using Service.SnapFood.Share.Interface.Extentions;
-using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
-using Service.SnapFood.Share.Query.Grid;
-using Service.SnapFood.Share.Query;
-using System.Text.Json;
+using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Dto.Promotion;
-using Service.SnapFood.Manage.Components.Share;
+using Service.SnapFood.Manage.Infrastructure.Services;
+using Service.SnapFood.Manage.Query;
+using Service.SnapFood.Share.Interface.Extentions;
+using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
+using Service.SnapFood.Share.Model.SQL;
+using Service.SnapFood.Share.Query.Grid;
+using System.Text.Json;
 
 namespace Service.SnapFood.Manage.Components.Pages.Manage.Promotion
 {
@@ -21,12 +23,34 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Promotion
         protected FluentDataGrid<PromotionDto> PromotionGrid { get; set; } = default!;
         protected string SearchKeyword { get; set; } = string.Empty;
         private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+        private Dictionary<String, String> _SelectTrangThai = new Dictionary<string, string>();
+        private string SelectedTrangThai = "-1";
+        private Dictionary<String, String> _SelectLoai = new Dictionary<string, string>();
+
+        private string SelectedLoai = "-1";
+
+        protected override async Task OnInitializedAsync()
+        {
+            GetSelectTrangThai();
+            GetSelectLoai();
+        }
+
         private async ValueTask<GridItemsProviderResult<PromotionDto>> LoadPromotion(GridItemsProviderRequest<PromotionDto> request)
         {
             try
             {
-                var baseQuery = new BaseQuery
+                if (!Enum.TryParse<ModerationStatus>(SelectedTrangThai, out var selectedTrangThai))
                 {
+                    selectedTrangThai = ModerationStatus.None; // Mặc định nếu không parse được
+                }
+                if (!Enum.TryParse<PromotionType>(SelectedLoai, out var selectedLoai))
+                {
+                    selectedLoai = PromotionType.None; // Mặc định nếu không parse được
+                }
+                var baseQuery = new PromotionQuery
+                {
+                    PromotionType = selectedLoai,
+                    ModerationStatus = selectedTrangThai,
                     SearchIn = new List<string> { "ProductName" },
                     Keyword = SearchKeyword,
                     gridRequest = new GridRequest
@@ -166,8 +190,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Promotion
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
                     Modal = true,
-                    Width="1250px"
-                    
+                    Width = "1250px"
+
                 });
             }
             catch (Exception ex)
@@ -243,6 +267,29 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Promotion
         private async Task RefreshDataAsync()
         {
             await PromotionGrid.RefreshDataAsync();
+        }
+        private void GetSelectTrangThai()
+        {
+            _SelectTrangThai = Enum.GetValues(typeof(ModerationStatus))
+                .Cast<ModerationStatus>()
+                .OrderBy(e => e == ModerationStatus.None ? 0 : 1)
+                .ThenBy(e => e)
+                .ToDictionary(
+                    e => e.ToString(),
+                    e => e.GetDescription()
+                );
+        }
+
+        private void GetSelectLoai()
+        {
+            _SelectLoai = Enum.GetValues(typeof(PromotionType))
+                .Cast<PromotionType>()
+                .OrderBy(e => e == PromotionType.None ? 0 : 1)
+                .ThenBy(e => e)
+                .ToDictionary(
+                    e => e.ToString(),
+                    e => e.GetDescription()
+                );
         }
     }
 }
