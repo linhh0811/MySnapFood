@@ -35,7 +35,7 @@
                 </span>
             </TemplateColumn>
             <TemplateColumn Title="Tên" Style="display: flex;align-items: center;">
-                <span style="cursor: pointer; color: dodgerblue; ">
+                <span style="cursor: pointer; color: dodgerblue;" @onclick="() => OpenDetailsModal(context.Id)">
                     @context.ProductName
                 </span>
             </TemplateColumn>

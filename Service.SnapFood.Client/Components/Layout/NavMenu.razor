@@ -41,7 +41,9 @@
                     <FluentMenu Anchor="ThongTinNguoiDung"
                                 @bind-Open="openMenu"
                                 VerticalThreshold="170">
-                        <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.History())" /> Lịch sử đơn hàng</FluentMenuItem>
+                        <FluentMenuItem OnClick="@(() => Navigation.NavigateTo("/lich-su-don-hang"))">
+                            <FluentIcon Value="@(new Icons.Regular.Size20.History())" /> Lịch sử đơn hàng
+                        </FluentMenuItem>
                         <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.Location())" /> Địa chỉ giao hàng</FluentMenuItem>
                         <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.Tag())" /> Mã giảm giá</FluentMenuItem>
                         <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.Person())" /> Thông tin tài khoản</FluentMenuItem>

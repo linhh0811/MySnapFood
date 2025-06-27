@@ -1,13 +1,8 @@
-﻿using Service.SnapFood.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Service.SnapFood.Share.Model.Enum;
 
-namespace Service.SnapFood.Application.Dtos
+namespace Service.SnapFood.Client.Dto.BillDetails
 {
-    public  class BillDetailsDto
+    public class BillDetailsDto
     {
         public Guid Id { get; set; }
         public string ItemsName { get; set; }
