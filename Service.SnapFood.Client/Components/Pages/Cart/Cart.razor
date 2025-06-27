@@ -3,7 +3,9 @@
 @using Service.SnapFood.Client.Dto.Cart
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.FluentUI.AspNetCore.Components.Icons
+
 <h3>Giỏ hàng của bạn</h3>
+
 @if (Cart == null || (!Cart.CartProductItems.Any() && !Cart.CartComboItems.Any()))
 {
     <p>Giỏ hàng của bạn trống.</p>
@@ -15,28 +17,58 @@ else
 {
     <div class="row">
         <div class="col-lg-8">
-            <FluentDataGrid Items="@CartItems.AsQueryable()" TGridItem="CartItem">
+            <FluentDataGrid Items="@CartItems.AsQueryable()"
+                            TGridItem="CartItem"
+                            GridTemplateColumns="0.5fr 1fr 1.5fr 0.6fr 1.5fr 1fr 1.2fr">
                 <ChildContent>
-                <TemplateColumn Title="Hình ảnh">
-                        <img src="@context.ImageUrl" style="max-height:100px;object-fit:cover;" alt="@context.Name" />
+                    <TemplateColumn Title="#" Style="display:flex;align-items:center;">
+                        <span>@(CartItems.IndexOf(context) + 1)</span>
                     </TemplateColumn>
-                <PropertyColumn Property="@(x => x.Name)" Title="Tên sản phẩm" />
-                <PropertyColumn Property="@(x => x.SizeName)" Title="Kích thước" />
-                <PropertyColumn Property="@(x => x.Price.ToString("N0"))" Title="Giá" />
-                <TemplateColumn  Title="Số lượng">
-                    <FluentNumberField @bind-Value="context.Quantity" Min="1" Style="width:70px;" />
-                    <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateQuantity(context)">
-                        Lưu
-                    </FluentButton>
-                </TemplateColumn>
-                <PropertyColumn Property="@(x => (x.Quantity * x.Price).ToString("N0"))" Title="Tổng" />
-                <TemplateColumn  Title="Hành động">
-                    <FluentButton Appearance="Appearance.Neutral" @onclick="() => RemoveItem(context)">
-                        <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" />
-                    </FluentButton>
-                </TemplateColumn>
+                    <TemplateColumn Title="Hình ảnh" Style="display:flex;align-items:center;">
+                        <img src="@context.ImageUrl" style="max-height:40px;max-width:60px;object-fit:contain;" alt="@context.Name" />
+                    </TemplateColumn>
+                    <TemplateColumn Title="Tên" Style="display:flex;align-items:center;">
+                        @if (context is CartProductItem cartProductItem)
+                        {
+                            <span>
+                                @cartProductItem.Name @if (!string.IsNullOrEmpty(cartProductItem.SizeName))
+                                {
+                                    <text>(@cartProductItem.SizeName)</text>
+                                }
+                            </span>
+                        }
+                        else if (context is CartComboItem cartComboItem)
+                        {
+                            <div style="display:flex;flex-direction:column;gap:4px;">
+                                <span style="font-weight:bold;">@cartComboItem.Name</span>
+                                <div style="max-height:80px;overflow-y:auto;padding-left:20px;">
+                                    @foreach (var item in cartComboItem.ComboProductItems)
+                                    {
+                                        <div style="font-size:12px;">
+                                            @item.Quantity x @item.ProductName @if (!string.IsNullOrEmpty(item.SizeName))
+                                            {
+                                                <text>(@item.SizeName)</text>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </TemplateColumn>
+                    <PropertyColumn Property="@(x => x.Price.ToString("N0"))" Title="Giá" Style="display:flex;align-items:center;" />
+                    <TemplateColumn Title="Số lượng" Style="display:flex;align-items:center;gap:10px;">
+                        <FluentNumberField @bind-Value="context.Quantity" Min="1" Style="width:70px;" />
+                        <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateQuantity(context)">
+                            Lưu
+                        </FluentButton>
+                    </TemplateColumn>
+                    <PropertyColumn Property="@(x => (x.Quantity * x.Price).ToString("N0"))" Title="Tổng" Style="display:flex;align-items:center;" />
+                    <TemplateColumn Title="Hành động" Style="display:flex;align-items:center;">
+                        <FluentButton Appearance="Appearance.Neutral" @onclick="() => RemoveItem(context)">
+                            <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" />
+                        </FluentButton>
+                    </TemplateColumn>
                 </ChildContent>
-
             </FluentDataGrid>
         </div>
         <div class="col-lg-4">
@@ -50,3 +82,16 @@ else
         </div>
     </div>
 }
+<style>
+    @@media (max-width: 768px) {
+        .fluent-data-grid {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+            .fluent-data-grid th, .fluent-data-grid td {
+                min-width: 100px;
+            }
+    }
+</style>

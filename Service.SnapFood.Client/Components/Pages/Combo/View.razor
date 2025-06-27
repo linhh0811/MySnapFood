@@ -1,7 +1,14 @@
-﻿@using Service.SnapFood.Client.Dto
-@using Service.SnapFood.Client.Dto.Combo
+﻿@using Service.SnapFood.Client.Dto.Combo
+@using Service.SnapFood.Client.Dto.Cart
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Model.Commons
+@using Microsoft.AspNetCore.Components.Authorization
+@using Service.SnapFood.Client.Components.Layout
+@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.Product
+@using Service.SnapFood.Client.Components.Pages.Auth
+@using System.Text.Json
 @inherits ComponentBase
 @implements IDialogContentComponent<ViewParameters>
 <FluentDialogBody>
@@ -79,7 +86,7 @@
 <FluentDialogFooter>
     <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
         <FluentButton Appearance="Appearance.Neutral" @onclick="HideDialog" Disabled="@isSaving">Hủy</FluentButton>
-        <FluentButton Appearance="Appearance.Outline" Type="ButtonType.Submit" Disabled="@isSaving" Style="background-color:red;color: white;">
+        <FluentButton Appearance="Appearance.Outline" Type="ButtonType.Submit" Disabled="@isSaving" Style="background-color:red;color:white;" @onclick="AddToCart">
             @if (isSaving)
             {
                 <span style="margin-left: 8px;">Đang thêm vào giỏ hàng...</span>
@@ -129,6 +136,10 @@
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] private NavMenu NavMenu { get; set; } = default!;
+
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
     [Parameter] public ViewParameters Content { get; set; } = new();
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
@@ -160,7 +171,105 @@
         }
 
     }
+    private void InitializeDefaultSizes()
+    {
+        foreach (var item in ComboModel.ComboItems)
+        {
+            for (int i = 1; i <= item.Quantity; i++)
+            {
+                var instanceKey = $"{item.ProductId}_{i}";
+                if (item.Sizes?.Any() == true)
+                {
+                    var defaultSize = item.Sizes.OrderBy(s => s.DisplayOrder).First(); // Đảm bảo lấy size đầu tiên theo thứ tự
+                    selectedSizes[instanceKey] = defaultSize.Id.ToString();
+                    sizePrices[instanceKey] = defaultSize.AdditionalPrice;
+                }
+                else
+                {
+                    selectedSizes[instanceKey] = Guid.Empty.ToString(); // Không có size thì để trống
+                    sizePrices[instanceKey] = 0;
+                }
+            }
+        }
+        UpdateTotalPrice();
+    }
 
+    private async Task AddToCart()
+    {
+        try
+        {
+            isSaving = true;
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var userIdClaim = user.FindFirst("user_id");
+
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+            {
+                ToastService.ShowError("Vui lòng đăng nhập để thêm combo vào giỏ hàng.");
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            var productSizes = new List<ComboProductSizeDto>();
+            foreach (var item in ComboModel.ComboItems)
+            {
+                for (int i = 1; i <= item.Quantity; i++)
+                {
+                    var instanceKey = $"{item.ProductId}_{i}";
+                    if (selectedSizes.TryGetValue(instanceKey, out var sizeIdStr) && Guid.TryParse(sizeIdStr, out var sizeId))
+                    {
+                        productSizes.Add(new ComboProductSizeDto
+                            {
+                                ProductId = item.ProductId,
+                                SizeId = sizeId
+                            });
+                    }
+                    else if (item.Sizes != null && item.Sizes.Any())
+                    {
+                        // Nếu không chọn, lấy size đầu tiên
+                        var defaultSize = item.Sizes.First();
+                        productSizes.Add(new ComboProductSizeDto
+                            {
+                                ProductId = item.ProductId,
+                                SizeId = defaultSize.Id
+                            });
+                    }
+                }
+            }
+
+            var addToCartDto = new AddComboToCartDto
+                {
+                    UserId = userId,
+                    ComboId = ComboModel.Id,
+                    ProductSizes = productSizes,
+                    Quantity = quantity
+                };
+
+            var request = new ApiRequestModel { Endpoint = "api/cart/addcombo" };
+            var result = await CallApi.Post<object>(request, addToCartDto);
+
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Đã thêm combo vào giỏ hàng.");
+                await NavMenu.RefreshCartItemCount();
+                await Dialog.CloseAsync();
+                await Content.OnRefresh.InvokeAsync();
+            }
+            else
+            {
+                ToastService.ShowError($"Không thể thêm combo: {result.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
 
     private void IncreaseQuantity()
     {

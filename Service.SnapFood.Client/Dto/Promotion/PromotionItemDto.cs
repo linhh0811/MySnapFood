@@ -1,5 +1,5 @@
 ﻿using Service.SnapFood.Client.Dto.Combo;
-using Service.SnapFood.Share.Model.Enum;
+using Service.SnapFood.Client.Enums;
 using Service.SnapFood.Share.Model.SQL;
 
 namespace Service.SnapFood.Client.Dto.Promotion
@@ -20,5 +20,7 @@ namespace Service.SnapFood.Client.Dto.Promotion
         public string? CategoryName { get; set; }
 
         public string? SizeName { get; set; }
+        public decimal PriceEndown { get; set; }
+
     }
 }

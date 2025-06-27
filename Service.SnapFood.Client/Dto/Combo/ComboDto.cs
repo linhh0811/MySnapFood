@@ -21,5 +21,7 @@ namespace Service.SnapFood.Client.Dto.Combo
         public ModerationStatus ModerationStatus { get; set; }
 
         public List<ComboProductDto> ComboItems { get; set; } = new();
+        public decimal PriceEndown { get; set; }
+
     }
 }

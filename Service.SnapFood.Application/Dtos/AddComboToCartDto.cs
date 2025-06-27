@@ -10,7 +10,9 @@ namespace Service.SnapFood.Application.Dtos
     {
         public Guid UserId { get; set; }
         public Guid ComboId { get; set; }
-        public Guid SizeId { get; set; }
+        public Guid? SizeId { get; set; }
         public int Quantity { get; set; }
+        public List<ComboProductItemDto> ProductSizes { get; set; } = new();
     }
 }
+

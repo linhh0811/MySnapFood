@@ -1,4 +1,5 @@
-﻿using Service.SnapFood.Share.Query.Grid;
+﻿using Service.SnapFood.Share.Model.SQL;
+using Service.SnapFood.Share.Query.Grid;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,7 +17,7 @@ namespace Service.SnapFood.Share.Query
         public string? tgridRequest { get; set; }
 
         public int draw { get; set; }
-        public int ModerationStatus { get; set; }
+        public ModerationStatus ModerationStatus { get; set; }
 
         public List<Sort> sort { get; set; }
 
@@ -156,7 +157,7 @@ namespace Service.SnapFood.Share.Query
             sort = new List<Sort>();
             SearchIn = new List<string>();
             draw = 0;
-            ModerationStatus = -1;
+            ModerationStatus = ModerationStatus.None;
         }
 
 
