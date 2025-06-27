@@ -99,6 +99,22 @@ namespace Service.SnapFood.Api.Controllers
             }
         }
 
+        [HttpGet("DetailsByBillId/{billId}")]
+        public async Task<IActionResult> GetDetailsByBillId(Guid billId)
+        {
+            try
+            {
+                var result = await _billService.GetBillDetailsByBillIdAsync(billId);
+                if (result == null || !result.Any())
+                    return NotFound("Không tìm thấy chi tiết đơn hàng");
+
+                return Ok(result); 
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
 
 
     }
