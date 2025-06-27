@@ -1,19 +1,15 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.FluentUI.AspNetCore.Components;
-using Service.SnapFood.Manage.Components.Pages.Manage.Product;
 using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Dto.Category;
 using Service.SnapFood.Manage.Dto.ProductDto;
 using Service.SnapFood.Manage.Infrastructure.Services;
+using Service.SnapFood.Manage.Query;
 using Service.SnapFood.Share.Interface.Extentions;
-using Service.SnapFood.Share.Model.Enum;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
 using Service.SnapFood.Share.Model.SQL;
-using Service.SnapFood.Share.Query;
 using Service.SnapFood.Share.Query.Grid;
-using Service.SnapFood.Share.Query.QueryDto;
 using System.Text.Json;
 namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
 {
@@ -30,7 +26,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
         private string SelectedTrangThai = "-1";
         private string CategoryId = Guid.Empty.ToString();
         private List<CategoryDto> CategoryList { get; set; } = new List<CategoryDto>();
-      
+
 
 
         protected override async Task OnInitializedAsync()
@@ -352,7 +348,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
         {
             _SelectTrangThai = Enum.GetValues(typeof(ModerationStatus))
                 .Cast<ModerationStatus>()
-                .OrderBy(e => e == ModerationStatus.None ? 0 : 1) 
+                .OrderBy(e => e == ModerationStatus.None ? 0 : 1)
                 .ThenBy(e => e)
                 .ToDictionary(
                     e => e.ToString(),

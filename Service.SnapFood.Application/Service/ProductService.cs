@@ -1,20 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Service.SnapFood.Application.Dtos;
+﻿using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
+using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Model.Commons;
-using Service.SnapFood.Share.Model.Enum;
 using Service.SnapFood.Share.Model.SQL;
-using Service.SnapFood.Share.Query;
-using Service.SnapFood.Share.Query.QueryDto;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Schema;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -208,7 +199,7 @@ namespace Service.SnapFood.Application.Service
 
 
 
-        
+
 
         public DataTableJson GetPaged(ProductQuery query)
         {
@@ -246,7 +237,7 @@ namespace Service.SnapFood.Application.Service
                     LastModifiedBy = m.LastModifiedBy,
                     SizeName = GetSizeNameById(m.SizeId ?? Guid.Empty) ?? null,
                     CategoryName = GetCategoryNameById(m.CategoryId),
-                    PriceEndown = GetPriceEndown(m.Id,m.BasePrice),
+                    PriceEndown = GetPriceEndown(m.Id, m.BasePrice),
 
 
 
@@ -432,23 +423,23 @@ namespace Service.SnapFood.Application.Service
             }
 
         }
-        private decimal GetPriceEndown(Guid productId,decimal BasePrice)
+        private decimal GetPriceEndown(Guid productId, decimal BasePrice)
         {
             var promotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.ItemId == productId).ToList();
             foreach (var item in promotionItems)
             {
                 var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now);
-                if (promotions.Count()>0)
+                if (promotions.Count() > 0)
                 {
                     var promotion = promotions.First();
-                    if (promotion.PromotionType== Domain.Enums.PromotionType.FixedPrice)
+                    if (promotion.PromotionType == PromotionType.FixedPrice)
                     {
                         return promotion.PromotionValue;
 
                     }
-                    else if (promotion.PromotionType== Domain.Enums.PromotionType.Amount)
+                    else if (promotion.PromotionType == PromotionType.Amount)
                     {
-                        if ((BasePrice - promotion.PromotionValue)<=0)
+                        if ((BasePrice - promotion.PromotionValue) <= 0)
                         {
                             return 1000;
                         }
