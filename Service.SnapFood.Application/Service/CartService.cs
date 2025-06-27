@@ -26,39 +26,148 @@ namespace Service.SnapFood.Application.Service
         {
             var cart = await GetOrCreateCartAsync(item.UserId);
             var combo = await _unitOfWork.ComboRepo.GetByIdAsync(item.ComboId);
+
             if (combo == null)
-            {
                 throw new Exception("Combo không còn tồn tại trên hệ thống");
-            }
 
             if (combo.ModerationStatus != ModerationStatus.Approved)
-            {
                 throw new Exception("Combo chưa được duyệt");
-            }
 
-            var existingItem = cart.CartComboItems
-                .FirstOrDefault(ci => ci.ComboId == item.ComboId && ci.SizeId == item.SizeId);
+            var comboProducts = _unitOfWork.ProductComboRepo.FindWhere(pc => pc.ComboId == item.ComboId).ToList();
+            if (!comboProducts.Any())
+                throw new Exception("Combo không có sản phẩm nào");
 
-            if (existingItem != null)
+            // Chuyển đổi List<ComboProductItemDto> sang List<ComboProductItem>
+            var productSizesEntities = item.ProductSizes.Select(ps => new ComboProductItem
             {
-                existingItem.Quantity += item.Quantity;
-                _unitOfWork.CartComboItemRepo.Update(existingItem);// Sử dụng CartComboItemRepo
+                ProductId = ps.ProductId,
+                SizeId = ps.SizeId
+            }).ToList();
+
+            // Chuẩn hóa danh sách ProductSizes để đảm bảo đủ kích thước cho từng sản phẩm
+            var productSizes = EnsureProductSizes(productSizesEntities, comboProducts);
+
+            // K kiểm tra combo đã tồn tại trong giỏ hàng
+            var existingComboItem = cart.CartComboItems.FirstOrDefault(ci =>
+                ci.ComboId == item.ComboId &&
+                AreComboItemsIdentical(ci, productSizes));
+
+            if (existingComboItem != null)
+            {
+                // Tăng số lượng nếu combo trùng
+                existingComboItem.Quantity += item.Quantity;
+                _unitOfWork.CartComboItemRepo.Update(existingComboItem);
             }
             else
             {
-                var cartItem = new CartComboItem
+                // Tạo combo mới
+                var cartComboItem = new CartComboItem
                 {
                     CartId = cart.Id,
                     ComboId = item.ComboId,
-                    SizeId = item.SizeId,
-                    Quantity = item.Quantity
+                    Quantity = item.Quantity,
+                    ComboProductItems = new List<ComboProductItem>()
                 };
-                await _unitOfWork.CartComboItemRepo.AddAsync(cartItem);
+
+                int sizeIndex = 0;
+                foreach (var comboProduct in comboProducts)
+                {
+                    for (int i = 0; i < comboProduct.Quantity; i++)
+                    {
+                        if (sizeIndex < productSizes.Count)
+                        {
+                            var ps = productSizes[sizeIndex];
+                            if (ps.ProductId != comboProduct.ProductId)
+                                throw new Exception("Danh sách kích thước không khớp với sản phẩm trong combo.");
+
+                            Guid? sizeIdToUse = ps.SizeId.HasValue && ps.SizeId != Guid.Empty ? ps.SizeId : await GetDefaultSize(comboProduct.ProductId);
+                            ValidateSize(sizeIdToUse);
+
+                            cartComboItem.ComboProductItems.Add(new ComboProductItem
+                            {
+                                ProductId = comboProduct.ProductId,
+                                SizeId = sizeIdToUse,
+                                Quantity = 1, // Mỗi ComboProductItem đại diện cho một đơn vị sản phẩm
+                                CartComboId = cartComboItem.Id
+                            });
+                            sizeIndex++;
+                        }
+                        else
+                        {
+                            throw new Exception("Không đủ kích thước cho các sản phẩm trong combo.");
+                        }
+                    }
+                }
+
+                await _unitOfWork.CartComboItemRepo.AddAsync(cartComboItem);
             }
 
             await _unitOfWork.CompleteAsync();
         }
 
+        private List<ComboProductItem> EnsureProductSizes(List<ComboProductItem> providedSizes, List<ProductCombo> comboProducts)
+        {
+            var result = new List<ComboProductItem>();
+            var providedDict = providedSizes.GroupBy(ps => ps.ProductId).ToDictionary(g => g.Key, g => g.ToList());
+            int requiredCount = comboProducts.Sum(pc => pc.Quantity);
+
+            foreach (var cp in comboProducts)
+            {
+                for (int i = 0; i < cp.Quantity; i++)
+                {
+                    if (providedDict.TryGetValue(cp.ProductId, out var sizes) && sizes.Any())
+                    {
+                        var size = sizes.First();
+                        result.Add(new ComboProductItem { ProductId = cp.ProductId, SizeId = size.SizeId });
+                        sizes.RemoveAt(0);
+                    }
+                    else
+                    {
+                        // Nếu không có size được cung cấp, sẽ lấy mặc định sau
+                        result.Add(new ComboProductItem { ProductId = cp.ProductId, SizeId = null });
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<Guid?> GetDefaultSize(Guid productId)
+        {
+            var product = await _unitOfWork.ProductRepo.GetByIdAsync(productId);
+            if (product == null || !product.SizeId.HasValue) return null;
+
+            var sizes = _unitOfWork.SizesRepo.FindWhere(s => s.ParentId == product.SizeId && s.ModerationStatus == ModerationStatus.Approved)
+                .OrderBy(s => s.DisplayOrder).ToList();
+            return sizes.Any() ? sizes.First().Id : product.SizeId;
+        }
+
+        private void ValidateSize(Guid? sizeId)
+        {
+            if (sizeId.HasValue && sizeId != Guid.Empty)
+            {
+                var size = _unitOfWork.SizesRepo.GetById(sizeId.Value);
+                if (size == null)
+                    throw new Exception($"SizeId {sizeId} không tồn tại trong hệ thống.");
+            }
+        }
+
+        private bool AreComboItemsIdentical(CartComboItem existingItem, List<ComboProductItem> newProductSizes)
+        {
+            var existingSizes = existingItem.ComboProductItems
+                .Select(cp => new { cp.ProductId, cp.SizeId })
+                .OrderBy(x => x.ProductId).ThenBy(x => x.SizeId)
+                .ToList();
+
+            var newSizes = newProductSizes
+                .Select(ps => new { ps.ProductId, SizeId = ps.SizeId ?? Guid.Empty })
+                .OrderBy(x => x.ProductId).ThenBy(x => x.SizeId)
+                .ToList();
+
+            if (existingSizes.Count != newSizes.Count) return false;
+
+            return existingSizes.Zip(newSizes, (e, n) => e.ProductId == n.ProductId && e.SizeId == n.SizeId).All(x => x);
+        }
         public async Task AddProductToCartAsync(AddProductToCartDto item)
         {
             Console.WriteLine($"Processing cart for UserId: {item.UserId}, ProductId: {item.ProductId}, SizeId: {item.SizeId}, Quantity: {item.Quantity}");
@@ -178,7 +287,7 @@ namespace Service.SnapFood.Application.Service
                         SizeId = cpi.SizeId,
                         Quantity = cpi.Quantity,
                         ProductName = cpi.Product.ProductName,
-                        SizeName = cpi.Size.SizeName
+                        SizeName = cpi.Size?.SizeName ?? ""
                     }).ToList()
                 }).ToList()
             };
@@ -217,6 +326,38 @@ namespace Service.SnapFood.Application.Service
             {
                 cartItem.Quantity = quantity;
                 _unitOfWork.CartItemRepo.Update(cartItem);
+            }
+
+            await _unitOfWork.CompleteAsync();
+        }
+        public async Task RemoveComboItemAsync(Guid cartComboItemId)
+        {
+            var cartComboItem = await _unitOfWork.CartComboItemRepo.GetByIdAsync(cartComboItemId);
+            if (cartComboItem == null)
+            {
+                throw new Exception("Combo item not found.");
+            }
+
+            _unitOfWork.CartComboItemRepo.Delete(cartComboItem);
+            await _unitOfWork.CompleteAsync();
+        }
+
+        public async Task UpdateComboItemAsync(Guid cartComboItemId, int quantity)
+        {
+            var cartComboItem = await _unitOfWork.CartComboItemRepo.GetByIdAsync(cartComboItemId);
+            if (cartComboItem == null)
+            {
+                throw new Exception("Combo item not found.");
+            }
+
+            if (quantity <= 0)
+            {
+                _unitOfWork.CartComboItemRepo.Delete(cartComboItem);
+            }
+            else
+            {
+                cartComboItem.Quantity = quantity;
+                _unitOfWork.CartComboItemRepo.Update(cartComboItem);
             }
 
             await _unitOfWork.CompleteAsync();
