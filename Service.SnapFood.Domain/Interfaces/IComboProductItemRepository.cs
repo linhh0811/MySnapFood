@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 
 namespace Service.SnapFood.Domain.Interfaces
 {
-    public interface ICartRepository : IRepository<Cart>
+    public interface IComboProductItemRepository : IRepository<ComboProductItem>
     {
-
     }
 }

@@ -1,10 +1,14 @@
-﻿namespace Service.SnapFood.Client.Dto.Cart
+﻿using Service.SnapFood.Client.Enums;
+
+namespace Service.SnapFood.Client.Dto.Cart
 {
     public class CheckOutDto
     {
         public Guid UserId { get; set; }
-        public Guid AddressId { get; set; }
-        public Guid StoreId { get; set; }
-        public string PaymentMethod { get; set; } = string.Empty;
+        public ReceivingType ReceivingType { get; set; }
+        public PaymentType PaymentType { get; set; }
+        public string ReceiverName { get; set; } = string.Empty;
+        public string ReceiverPhone { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 }

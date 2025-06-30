@@ -18,7 +18,6 @@ namespace Service.SnapFood.Application.Dtos
 
         public List<SizeDto>? Sizes { get; set; }
         public ModerationStatus ModerationStatus { get; set; }
-
-
+        public string SizeName { get; set; } = string.Empty;
     }
 }

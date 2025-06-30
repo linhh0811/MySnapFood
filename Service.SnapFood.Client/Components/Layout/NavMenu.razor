@@ -8,7 +8,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ICallServiceRegistry CallApi
 
-<nav class="navbar navbar-expand-sm navbar-light bg-white fixed-top shadow-sm" style="z-index:1">
+<nav class="navbar navbar-expand-sm navbar-light bg-white fixed-top shadow-sm" style="z-index:3">
     <div class="container">
         <a class="navbar-brand" href="#">Snap Food</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,27 +26,18 @@
             {
                 <ul class="navbar-nav navbar-right">
 
-                    <FluentNavLink Href="/cart">
-                        <FluentCounterBadge Count="@CartItemCount" Appearance="Appearance.Accent">
-                            <FluentButton Title="Giỏ hàng" Appearance="Appearance.Stealth">
-                                <FluentIcon Value="@(new Icons.Regular.Size24.Cart())" Color="@Color.Neutral" />
-                            </FluentButton>
-                        </FluentCounterBadge>
-                    </FluentNavLink>
-                    <FluentSpacer Width="15" />
-
                     <FluentButton id="ThongTinNguoiDung" Title="Thông tin người dùng" Appearance="Appearance.Stealth" @onclick="@(() => openMenu = !openMenu)">
                         <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size24.Person())" Color="@Color.Neutral" />
                     </FluentButton>
                     <FluentMenu Anchor="ThongTinNguoiDung"
-                                @bind-Open="openMenu"
-                                VerticalThreshold="170">
-                        <FluentMenuItem OnClick="@(() => Navigation.NavigateTo("/lich-su-don-hang"))">
+                    @bind-Open="openMenu"
+                    VerticalThreshold="170">
+                        <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))">
                             <FluentIcon Value="@(new Icons.Regular.Size20.History())" /> Lịch sử đơn hàng
                         </FluentMenuItem>
-                        <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.Location())" /> Địa chỉ giao hàng</FluentMenuItem>
-                        <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.Tag())" /> Mã giảm giá</FluentMenuItem>
-                        <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.Person())" /> Thông tin tài khoản</FluentMenuItem>
+                        <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))"><FluentIcon Value="@(new Icons.Regular.Size20.Location())" /> Địa chỉ giao hàng</FluentMenuItem>
+                        <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))"><FluentIcon Value="@(new Icons.Regular.Size20.Tag())" /> Mã giảm giá</FluentMenuItem>
+                        <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))"><FluentIcon Value="@(new Icons.Regular.Size20.Person())" /> Thông tin tài khoản</FluentMenuItem>
                         <hr style="margin:8px" />
                         <FluentMenuItem OnClick="Logout"><FluentIcon Value="@(new Icons.Regular.Size20.SignOut())" /> Đăng xuất</FluentMenuItem>
 
@@ -66,8 +57,8 @@
                 <ul class="navbar-nav navbar-right">
 
                     <FluentButton Appearance="Appearance.Lightweight"
-                                  OnClick="OpenModalAuth"
-                                  IconEnd="@(new Icons.Regular.Size20.SignOut())">
+                    OnClick="OpenModalAuth"
+                    IconEnd="@(new Icons.Regular.Size20.SignOut())">
                         <FluentLabel Style="font-size:18px;font-weight:500;color: #6a6f8c;">Đăng nhập</FluentLabel>
                     </FluentButton>
 
@@ -151,10 +142,11 @@
         await ((Infrastructure.Service.CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
         Navigation.NavigateTo("/", forceLoad: true);
     }
-    private async Task OpenMenu()
+    private async Task OpenMenu(string Url)
     {
         openMenu = false;
         await OpenMenuThongTin.InvokeAsync(true);
+        Navigation.NavigateTo(Url);
         StateHasChanged();
 
 

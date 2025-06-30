@@ -10,6 +10,8 @@ namespace Service.SnapFood.Client.Dto.Combo
         public string ProductName { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public List<SizeDto>? Sizes { get; set; }
+        public string SizeName { get; set; } = string.Empty;
+
 
     }
 }

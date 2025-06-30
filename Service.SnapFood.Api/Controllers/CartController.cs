@@ -32,8 +32,21 @@ namespace Service.SnapFood.Api.Controllers
             }
         }
 
-        // POST: api/cart/addcombo
-        [HttpPost("addcombo")]
+        [HttpGet("Address/{userId}")]
+        public IActionResult GetAddressCheckout(Guid userId)
+        {
+            try
+            {
+                var address = _cartService.GetAddressCheckout(userId);
+                return Ok(address);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("AddComboToCart")]
         public async Task<IActionResult> AddComboToCart([FromBody] AddComboToCartDto item)
         {
             try
@@ -47,8 +60,7 @@ namespace Service.SnapFood.Api.Controllers
             }
         }
 
-        // POST: api/cart/addproduct
-        [HttpPost("addproduct")]
+        [HttpPost("AddProductToCart")]
         public async Task<IActionResult> AddProductToCart([FromBody] AddProductToCartDto item)
         {
             try
@@ -58,7 +70,7 @@ namespace Service.SnapFood.Api.Controllers
                     return BadRequest(new { error = "Dữ liệu không hợp lệ" });
                 }
                 await _cartService.AddProductToCartAsync(item);
-                return Ok(new { message = "Product added to cart successfully" });
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -68,7 +80,7 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         // PUT: api/cart/update/{cartItemId}
-        [HttpPut("update/{cartItemId}")]
+        [HttpPut("Update/{cartItemId}")]
         public async Task<IActionResult> UpdateCartItem(Guid cartItemId, [FromBody] int quantity)
         {
             try
@@ -83,7 +95,7 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         // DELETE: api/cart/remove/{cartItemId}
-        [HttpDelete("remove/{cartItemId}")]
+        [HttpDelete("Remove/{cartItemId}")]
         public async Task<IActionResult> RemoveCartItem(Guid cartItemId)
         {
             try
@@ -98,22 +110,22 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         // DELETE: api/cart/clear/{cartId}
-        [HttpDelete("clear/{cartId}")]
-        public async Task<IActionResult> ClearCart(Guid cartId)
-        {
-            try
-            {
-                await _cartService.ClearCart(cartId);
-                return Ok(new { message = "Cart cleared successfully." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //[HttpDelete("Clear/{cartId}")]
+        //public async Task<IActionResult> ClearCart(Guid cartId)
+        //{
+        //    try
+        //    {
+        //        await _cartService.ClearCart(cartId);
+        //        return Ok(new { message = "Cart cleared successfully." });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
 
         // DELETE: api/cart/removecombo/{cartComboItemId}
-        [HttpDelete("removecombo/{cartComboItemId}")]
+        [HttpDelete("RemoveCombo/{cartComboItemId}")]
         public async Task<IActionResult> RemoveComboItem(Guid cartComboItemId)
         {
             try
@@ -128,7 +140,7 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         // PUT: api/cart/updatecombo/{cartComboItemId}
-        [HttpPut("updatecombo/{cartComboItemId}")]
+        [HttpPut("UpdateCombo/{cartComboItemId}")]
         public async Task<IActionResult> UpdateComboItem(Guid cartComboItemId, [FromBody] int quantity)
         {
             try
@@ -143,7 +155,7 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         // POST: api/cart/checkout
-        [HttpPost("checkout")]
+        [HttpPost("Checkout")]
         public async Task<IActionResult> CheckOut([FromBody] CheckOutDto item)
         {
             try
@@ -157,13 +169,27 @@ namespace Service.SnapFood.Api.Controllers
             }
         }
 
-        [HttpGet("quantity/{userId}")]
-        public async Task<IActionResult> GetCartQuantity(Guid userId)
+        //[HttpGet("Quantity/{userId}")]
+        //public async Task<IActionResult> GetCartQuantity(Guid userId)
+        //{
+        //    try
+        //    {
+        //        var quantity = await _cartService.GetCartQuantityAsync(userId);
+        //        return Ok(quantity); // Trả về số nguyên trực tiếp
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
+
+        [HttpPut("UpdateQuantity")]
+        public async Task<IActionResult> UpdateQuantity([FromBody] QuantityInCartDto QuantityInCartDto)
         {
             try
             {
-                var quantity = await _cartService.GetCartQuantityAsync(userId);
-                return Ok(quantity); // Trả về số nguyên trực tiếp
+                await _cartService.UpdateQuantity(QuantityInCartDto);
+                return Ok(); // Trả về số nguyên trực tiếp
             }
             catch (Exception ex)
             {
