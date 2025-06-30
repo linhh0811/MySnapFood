@@ -198,7 +198,8 @@ namespace Service.SnapFood.Application.Service
                         LastModifiedBy = combo.LastModifiedBy,
                         CreatedByName = combo.CreatedBy == Guid.Empty ? "Hệ thống" : createdByUser?.FullName ?? "Không xác định",
                         LastModifiedByName = combo.LastModifiedBy == Guid.Empty ? "Hệ thống" : modifiedByUser?.FullName ?? "Không xác định",
-                        ComboItems = comboItems
+                        ComboItems = comboItems,
+                        PriceEndown = GetPriceEndown(combo.Id, combo.BasePrice)
                     };
                     return comboDto;
                 }

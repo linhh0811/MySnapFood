@@ -1,97 +1,185 @@
-﻿@page "/cart"
+﻿@page "/Gio-Hang"
 @inherits CartBase
 @using Service.SnapFood.Client.Dto.Cart
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.FluentUI.AspNetCore.Components.Icons
+@using Service.SnapFood.Client.Enums
 
-<h3>Giỏ hàng của bạn</h3>
+<h3 style="margin-top:30px;z-index:2">Giỏ hàng của bạn</h3>
 
-@if (Cart == null || (!Cart.CartProductItems.Any() && !Cart.CartComboItems.Any()))
+@if (isLoading)
 {
-    <p>Giỏ hàng của bạn trống.</p>
-    <FluentButton Appearance="Appearance.Accent" @onclick="NavigateToOrderHome">
-        Quay lại mua sắm
-    </FluentButton>
+    <div class="loading-center">
+        Đang tải...
+    </div>
 }
 else
 {
-    <div class="row">
-        <div class="col-lg-8">
-            <FluentDataGrid Items="@CartItems.AsQueryable()"
-                            TGridItem="CartItem"
-                            GridTemplateColumns="0.5fr 1fr 1.5fr 0.6fr 1.5fr 1fr 1.2fr">
-                <ChildContent>
-                    <TemplateColumn Title="#" Style="display:flex;align-items:center;">
-                        <span>@(CartItems.IndexOf(context) + 1)</span>
-                    </TemplateColumn>
-                    <TemplateColumn Title="Hình ảnh" Style="display:flex;align-items:center;">
-                        <img src="@context.ImageUrl" style="max-height:40px;max-width:60px;object-fit:contain;" alt="@context.Name" />
-                    </TemplateColumn>
-                    <TemplateColumn Title="Tên" Style="display:flex;align-items:center;">
-                        @if (context is CartProductItem cartProductItem)
-                        {
-                            <span>
-                                @cartProductItem.Name @if (!string.IsNullOrEmpty(cartProductItem.SizeName))
+
+
+    @if (CartModel == null || !CartModel.CartItems.Any())
+    {
+        <p>Giỏ hàng của bạn trống.</p>
+        <FluentButton Appearance="Appearance.Accent" @onclick="NavigateToOrderHome">
+            Quay lại mua sắm
+        </FluentButton>
+    }
+    else
+    {
+        <div class="row mb-2">
+            <div class="col-lg-9">
+                <div class="card shadow">
+                    <div class="card-body">
+
+                    
+                    <FluentDataGrid Items="@CartModel.CartItems.AsQueryable()"
+                                    TGridItem="CartItemDto"
+                                    GridTemplateColumns="0.45fr 0.75fr 1.45fr 0.75fr 0.9fr 0.75fr 0.4fr"
+                                    ResizableColumns="false"
+                                    MultiLine="true"
+                                    ShowHover="true">
+                        <ChildContent>
+                            <TemplateColumn Title="#" Style="display:flex;align-items:center;">
+                                <span>@(CartModel.CartItems.IndexOf(context) + 1)</span>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Hình ảnh" Style="display:flex;align-items:center;">
+                                <img src="@context.ImageUrl" style="max-height:60px;max-width:70px;object-fit:contain;" alt="@context.ItemName" />
+                            </TemplateColumn>
+                            <TemplateColumn Title="Tên" Style="display: flex; flex-direction: column; justify-content: center;">
+                                <span style="font-size:16px;">
+                                    @context.ItemName
+                                </span>
+                                @if (context.ItemType == ItemType.Product)
                                 {
-                                    <text>(@cartProductItem.SizeName)</text>
-                                }
-                            </span>
-                        }
-                        else if (context is CartComboItem cartComboItem)
-                        {
-                            <div style="display:flex;flex-direction:column;gap:4px;">
-                                <span style="font-weight:bold;">@cartComboItem.Name</span>
-                                <div style="max-height:80px;overflow-y:auto;padding-left:20px;">
-                                    @foreach (var item in cartComboItem.ComboProductItems)
-                                    {
-                                        <div style="font-size:12px;">
-                                            @item.Quantity x @item.ProductName @if (!string.IsNullOrEmpty(item.SizeName))
-                                            {
-                                                <text>(@item.SizeName)</text>
-                                            }
+                                    <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
+                                        <div style="cursor: pointer;font-size:12px;">
+                                            Kích thước:  @context.SizeName
                                         </div>
-                                    }
-                                </div>
+                                    </div>
+                                }
+                                @if (context.ItemType == ItemType.Combo)
+                                {
+                                    <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
+                                        @foreach (var item in context.ComboItems)
+                                        {
+                                            <div style="cursor: pointer;font-size:12px;">
+                                                @item.ProductName (@item.SizeName)
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </TemplateColumn>
+                            <TemplateColumn Title="Giá" Style="display: flex; flex-direction: column; justify-content: center;">
+                                @if (context.PriceEndown > 0)
+                                {
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <FluentLabel Style="text-decoration: line-through;font-size:12px;">
+                                            @context.BasePrice.ToString("N0") đ
+                                        </FluentLabel>
+
+                                        @if (context.BasePrice > context.PriceEndown)
+                                        {
+                                            var discountPercent = Math.Round(((context.BasePrice - context.PriceEndown) / context.BasePrice) * 100);
+                                            <FluentLabel Style="color: green;font-size:12px;">
+                                                -@discountPercent %
+                                            </FluentLabel>
+                                        }
+                                    </div>
+                                    <FluentLabel>@context.PriceEndown.ToString("N0") đ</FluentLabel>
+                                }
+                                else
+                                {
+                                    <FluentLabel>@context.BasePrice.ToString("N0") đ</FluentLabel>
+                                }
+                            </TemplateColumn>
+                            <TemplateColumn Title="Số lượng" Style="display:flex;align-items:center;gap:5px;">
+                                <FluentButton Appearance="Appearance.Outline" Style="width: 30px; height: 30px; background-color: #FF969A; color: white;" Onclick="()=>DecreaseQuantity(context.Id,context.ItemType,context.Quantity)" Disabled="IsUpdateQuantity" Title="Giảm số lượng">
+                                    <FluentIcon Value="@(new Icons.Regular.Size16.Subtract())"
+                                                Color="@Color.Neutral" />
+                                </FluentButton>
+                                <FluentLabel Style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; border-radius: 4px;">@context.Quantity</FluentLabel>
+                                <FluentButton Appearance="Appearance.Outline" Style="width: 30px; height: 30px; background-color: #FF969A; color: white;" Onclick="()=>IncreaseQuantity(context.Id,context.ItemType)" Disabled="IsUpdateQuantity" Title="Thêm số lượng">
+                                    <FluentIcon Value="@(new Icons.Regular.Size16.Add())" Color="@Color.Neutral" />
+                                </FluentButton>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Tổng" Style="display: flex; flex-direction: column; justify-content: center;">
+                                @if (context.PriceEndown > 0)
+                                {
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <FluentLabel Style="text-decoration: line-through;font-size:12px;">
+                                            @((context.BasePrice * context.Quantity).ToString("N0")) đ
+                                        </FluentLabel>
+
+                                        @if (context.BasePrice > context.PriceEndown)
+                                        {
+                                            var discountPercent = Math.Round(((context.BasePrice - context.PriceEndown) / context.BasePrice) * 100);
+                                            <FluentLabel Style="color: green;font-size:12px;">
+                                                -@discountPercent %
+                                            </FluentLabel>
+                                        }
+                                    </div>
+                                    <FluentLabel>@((context.PriceEndown * context.Quantity).ToString("N0")) đ</FluentLabel>
+                                }
+                                else
+                                {
+                                    <FluentLabel>@((context.BasePrice * context.Quantity).ToString("N0")) đ</FluentLabel>
+                                }
+
+                            </TemplateColumn>
+                            <TemplateColumn Style="display:flex;align-items:center;">
+                                <FluentButton OnClick="()=>RemoveItem(context.Id,context.ItemType)" Title="Gỡ khỏi giỏ hàng">
+                                    <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" Color="@Color.Neutral" />
+                                </FluentButton>
+                            </TemplateColumn>
+                        </ChildContent>
+                    </FluentDataGrid>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-3">
+                <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+
+                    <div style="font-weight: bold; font-size: 16px;">Phương thức nhận hàng</div>
+
+                    <label style="border: @(GetBorderStyle("Nhan-Tai-Quay")); border-radius: 8px; padding: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px;" @onclick="@(()=>PhuongThucNhanHangClick("Nhan-Tai-Quay"))">
+                        <input type="radio" name="deliveryMethod" value="Nhan-Tai-Quay" checked style="accent-color: #FF969A;" />
+                        🏪 Nhận tại quầy
+                    </label>
+
+                    <label style="border: @(GetBorderStyle("Giao-Tan-Noi")); border-radius: 8px; padding: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px;" @onclick="@(()=>PhuongThucNhanHangClick("Giao-Tan-Noi"))">
+                        <input type="radio" name="deliveryMethod" value="Giao-Tan-Noi" style="accent-color: #FF969A;" />
+                        🚚 Giao tận nơi
+                    </label>
+
+                </div>
+
+                <div style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); overflow: hidden; background-color: white;margin-top: 20px;">
+                    <div style="padding: 16px; font-size: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; color: #1d293f;">
+                            <span>Tổng</span>
+                            <span>@totalPrice.ToString("N0") đ</span>
+                        </div>
+                        @if (totalPriceEndown > 0)
+                        {
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; color: #1d293f;">
+                                <span>Khuyến mãi</span>
+                                <span>-@totalPriceEndown.ToString("N0") đ</span>
                             </div>
                         }
-                    </TemplateColumn>
-                    <PropertyColumn Property="@(x => x.Price.ToString("N0"))" Title="Giá" Style="display:flex;align-items:center;" />
-                    <TemplateColumn Title="Số lượng" Style="display:flex;align-items:center;gap:10px;">
-                        <FluentNumberField @bind-Value="context.Quantity" Min="1" Style="width:70px;" />
-                        <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateQuantity(context)">
-                            Lưu
-                        </FluentButton>
-                    </TemplateColumn>
-                    <PropertyColumn Property="@(x => (x.Quantity * x.Price).ToString("N0"))" Title="Tổng" Style="display:flex;align-items:center;" />
-                    <TemplateColumn Title="Hành động" Style="display:flex;align-items:center;">
-                        <FluentButton Appearance="Appearance.Neutral" @onclick="() => RemoveItem(context)">
-                            <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" />
-                        </FluentButton>
-                    </TemplateColumn>
-                </ChildContent>
-            </FluentDataGrid>
-        </div>
-        <div class="col-lg-4">
-            <FluentCard>
-                <h4>Tóm tắt đơn hàng</h4>
-                <p>Tổng số lượng: @Cart.TotalQuantity</p>
-                <p>Tổng tiền: @Cart.TotalPrice.ToString("N0") đ</p>
-                <FluentButton Appearance="Appearance.Accent" @onclick="CheckOut">Thanh toán</FluentButton>
-                <FluentButton Appearance="Appearance.Neutral" @onclick="ClearCart">Xóa giỏ hàng</FluentButton>
-            </FluentCard>
-        </div>
-    </div>
-}
-<style>
-    @@media (max-width: 768px) {
-        .fluent-data-grid {
-            display: block;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
 
-            .fluent-data-grid th, .fluent-data-grid td {
-                min-width: 100px;
-            }
+                        <hr style="border: none; border-top: 1px dashed #ff969a; margin-bottom: 12px;" />
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: #1d293f;">
+                            <span>Tạm tính</span>
+                            <span>@((totalPrice - totalPriceEndown).ToString("N0")) đ</span>
+                        </div>
+                    </div>
+                    <button style="background-color: #ff5961; color: white; width: 100%; padding: 14px 0; font-size: 16px; font-weight: bold; border: none; cursor: pointer;" @onclick="CheckOut">
+                        Tiếp tục
+                    </button>
+                </div>
+            </div>
+        </div>
     }
-</style>
+}
+
