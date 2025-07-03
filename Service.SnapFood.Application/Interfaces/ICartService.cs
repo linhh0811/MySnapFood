@@ -15,7 +15,7 @@ namespace Service.SnapFood.Application.Interfaces
         Task UpdateCartItemAsync(Guid cartItemId, int quantity);
         Task RemoveComboItemAsync(Guid cartComboItemId);
         Task UpdateComboItemAsync(Guid cartComboItemId, int quantity);
-        //Task<int> GetCartQuantityAsync(Guid userId);
+        int GetCartQuantity(Guid userId);
         Task UpdateQuantity(QuantityInCartDto QuantityInCartDto);
         AddressDto GetAddressCheckout(Guid userId);
     }

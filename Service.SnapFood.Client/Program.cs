@@ -5,6 +5,7 @@ using Service.SnapFood.Client.Infrastructure.Service;
 using Service.SnapFood.Share.Interface.Extentions;
 using Blazored.LocalStorage;
 using Service.SnapFood.Client.Components.Layout;
+using Microsoft.Extensions.FileProviders;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +32,8 @@ builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri("https://localhost:7213")
 });
+builder.Services.AddScoped<SharedStateService>();
+
 
 
 var app = builder.Build();
@@ -52,5 +55,10 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "..", "Service.SnapFood.Share", "Images")),
+    RequestPath = "/Images"
+});
 app.Run();

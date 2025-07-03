@@ -1,6 +1,7 @@
 ﻿@using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Cart
 @using Service.SnapFood.Client.Dto.Product
+@using Service.SnapFood.Client.Infrastructure.Service
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using Service.SnapFood.Client.Components.Pages.Auth
@@ -8,6 +9,7 @@
 @using Microsoft.AspNetCore.Components.Authorization;
 @using Service.SnapFood.Client.Components.Layout;
 @using System.Text.Json
+@inject SharedStateService SharedService
 
 @inherits ComponentBase
 @implements IDialogContentComponent<ViewParameters>
@@ -222,6 +224,7 @@
             if (result.Status == StatusCode.OK)
             {
                 ToastService.ShowSuccess("Đã thêm sản phẩm vào giỏ hàng.");
+                await SharedService.TriggerUpdateAsync();
                 await HideDialog();
             }
             else
