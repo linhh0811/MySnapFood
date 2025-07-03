@@ -242,7 +242,7 @@ namespace Service.SnapFood.Application.Service
                         ItemName = product.ProductName,
                         SizeName = size?.SizeName ?? "Tiêu chuẩn",
                         BasePrice = product.BasePrice + (size?.AdditionalPrice ?? 0),
-                        PriceEndown = GetProductPriceEndown(item.ProductId, product.BasePrice) + (size?.AdditionalPrice ?? 0),
+                        PriceEndown = GetProductPriceEndown(item.ProductId, product.BasePrice, (size?.AdditionalPrice ?? 0)) ,
                         Quantity = item.Quantity,
                         ImageUrl = product.ImageUrl,
                         ItemType = ItemType.Product,
@@ -276,7 +276,7 @@ namespace Service.SnapFood.Application.Service
                         ItemId = item.ComboId,
                         ItemName = combo.ComboName,
                         BasePrice = combo.BasePrice + priceSize,
-                        PriceEndown = GetComboPriceEndown(item.ComboId, combo.BasePrice) + priceSize,
+                        PriceEndown = GetComboPriceEndown(item.ComboId, combo.BasePrice, priceSize),
                         Quantity = item.Quantity,
                         ImageUrl = combo.ImageUrl,
                         ItemType = ItemType.Combo,
@@ -401,6 +401,7 @@ namespace Service.SnapFood.Application.Service
                             TotalAmount = 0,
                             BillDetails = new List<BillDetails>(),
                             Status = StatusOrder.Pending,
+                            
 
                         };
                         _unitOfWork.BillRepo.Add(bill);
@@ -409,7 +410,8 @@ namespace Service.SnapFood.Application.Service
                         foreach (var cartItem in cartProductItems)
                         {
                             var product = await _unitOfWork.ProductRepo.GetByIdAsync(cartItem.ProductId);
-                            var sizeName = _unitOfWork.SizesRepo.GetById(cartItem.SizeId ?? Guid.Empty)?.SizeName ?? "Tiêu chuẩn";
+                            var size = _unitOfWork.SizesRepo.GetById(cartItem.SizeId ?? Guid.Empty);
+                            var sizeName = size?.SizeName ?? "Tiêu chuẩn";
                             if (product == null) continue;
 
                             bill.TotalAmount += product.BasePrice * cartItem.Quantity;
@@ -418,11 +420,11 @@ namespace Service.SnapFood.Application.Service
                             {
                                 BillId = bill.Id,
                                 ItemType = ItemType.Product,
-                                ItemsName = product.ProductName + " " + (sizeName),
+                                ItemsName = product.ProductName + " " + "(Size: "+sizeName+")",
                                 ImageUrl = product.ImageUrl,
                                 Quantity = cartItem.Quantity,
-                                Price = product.BasePrice,
-                                PriceEndow = GetPriceEndown(cartItem.ProductId, product.BasePrice),
+                                Price = product.BasePrice+(size?.AdditionalPrice??0),
+                                PriceEndow = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0),
                             };
                             bill.BillDetails.Add(billDetail);
                             _unitOfWork.BillDetailsRepo.Add(billDetail);
@@ -433,6 +435,18 @@ namespace Service.SnapFood.Application.Service
                         {
                             var combo = await _unitOfWork.ComboRepo.GetByIdAsync(cartItem.ComboId);
                             if (combo == null) continue;
+                            decimal priceSize = 0;
+                            var comboItems = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == cartItem.Id).ToList();
+
+                            foreach (var c in comboItems)
+                            {
+                                var size = await _unitOfWork.SizesRepo.GetByIdAsync(c.SizeId ?? Guid.Empty);
+                                if (size is not null)
+                                {
+                                    priceSize += size.AdditionalPrice;
+                                }
+
+                            }
 
                             bill.TotalAmount += combo.BasePrice * cartItem.Quantity;
 
@@ -443,13 +457,13 @@ namespace Service.SnapFood.Application.Service
                                 ItemsName = combo.ComboName,
                                 ImageUrl = combo.ImageUrl,
                                 Quantity = cartItem.Quantity,
-                                Price = combo.BasePrice,
-                                PriceEndow = GetPriceEndown(cartItem.ComboId, combo.BasePrice),
+                                Price = combo.BasePrice+ priceSize,
+                                PriceEndow = GetPriceEndown(cartItem.ComboId, combo.BasePrice, priceSize),
                             };
                             bill.BillDetails.Add(billDetail);
                             _unitOfWork.BillDetailsRepo.Add(billDetail);
                             await _unitOfWork.CompleteAsync();
-                            var comboItems = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == cartItem.Id).ToList();
+                            
                             foreach (var i in comboItems)
                             {
                                 var product = await _unitOfWork.ProductRepo.GetByIdAsync(i.ProductId);
@@ -459,7 +473,7 @@ namespace Service.SnapFood.Application.Service
                                     ComboItemsArchive ComboItemsArchive = new ComboItemsArchive()
                                     {
                                         BillDetailsId = billDetail.Id,
-                                        ProductName = product.ProductName + " " + sizeName,
+                                        ProductName = product.ProductName+" " +"(Size: "+sizeName+")",
                                         Quantity = i.Quantity,
                                         ImageUrl = product.ImageUrl,
                                         Price = product.BasePrice,
@@ -568,40 +582,44 @@ namespace Service.SnapFood.Application.Service
         }
 
 
-        //public async Task<int> GetCartQuantityAsync(Guid userId)
-        //{
-        //    var cart = await _unitOfWork.CartRepo.GetCartWithItemsAsyncByUserId(userId);
-        //    if (cart == null)
-        //    {
-        //        return 0; // Giỏ hàng trống hoặc không tồn tại
-        //    }
+        public int GetCartQuantity(Guid userId)
+        {
+            var cart = _unitOfWork.CartRepo.FirstOrDefault(x=>x.UserId== userId);
+            if (cart is not null)
+            {
+                var cartProductItem = _unitOfWork.CartItemRepo.FindWhere(x=>x.CartId == cart.Id).ToList();
+                var cartComboItem = _unitOfWork.CartComboItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
 
-        //    int totalQuantity = cart.CartProductItems.Sum(p => p.Quantity) + cart.CartComboItems.Sum(c => c.Quantity);
-        //    return totalQuantity;
-        //}
-        private decimal GetProductPriceEndown(Guid productId, decimal BasePrice)
+                int totalQuantity = cartProductItem.Sum(p => p.Quantity) + cartComboItem.Sum(c => c.Quantity);
+                return totalQuantity;
+            }
+            return 0;
+
+
+        }
+        private decimal GetProductPriceEndown(Guid productId, decimal BasePrice,decimal SizePrice)
         {
             var promotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.ItemId == productId).ToList();
             foreach (var item in promotionItems)
             {
-                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now);
+                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now&&x.ModerationStatus== ModerationStatus.Approved);
                 if (promotions.Count() > 0)
                 {
                     var promotion = promotions.First();
                     if (promotion.PromotionType == PromotionType.FixedPrice)
                     {
-                        return promotion.PromotionValue;
+                        return promotion.PromotionValue+SizePrice;
 
                     }
                     else if (promotion.PromotionType == PromotionType.Amount)
                     {
                         if ((BasePrice - promotion.PromotionValue) <= 0)
                         {
-                            return 1000;
+                            return 1000 + SizePrice;
                         }
                         else
                         {
-                            return BasePrice - promotion.PromotionValue;
+                            return BasePrice - promotion.PromotionValue + SizePrice;
                         }
 
                     }
@@ -611,29 +629,29 @@ namespace Service.SnapFood.Application.Service
 
         }
 
-        private decimal GetComboPriceEndown(Guid ComboId, decimal BasePrice)
+        private decimal GetComboPriceEndown(Guid ComboId, decimal BasePrice,decimal SizePrice)
         {
             var promotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.ItemId == ComboId).ToList();
             foreach (var item in promotionItems)
             {
-                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now);
+                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now && x.ModerationStatus == ModerationStatus.Approved);
                 if (promotions.Count() > 0)
                 {
                     var promotion = promotions.First();
                     if (promotion.PromotionType == PromotionType.FixedPrice)
                     {
-                        return promotion.PromotionValue;
+                        return promotion.PromotionValue + SizePrice;
 
                     }
                     else if (promotion.PromotionType == PromotionType.Amount)
                     {
                         if ((BasePrice - promotion.PromotionValue) <= 0)
                         {
-                            return 1000;
+                            return 1000 + SizePrice;
                         }
                         else
                         {
-                            return BasePrice - promotion.PromotionValue;
+                            return BasePrice - promotion.PromotionValue + SizePrice;
                         }
 
                     }
@@ -701,29 +719,29 @@ namespace Service.SnapFood.Application.Service
 
         }
 
-        private decimal GetPriceEndown(Guid productId, decimal BasePrice)
+        private decimal GetPriceEndown(Guid productId, decimal BasePrice,decimal SizePrice) 
         {
             var promotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.ItemId == productId).ToList();
             foreach (var item in promotionItems)
             {
-                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now);
+                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now&&x.ModerationStatus== ModerationStatus.Approved);
                 if (promotions.Count() > 0)
                 {
                     var promotion = promotions.First();
                     if (promotion.PromotionType == PromotionType.FixedPrice)
                     {
-                        return promotion.PromotionValue;
+                        return promotion.PromotionValue+SizePrice;
 
                     }
                     else if (promotion.PromotionType == PromotionType.Amount)
                     {
                         if ((BasePrice - promotion.PromotionValue) <= 0)
                         {
-                            return 1000;
+                            return 1000 + SizePrice;
                         }
                         else
                         {
-                            return BasePrice - promotion.PromotionValue;
+                            return BasePrice - promotion.PromotionValue + SizePrice;
                         }
 
                     }

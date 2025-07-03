@@ -8,6 +8,7 @@ using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
 using Service.SnapFood.Client.Components.Layout;
 using Service.SnapFood.Client.Enums;
 using System.Threading.Tasks;
+using Service.SnapFood.Client.Infrastructure.Service;
 
 
 namespace Service.SnapFood.Client.Components.Pages.Cart
@@ -19,6 +20,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         [Inject] protected IToastService ToastService { get; set; } = default!;
         [Inject] protected NavigationManager Navigation { get; set; } = default!;
         [Inject] protected NavMenu NavMenu { get; set; } = default!; // Inject NavMenu
+        [Inject] protected SharedStateService SharedService { get; set; } = default!;
         public decimal totalPrice=0;
         public decimal totalPriceEndown = 0;
         public bool IsUpdateQuantity { get; set; } = false;
@@ -58,7 +60,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                     totalPrice = CartModel.CartItems.Sum(p => p.BasePrice*p.Quantity);
                     totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0).Sum(p => p.BasePrice*p.Quantity - p.PriceEndown*p.Quantity);
                     StateHasChanged();
-                    await NavMenu.RefreshCartItemCount();
+                    await SharedService.TriggerUpdateAsync();
                 }
                 else
                 {

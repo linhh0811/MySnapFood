@@ -2,6 +2,7 @@
 @using Service.SnapFood.Client.Dto.Cart
 @using Service.SnapFood.Client.Dto.Category
 @using Service.SnapFood.Client.Dto.Product
+@using Service.SnapFood.Client.Infrastructure.Service
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.SQL
@@ -11,6 +12,7 @@
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Authorization
 @using Service.SnapFood.Client.Components.Layout
+@inject SharedStateService SharedService
 
 @if (isLoading)
 {
@@ -207,6 +209,8 @@ else
             if (result.Status == StatusCode.OK)
             {
                 ToastService.ShowSuccess("Đã thêm sản phẩm vào giỏ hàng.");
+                await SharedService.TriggerUpdateAsync();
+
             }
             else
             {

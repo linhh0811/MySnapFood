@@ -169,19 +169,19 @@ namespace Service.SnapFood.Api.Controllers
             }
         }
 
-        //[HttpGet("Quantity/{userId}")]
-        //public async Task<IActionResult> GetCartQuantity(Guid userId)
-        //{
-        //    try
-        //    {
-        //        var quantity = await _cartService.GetCartQuantityAsync(userId);
-        //        return Ok(quantity); // Trả về số nguyên trực tiếp
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
+        [HttpGet("Quantity/{userId}")]
+        public IActionResult GetCartQuantity(Guid userId)
+        {
+            try
+            {
+                var quantity =  _cartService.GetCartQuantity(userId);
+                return Ok(quantity); 
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpPut("UpdateQuantity")]
         public async Task<IActionResult> UpdateQuantity([FromBody] QuantityInCartDto QuantityInCartDto)

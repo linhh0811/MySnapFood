@@ -16,9 +16,10 @@
     <style>
         body {
             margin: 0;
-            color: #6a6f8c;
-            font: 600 16px/18px "Open Sans", sans-serif;
+            font-weight: 600;
             font-size: 16px;
+            line-height: 18px;
+            font-family: "Times New Roman", serif !important;
         }
 
 
@@ -35,6 +36,14 @@
             font-weight: bold;
             background-color: rgba(255, 255, 255, 0.7);
             z-index: 1;
+        }
+
+        *, *::before, *::after {
+            font-family: inherit !important;
+        }
+
+        input, textarea, button, select {
+            font-family: inherit !important;
         }
     </style>
 </head>
@@ -61,6 +70,7 @@
 
 
                                             <div class="col-md-3 ">
+                                                <br/>
                                                 <div class="card shadow">
                                                     <div class="card-body">
                                                         <FluentNavMenu>
@@ -76,6 +86,7 @@
 
                                             </div>
                                             <div class="col col-md-9">
+                                                <br />
                                                 <div class="card shadow">
                                                     <div class="card-body">
                                                         @Body
