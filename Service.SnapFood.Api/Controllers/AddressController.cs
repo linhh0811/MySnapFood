@@ -17,7 +17,7 @@ namespace Service.SnapFood.Api.Controllers
             _addressService = addressService;
         }
 
-        [HttpGet]
+        [HttpGet ("getall")]
         public async Task<IActionResult> GetAll()
         {
             var addresses = await _addressService.GetAllAsync();

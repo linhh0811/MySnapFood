@@ -35,6 +35,6 @@ namespace Service.SnapFood.Manage.Dto.BillDto
         public decimal TotalAmountEndow { get; set; }
 
         [Required(ErrorMessage = "Ngày tạo là bắt buộc.")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime Created { get; set; } 
     }
 }
