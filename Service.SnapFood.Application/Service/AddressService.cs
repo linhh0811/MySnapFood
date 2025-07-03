@@ -1,10 +1,14 @@
-﻿using Service.SnapFood.Application.Dtos;
+﻿
+using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
+using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -12,17 +16,24 @@ namespace Service.SnapFood.Application.Service
 {
     public class AddressService : IAddressService
     {
+        
         private readonly IUnitOfWork _unitOfWork;
-
+    
+      
         public AddressService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+            
         }
+
+       
+  
 
         #region Get dữ liệu
         public async Task<List<Address>> GetAllAsync()
         {
             var addresses = await _unitOfWork.AddressRepo.GetAllAsync();
+
             return addresses.ToList();
         }
 
@@ -43,12 +54,26 @@ namespace Service.SnapFood.Application.Service
         public async Task<Guid> CreateAsync(AddressDto item)
         {
             if (item == null)
-                throw new ArgumentNullException(nameof(item), "Dữ liệu thêm mới không được để trống");
+                throw new ArgumentNullException(nameof(item), "Dữ liệu thêm không được để trống");
 
             ValidateAddressInput(item);
 
-            var address = new Address
+            if (item.AddressType == AddressType.Default)
             {
+                // Lấy mọi địa chỉ của user đang là Default
+                var oldDefaults = _unitOfWork.AddressRepo
+                                    .FindWhere(a => a.UserId == item.UserId &&
+                                                    a.AddressType == AddressType.Default)
+                                    .ToList();                 // Tracked entities!
+
+                foreach (var addr in oldDefaults)
+                    addr.AddressType = AddressType.Normal;     // Chỉ đổi enum, EF sẽ nhận biết
+            }
+
+         
+            var entity = new Address
+            {
+                Id = Guid.NewGuid(),
                 UserId = item.UserId,
                 FullName = item.FullName,
                 NumberPhone = item.NumberPhone,
@@ -59,43 +84,61 @@ namespace Service.SnapFood.Application.Service
                 Latitude = item.Latitude,
                 Longitude = item.Longitude,
                 FullAddress = item.FullAddress,
-                AddressType = item.AddressType
+                AddressType = item.AddressType          
             };
-            address.FillDataForInsert(Guid.NewGuid()); // Giả định người tạo là một Guid ngẫu nhiên
 
-            _unitOfWork.AddressRepo.Add(address);
-            await _unitOfWork.CompleteAsync();
-            return address.Id;
+            entity.FillDataForInsert(Guid.NewGuid());         
+
+            _unitOfWork.AddressRepo.Add(entity);
+
+            await _unitOfWork.CompleteAsync();                 
+
+            return entity.Id;
         }
 
-        public async Task<bool> UpdateAsync(Guid id, AddressDto item)
+
+
+
+        public async Task<bool> UpdateAsync(Guid id, AddressDto dto)
         {
-            if (id == Guid.Empty)
-                throw new ArgumentException("ID không hợp lệ");
-            if (item == null)
-                throw new ArgumentNullException(nameof(item), "Dữ liệu cập nhật không được để trống");
+            if (id == Guid.Empty) throw new ArgumentException("ID không hợp lệ");
+            if (dto is null) throw new ArgumentNullException(nameof(dto));
+            ValidateAddressInput(dto);
 
-            ValidateAddressInput(item);
+            var address = await _unitOfWork.AddressRepo.GetByIdAsync(id)
+                          ?? throw new Exception("Không tìm thấy địa chỉ");
 
-            var address = await _unitOfWork.AddressRepo.GetByIdAsync(id);
-            if (address == null)
-                throw new Exception("Không tìm thấy địa chỉ");
+           
+            if (dto.AddressType == AddressType.Default)
+            {
+                // Lấy các địa chỉ Default cũ dưới dạng tracked entity
+                var oldDefaults = await _unitOfWork.AddressRepo
+                                      .FindTrackedAsync(a => a.UserId == address.UserId &&
+                                                             a.AddressType == AddressType.Default &&
+                                                             a.Id != id);
 
-            address.UserId = item.UserId;
-            address.FullName = item.FullName;
-            address.NumberPhone = item.NumberPhone;
-            address.Province = item.Province;
-            address.District = item.District;
-            address.Ward = item.Ward;
-            address.SpecificAddress = item.SpecificAddress;
-            address.Latitude = item.Latitude;
-            address.Longitude = item.Longitude;
-            address.FullAddress = item.FullAddress;
-            address.AddressType = item.AddressType;
-            address.FillDataForUpdate(Guid.NewGuid()); // Giả định người cập nhật là một Guid ngẫu nhiên
+                foreach (var addr in oldDefaults)
+                    addr.AddressType = AddressType.Normal;    // hạ cấp
+
+              
+                _unitOfWork.AddressRepo.UpdateRange(oldDefaults);
+            }
+
+       
+            address.FullName = dto.FullName;
+            address.NumberPhone = dto.NumberPhone;
+            address.Province = dto.Province;
+            address.District = dto.District;
+            address.Ward = dto.Ward;
+            address.SpecificAddress = dto.SpecificAddress;
+            address.Latitude = dto.Latitude;
+            address.Longitude = dto.Longitude;
+            address.FullAddress = dto.FullAddress;
+            address.AddressType = dto.AddressType;
 
             _unitOfWork.AddressRepo.Update(address);
-            await _unitOfWork.CompleteAsync();
+
+            await _unitOfWork.CompleteAsync();                
             return true;
         }
 
@@ -131,14 +174,20 @@ namespace Service.SnapFood.Application.Service
                 throw new ArgumentException("Xã không được để trống");
             if (string.IsNullOrWhiteSpace(item.SpecificAddress))
                 throw new ArgumentException("Địa chỉ cụ thể không được để trống");
-            if (item.Latitude == 0 || item.Longitude == 0)
-                throw new ArgumentException("Tọa độ không hợp lệ");
+            //if (item.Latitude == 0 || item.Longitude == 0)
+            //    throw new ArgumentException("Tọa độ không hợp lệ");
         }
 
         private bool IsValidPhoneNumber(string phoneNumber)
         {
             return Regex.IsMatch(phoneNumber, @"^0\d{9}$");
         }
+
+        
+
+
+
+
         #endregion
     }
 }

@@ -7,6 +7,7 @@ using Blazored.LocalStorage;
 using Service.SnapFood.Client.Components.Layout;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -17,6 +18,11 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddHttpClient<IAddressService,
+                                AddressService>();
+
+
 builder.Services.AddScoped<NavMenu>();
 
 builder.Services.AddHttpClient<ICallServiceRegistry, CallServiceRegistry>();

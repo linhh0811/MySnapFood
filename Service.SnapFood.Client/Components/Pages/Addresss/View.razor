@@ -1,0 +1,229 @@
+﻿
+
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Icons
+@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.Addresss
+@using Service.SnapFood.Share.Model.Enum
+@using Service.SnapFood.Share.Model.Commons
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Interface.Extentions
+
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+@if (address != null)
+{
+    <FluentDialogHeader ShowDismiss="true">
+        <FluentStack VerticalAlignment="VerticalAlignment.Center">
+            <FluentIcon Value="@(new Icons.Regular.Size24.Edit())" />
+            <FluentLabel Typo="Typography.PaneHeader">
+                @Dialog.Instance.Parameters.Title
+            </FluentLabel>
+        </FluentStack>
+    </FluentDialogHeader>
+
+    <FluentDialogBody>
+        <FluentGrid Spacing="2" AdaptiveRendering="true" Justify="JustifyContent.FlexStart" Style="padding: 4px;">
+            <!-- Họ tên -->
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Họ và tên:</label>
+                    <FluentTextField @bind-Value="address.FullName" Placeholder="Nhập họ tên" />
+                </div>
+                <ValidationMessage For="@(() => address.FullName)" />
+            </FluentGridItem>
+
+            <!-- Số điện thoại -->
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Số điện thoại:</label>
+                    <FluentTextField @bind-Value="address.NumberPhone" Placeholder="Nhập SĐT" />
+                </div>
+                <ValidationMessage For="@(() => address.NumberPhone)" />
+            </FluentGridItem>
+
+            <!-- Tỉnh/TP -->
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Tỉnh / Thành phố:</label>
+                    <select id="province" class="form-select"></select>
+                </div>
+                <input type="hidden" id="provinceHidden" @bind="address.Province" />
+                <ValidationMessage For="@(() => address.Province)" />
+            </FluentGridItem>
+
+            <!-- Quận/Huyện -->
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Quận / Huyện:</label>
+                    <select id="district" class="form-select"></select>
+                </div>
+                <input type="hidden" id="districtHidden" @bind="address.District" />
+                <ValidationMessage For="@(() => address.District)" />
+            </FluentGridItem>
+
+            <!-- Xã/Phường -->
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Xã / Phường:</label>
+                    <select id="ward" class="form-select"></select>
+                </div>
+                <input type="hidden" id="wardHidden" @bind="address.Ward" />
+                <ValidationMessage For="@(() => address.Ward)" />
+            </FluentGridItem>
+
+            <!-- Địa chỉ cụ thể -->
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Địa chỉ cụ thể:</label>
+                    <FluentTextField @bind-Value="address.SpecificAddress" Placeholder="Số nhà, tên đường..." />
+                </div>
+                <ValidationMessage For="@(() => address.SpecificAddress)" />
+            </FluentGridItem>
+
+            <!-- Mặc định -->
+            <FluentGridItem md="12">
+                <FluentCheckbox @bind-Checked="isDefault">Đặt làm địa chỉ mặc định</FluentCheckbox>
+            </FluentGridItem>
+        </FluentGrid>
+    </FluentDialogBody>
+
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync" Loading="@isCancelling" Disabled="@isCancelling">Hủy</FluentButton>
+        <FluentButton Appearance="Appearance.Accent" OnClick="SaveAsync" Loading="@isSaving" Disabled="@isSaving">@((Content.IsEditMode) ? "Cập nhật" : "Lưu")</FluentButton>
+    </FluentDialogFooter>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <FluentDialogBody>
+        <FluentLabel>@errorMessage</FluentLabel>
+        </FluentDialogBody>
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync">Đóng</FluentButton>
+    </FluentDialogFooter>
+}
+else
+{
+    <FluentDialogBody Style="display:flex;justify-content:center;align-items:center;">
+        <FluentProgressRing />
+    </FluentDialogBody>
+}
+
+<style>
+    .row-info {
+        display: grid;
+        grid-template-columns: 35% 65%;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .row-info label {
+            font-weight: 500;
+        }
+</style>
+
+@code {
+    // ────────── DI & Parameters
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    // ────────── State
+    private AddresssDto address = new();
+    private bool isDefault;
+    private bool isSaving;
+    private bool isCancelling;
+    private string? errorMessage;
+
+    private readonly ApiRequestModel req = new();
+
+    // ────────── Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Content.IsEditMode && Content.Id != Guid.Empty)
+            {
+                req.Endpoint = $"api/Address/{Content.Id}";
+                var res = await CallApi.Get<AddresssDto>(req);
+                if (res.Status == StatusCode.OK && res.Data is AddresssDto dto)
+                {
+                    address = dto;
+                    isDefault = address.AddressType == AddressType.Default;
+                }
+                else
+                {
+                    errorMessage = res.Message ?? "Không thể tải địa chỉ";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("loadAddressDropdowns",
+                address.Province ?? string.Empty,
+                address.District ?? string.Empty,
+                address.Ward ?? string.Empty);
+        }
+    }
+
+    // ────────── Handlers
+    private async Task SaveAsync()
+    {
+        isSaving = true;
+        StateHasChanged();
+
+        address.AddressType = isDefault ? AddressType.Default : AddressType.Normal;
+
+        try
+        {
+            ResultAPI res;
+            if (Content.IsEditMode)
+            {
+                req.Endpoint = $"api/Address/{Content.Id}";
+                res = await CallApi.Put(req, address);
+            }
+            else
+            {
+                req.Endpoint = "api/Address";
+                res = await CallApi.Post<AddresssDto>(req, address);
+            }
+
+            if (res.Status == StatusCode.OK || res.Status == StatusCode.Created)
+            {
+                ToastService.ShowSuccess(Content.IsEditMode ? "Cập nhật địa chỉ thành công" : "Thêm địa chỉ thành công");
+                await Dialog.CloseAsync(true);
+                if (Content.OnRefresh.HasDelegate)
+                    await Content.OnRefresh.InvokeAsync();
+                return;
+            }
+
+            ToastService.ShowError(res.Message ?? "Thao tác thất bại");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError(ex.Message);
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        isCancelling = true;
+        await Dialog.CancelAsync();
+    }
+}

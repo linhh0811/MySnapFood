@@ -2,6 +2,7 @@
 using Service.SnapFood.Domain.Entitys;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Service.SnapFood.Application.Interfaces
@@ -13,5 +14,10 @@ namespace Service.SnapFood.Application.Interfaces
         Task<Guid> CreateAsync(AddressDto item);
         Task<bool> UpdateAsync(Guid id, AddressDto item);
         Task<bool> DeleteAsync(Guid id);
+
+       
+
+
+       
     }
 }
