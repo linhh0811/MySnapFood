@@ -2,15 +2,11 @@
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
+using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
+using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.SQL;
-using Service.SnapFood.Share.Query;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -21,7 +17,7 @@ namespace Service.SnapFood.Application.Service
         public ComboService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            
+
         }
         #region Duyệt, hủy duyệt
         public Dtos.StringContent CheckApproveAsync(Guid id)
@@ -166,7 +162,7 @@ namespace Service.SnapFood.Application.Service
                         ProductId = x.ProductId,
                         Quantity = x.Quantity,
                         ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
-                        CategoryName = _unitOfWork.CategoriesRepo.GetById(product.FirstOrDefault(p => p.Id == x.ProductId)?.CategoryId??Guid.Empty)?.CategoryName ?? "",
+                        CategoryName = _unitOfWork.CategoriesRepo.GetById(product.FirstOrDefault(p => p.Id == x.ProductId)?.CategoryId ?? Guid.Empty)?.CategoryName ?? "",
 
                         Sizes = size.Where(s => s.ParentId == product.FirstOrDefault(p => p.Id == x.ProductId)?.SizeId && s.ModerationStatus == ModerationStatus.Approved && s.ParentId != null)
 
@@ -202,7 +198,8 @@ namespace Service.SnapFood.Application.Service
                         LastModifiedBy = combo.LastModifiedBy,
                         CreatedByName = combo.CreatedBy == Guid.Empty ? "Hệ thống" : createdByUser?.FullName ?? "Không xác định",
                         LastModifiedByName = combo.LastModifiedBy == Guid.Empty ? "Hệ thống" : modifiedByUser?.FullName ?? "Không xác định",
-                        ComboItems = comboItems
+                        ComboItems = comboItems,
+                        PriceEndown = GetPriceEndown(combo.Id, combo.BasePrice)
                     };
                     return comboDto;
                 }
@@ -212,11 +209,12 @@ namespace Service.SnapFood.Application.Service
             return null;
         }
 
-        public DataTableJson GetPaged(BaseQuery query)
+        public DataTableJson GetPaged(ComboQuery query)
         {
             int totalRecords = 0;
             var dataQuery = _unitOfWork.ComboRepo.FilterData(
-                q => q, // Bỏ hoàn toàn điều kiện Where
+                q => q.Where(x => query.ModerationStatus == ModerationStatus.None ? true : x.ModerationStatus == query.ModerationStatus)
+                    .Where(x => query.CategoryId == Guid.Empty ? true : x.CategoryId == query.CategoryId),
                 query.gridRequest,
                 ref totalRecords
             ).Include(x => x.Category);
@@ -258,7 +256,9 @@ namespace Service.SnapFood.Application.Service
                     CategoryModerationStatus = _unitOfWork.CategoriesRepo.GetById(m.CategoryId)?.ModerationStatus ?? 0,
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
-                    ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>()
+                    ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>(),
+                    PriceEndown = GetPriceEndown(m.Id, m.BasePrice)
+
                 });
 
             DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
@@ -422,5 +422,36 @@ namespace Service.SnapFood.Application.Service
 
         }
         #endregion
+        private decimal GetPriceEndown(Guid ComboId, decimal BasePrice)
+        {
+            var promotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.ItemId == ComboId).ToList();
+            foreach (var item in promotionItems)
+            {
+                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now);
+                if (promotions.Count() > 0)
+                {
+                    var promotion = promotions.First();
+                    if (promotion.PromotionType == PromotionType.FixedPrice)
+                    {
+                        return promotion.PromotionValue;
+
+                    }
+                    else if (promotion.PromotionType == PromotionType.Amount)
+                    {
+                        if ((BasePrice - promotion.PromotionValue) <= 0)
+                        {
+                            return 1000;
+                        }
+                        else
+                        {
+                            return BasePrice - promotion.PromotionValue;
+                        }
+
+                    }
+                }
+            }
+            return 0;
+
+        }
     }
 }

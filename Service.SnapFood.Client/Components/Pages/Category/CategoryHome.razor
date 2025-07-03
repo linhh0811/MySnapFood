@@ -6,32 +6,46 @@
 @using Service.SnapFood.Share.Query
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
-<FluentHorizontalScroll Style="width: 100%; padding: 10px 0;">
-    @foreach (var category in categoryDtos)
-    {
-        <FluentCard style="width: 300px; margin: 0 10px; display: inline-block; vertical-align: top;">
-            <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#uudai">
-                <img src="@category.ImageUrl"
-                style="height:200px; width: 100%; object-fit: cover;"
-                alt="@category.CategoryName">
-            </a>
-            <div style="text-align: center; padding: 10px;">
-                <a class="nav-link text-muted fw-bold fs-5 active">
-                    @category.CategoryName &gt;
+@if (isLoading)
+{
+    <div class="loading-center">
+        Đang tải...
+    </div>
+}
+else
+{
+    <h2 class="fw-bold">DANH MỤC MÓN ĂN</h2>
+    <hr>
+    <FluentHorizontalScroll Style="width: 100%; padding: 10px 0;">
+        @foreach (var category in categoryDtos)
+        {
+            <FluentCard style="width: 300px; margin: 0 10px; display: inline-block; vertical-align: top;">
+                <a class="nav-link text-muted fw-bold fs-5 active" href="/Home/OrderHome#uudai">
+                    <img src="@category.ImageUrl"
+                    style="height:200px; width: 100%; object-fit: cover;"
+                    alt="@category.CategoryName">
                 </a>
-            </div>
-        </FluentCard>
-    }
-</FluentHorizontalScroll>
+                <div style="text-align: center; padding: 10px;">
+                    <a class="nav-link text-muted fw-bold fs-5 active">
+                        @category.CategoryName &gt;
+                    </a>
+                </div>
+            </FluentCard>
+        }
+    </FluentHorizontalScroll>
+}
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private List<CategoryDto> categoryDtos = new List<CategoryDto>();
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
         await LoadCategory();
+        isLoading = false;
     }
     private async Task LoadCategory()
     {

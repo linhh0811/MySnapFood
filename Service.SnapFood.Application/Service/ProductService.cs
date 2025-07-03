@@ -1,17 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Service.SnapFood.Application.Dtos;
+﻿using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
+using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
+using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.SQL;
-using Service.SnapFood.Share.Query;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Schema;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -175,7 +169,8 @@ namespace Service.SnapFood.Application.Service
                     CreatedBy = product.CreatedBy,
                     LastModifiedBy = product.LastModifiedBy,
                     CreatedByName = product.CreatedBy == Guid.Empty ? "Hệ thống" : createdByUser?.FullName ?? "Không xác định",
-                    LastModifiedByName = product.LastModifiedBy == Guid.Empty ? "Hệ thống" : modifiedByUser?.FullName ?? "Không xác định"
+                    LastModifiedByName = product.LastModifiedBy == Guid.Empty ? "Hệ thống" : modifiedByUser?.FullName ?? "Không xác định",
+                    PriceEndown = GetPriceEndown(product.Id, product.BasePrice),
                 };
 
                 if (product.SizeId is not null)
@@ -205,60 +200,19 @@ namespace Service.SnapFood.Application.Service
 
 
 
-        //public DataTableJson GetPaged(BaseQuery query)
-        //{
-        //    try
-        //    {
-        //        int totalRecords = 0;
-        //        var dataQuery = _unitOfWork.ProductRepo.FilterData(
-        //            q => q, // Bỏ hoàn toàn điều kiện Where
-        //            query.gridRequest,
-        //            ref totalRecords
-        //        );
-        //        var data = dataQuery.ToList()
-        //        .Select((m, i) => new ProductDto
-        //        {
-        //            Id = m.Id,
-        //            Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
-        //            CategoryId = m.CategoryId,
-        //            SizeId = m.SizeId,
-        //            ImageUrl = m.ImageUrl,
-        //            ProductName = m.ProductName,
-        //            Description = m.Description,
-        //            Quantity = m.Quantity,
-        //            BasePrice = m.BasePrice,
-        //            Created = m.Created,
-        //            LastModified = m.LastModified,
-        //            ModerationStatus = m.ModerationStatus,
-        //            CreatedBy = m.CreatedBy,
-        //            LastModifiedBy = m.LastModifiedBy,
-        //            SizeName = GetSizeNameById(m.SizeId ?? Guid.Empty) ?? null,
-        //            CategoryName =GetCategoryNameById(m.CategoryId),
-        //        });
 
 
-        //        DataTableJson dataTableJson = new DataTableJson(data, query.draw, totalRecords);
-        //        dataTableJson.querytext = dataQuery.ToString();
-        //        return dataTableJson;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception(ex.Message);
-
-        //    }
-
-        //}
-
-        public DataTableJson GetPaged(BaseQuery query)
+        public DataTableJson GetPaged(ProductQuery query)
         {
             try
             {
+
                 int totalRecords = 0;
 
                 var allUsers = _unitOfWork.UserRepo.GetAll().ToList();
-
                 var dataQuery = _unitOfWork.ProductRepo.FilterData(
-                    q => q,
+                    q => q.Where(x => query.ModerationStatus == ModerationStatus.None ? true : x.ModerationStatus == query.ModerationStatus)
+                    .Where(x => query.CategoryId == Guid.Empty ? true : x.CategoryId == query.CategoryId),
                     query.gridRequest,
                     ref totalRecords
                 );
@@ -284,7 +238,7 @@ namespace Service.SnapFood.Application.Service
                     LastModifiedBy = m.LastModifiedBy,
                     SizeName = GetSizeNameById(m.SizeId ?? Guid.Empty) ?? null,
                     CategoryName = GetCategoryNameById(m.CategoryId),
-
+                    PriceEndown = GetPriceEndown(m.Id, m.BasePrice),
 
 
 
@@ -468,6 +422,37 @@ namespace Service.SnapFood.Application.Service
             {
                 return null;
             }
+
+        }
+        private decimal GetPriceEndown(Guid productId, decimal BasePrice)
+        {
+            var promotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.ItemId == productId).ToList();
+            foreach (var item in promotionItems)
+            {
+                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now);
+                if (promotions.Count() > 0)
+                {
+                    var promotion = promotions.First();
+                    if (promotion.PromotionType == PromotionType.FixedPrice)
+                    {
+                        return promotion.PromotionValue;
+
+                    }
+                    else if (promotion.PromotionType == PromotionType.Amount)
+                    {
+                        if ((BasePrice - promotion.PromotionValue) <= 0)
+                        {
+                            return 1000;
+                        }
+                        else
+                        {
+                            return BasePrice - promotion.PromotionValue;
+                        }
+
+                    }
+                }
+            }
+            return 0;
 
         }
 

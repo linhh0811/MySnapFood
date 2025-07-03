@@ -1,6 +1,5 @@
-﻿using Service.SnapFood.Share.Model.Enum;
+﻿using Service.SnapFood.Client.Enums;
 using Service.SnapFood.Share.Model.SQL;
-using System.ComponentModel.DataAnnotations;
 
 namespace Service.SnapFood.Client.Dto.Promotion
 {
@@ -23,7 +22,7 @@ namespace Service.SnapFood.Client.Dto.Promotion
 
         public Guid LastModifiedBy { get; set; }
         public List<PromotionItemDto> PromotionItems { get; set; } = new List<PromotionItemDto>();
-       
+
 
     }
 }

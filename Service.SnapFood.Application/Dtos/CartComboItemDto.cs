@@ -10,7 +10,7 @@ namespace Service.SnapFood.Application.Dtos
     {
         public Guid Id { get; set; } // Thêm Id để xóa và cập nhật
         public Guid ComboId { get; set; }
-        public Guid SizeId { get; set; }
+        public Guid? SizeId { get; set; }
         public int Quantity { get; set; }
         public string ComboName { get; set; } = string.Empty;
         public string SizeName { get; set; } = string.Empty; // Thêm để hiển thị kích thước

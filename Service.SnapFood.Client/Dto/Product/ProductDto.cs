@@ -33,5 +33,6 @@ namespace Service.SnapFood.Client.Dto.Product
         public bool IsSelected { get; set; }
         public string CreatedByName { get; set; } = string.Empty;
         public string LastModifiedByName { get; set; } = string.Empty;
+        public decimal PriceEndown { get; set; }
     }
 }

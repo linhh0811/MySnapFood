@@ -33,6 +33,8 @@ namespace Service.SnapFood.Application
             services.AddScoped<IRequestContext, RequestContext>();
             services.AddScoped<IPromotionService, PromotionService>();
             services.AddScoped<IAddressService, AddressService>();
+            services.AddScoped<IStoreService, StoreService>();
+
 
 
             return services;

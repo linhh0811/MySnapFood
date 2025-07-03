@@ -7,35 +7,69 @@
 @using Service.SnapFood.Share.Query
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
+
+@if (isLoading)
+{
+    <div class="loading-center">Đang tải...</div>
+}
+else
+{
     @foreach (var combo in ComboDto)
     {
-        <div class="col-md-3 col-sm-6 mb-4">
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <FluentCard class="h-100 position-relative" style="min-height: 400px;">
                 <img src="@combo.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@combo.ComboName" />
-                <div style="padding-bottom: 40px; min-height: 120px;">
-                    <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px">@combo.ComboName</FluentLabel>
-                    @foreach (var item in combo.ComboItems)
+                <div style=" min-height: 120px;display: flex; flex-direction: column; justify-content: space-between;padding-bottom:40px;">
+                    <div>
+                        <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px">@combo.ComboName</FluentLabel>
+                        @foreach (var item in combo.ComboItems)
+                        {
+                            <p class="card-title" style="margin: 0;">@item.ProductName</p>
+                        }
+                    </div>
+                    @if (combo.PriceEndown>0)
                     {
-                        <p class="card-title" style="margin: 0;">@item.ProductName</p>
+                        <div style="display: flex; align-items: center; gap: 10px; padding-top:10px;">
+                            <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                @combo.BasePrice.ToString("N0") đ
+                            </FluentLabel>
+                            @if (combo.BasePrice > combo.PriceEndown)
+                            {
+                                var discountPercent = Math.Round(((combo.BasePrice - combo.PriceEndown) / combo.BasePrice) * 100);
+                                <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                    -@discountPercent%
+                                </FluentLabel>
+                            }
+                        </div>
                     }
+
                 </div>
                 <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
                     <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
-                        @combo.BasePrice.ToString("N0") đ
+                        @if (combo.PriceEndown>0)
+                        {
+                            <span>@combo.PriceEndown.ToString("N0") đ</span>
+                        }
+                        else
+                        {
+                            <span>@combo.BasePrice.ToString("N0") đ</span>
+
+                        }
+
                     </FluentLabel>
-                    <FluentButton Appearance="Appearance.Accent"
-                                  Title="Thêm combo"
-
-                                  Style="padding: 0; margin-left: auto;"
-
-                                  Type="ButtonType.Submit"
-                                  OnClick="()=>OpenModalAdd(combo.Id)">
+                    <FluentButton BackgroundColor="#ff5b6a"
+                    Color="white"
+                    Title="Thêm combo"
+                    Style="padding: 0; margin-left: auto;"
+                    Type="ButtonType.Submit"
+                    OnClick="()=>OpenModalAdd(combo.Id)">
                         +
                     </FluentButton>
                 </div>
             </FluentCard>
         </div>
     }
+}
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
@@ -45,10 +79,13 @@
 
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private List<ComboDto> ComboDto = new List<ComboDto>();
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
         await LoadCombo();
+        isLoading = false;
     }
 
     protected override async Task OnParametersSetAsync()

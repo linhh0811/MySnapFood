@@ -26,6 +26,26 @@ namespace Service.SnapFood.Application.Service
         }
 
         #region Get dữ liệu
+        public async Task<BillDetailsDto?> GetDetailByIdAsync(Guid id)
+        {
+            var bill = await _unitOfWork.BillRepo.GetByIdAsync(id);
+            if (bill == null)
+                return null;
+
+            var allDetails = await _unitOfWork.BillDetailsRepo.GetAllAsync();
+            var billDetails = allDetails.Where(d => d.BillId == id).ToList();
+
+            return new BillDetailsDto
+            {
+                Id = bill.Id,
+                ItemsName = string.Empty, 
+                ImageUrl = string.Empty,
+                Quantity = 0,
+                Price = 0,
+                PriceEndow = 0
+            };
+        }
+
         public DataTableJson GetPage(BaseQuery query)
         {
             try
@@ -195,27 +215,96 @@ namespace Service.SnapFood.Application.Service
                 throw new ArgumentException("Mã hóa đơn đã tồn tại", nameof(item.BillCode));
         }
 
-        
-        #endregion
-    public async Task<List<BillDetailsDto>> GetBillDetailsByBillIdAsync(Guid billId)
-        {
-            var allDetails = await _unitOfWork.BillDetailsRepo.GetAllAsync(); // Trả về IEnumerable<BillDetails>
 
-            var result = allDetails
-                .Where(b => b.BillId == billId) // Lọc theo BillId
-                .Select(b => new BillDetailsDto
+        #endregion
+        //public async Task<List<BillDetailsDto>> GetBillDetailsByBillIdAsync(Guid billId)
+        //{
+        //    var allDetails = await _unitOfWork.BillDetailsRepo.GetAllAsync(); // Trả về IEnumerable<BillDetails>
+
+        //    var result = allDetails
+        //        .Where(b => b.BillId == billId) // Lọc theo BillId
+        //        .Select(b => new BillDetailsDto
+        //        {
+        //            ItemsName = b.ItemsName,
+        //            ImageUrl = b.ImageUrl,
+        //            Quantity = b.Quantity,
+        //            Price = b.Price,
+        //            PriceEndow = b.PriceEndow
+        //        })
+        //        .ToList(); // Chuyển sang List
+
+        //    return result;
+
+        //}
+
+        public async Task<List<BillDetailsDto>> GetBillDetailsByBillIdAsync(Guid billId)
+        {
+            var allDetails = (await _unitOfWork.BillDetailsRepo.GetAllAsync())
+                .Where(d => d.BillId == billId)
+                .ToList();
+
+            // Lấy danh sách ID của combo (ItemType == Combo)
+            var comboIds = allDetails
+                .Where(d => d.ItemType == ItemType.Combo)
+                .Select(d => d.Id)
+                .ToList();
+
+            // Lấy toàn bộ combo items thuộc bill hiện tại
+            var allComboItems = (await _unitOfWork.ComboItemsArchiveRepo.GetAllAsync())
+                .Where(c => comboIds.Contains(c.BillDetailsId))
+                .ToList();
+
+            // Map comboId -> List<ComboItemsArchive>
+            var comboItemGroups = allComboItems
+                .GroupBy(c => c.BillDetailsId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var result = new List<BillDetailsDto>();
+
+            foreach (var detail in allDetails)
+            {
+                var detailDto = new BillDetailsDto
                 {
-                    ItemsName = b.ItemsName,
-                    ImageUrl = b.ImageUrl,
-                    Quantity = b.Quantity,
-                    Price = b.Price,
-                    PriceEndow = b.PriceEndow
-                })
-                .ToList(); // Chuyển sang List
+                    Id = detail.Id,
+                    ItemsName = detail.ItemsName,
+                    ImageUrl = detail.ImageUrl,
+                    Quantity = detail.Quantity,
+                    Price = detail.Price,
+                    PriceEndow = detail.PriceEndow,
+                    ItemType = detail.ItemType,
+                    Children = null
+                };
+
+                // Nếu là combo, thêm danh sách sản phẩm con
+                if (detail.ItemType == ItemType.Combo && comboItemGroups.ContainsKey(detail.Id))
+                {
+                    detailDto.Children = comboItemGroups[detail.Id]
+                        .Select(c => new BillDetailsDto
+                        {
+                            ItemsName = c.ProductName
+                            //ImageUrl = c.ImageUrl,
+                            //Quantity = c.Quantity,
+                            //Price = c.Price,
+                            //PriceEndow = 0,
+                            //ItemType = ItemType.Product // hoặc ItemType khác tùy logic
+                        })
+                        .ToList();
+                }
+
+                result.Add(detailDto);
+            }
 
             return result;
-       
         }
+
+
+        public async Task<List<BillDetails>> GetDetailsByBillIdAsync(Guid billId)
+        {
+            var results = _unitOfWork.BillDetailsRepo.FindWhere(x => x.BillId == billId);
+            return results.ToList();
+        }
+
+
 
     }
 }

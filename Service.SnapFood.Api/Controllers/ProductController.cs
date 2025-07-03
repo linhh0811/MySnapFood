@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
-using Service.SnapFood.Share.Query;
+using Service.SnapFood.Domain.Query;
 
 namespace Service.SnapFood.Api.Controllers
 {
@@ -33,7 +31,7 @@ namespace Service.SnapFood.Api.Controllers
             return Ok(result);
         }
         [HttpPost("GetPaged")]
-        public IActionResult GetPage(BaseQuery query)
+        public IActionResult GetPage(ProductQuery query)
         {
             var result = _productService.GetPaged(query);
             return Ok(result);
@@ -86,7 +84,7 @@ namespace Service.SnapFood.Api.Controllers
         [HttpPut("{Id}/CheckReject")]
         public IActionResult CheckReject(Guid Id)
         {
-            var result =  _productService.CheckRejectAsync(Id);
+            var result = _productService.CheckRejectAsync(Id);
 
             return Ok(result);
         }

@@ -9,10 +9,11 @@ namespace Service.SnapFood.Domain.Enums
 {
     public enum PromotionType
     {
+        [Description("Chọn phân loại")]
+        None = -1,
         [Description("Giảm số tiền")]
-        Amount,
-
+        Amount=0,
         [Description("Giảm còn giá cố định")]
-        FixedPrice
+        FixedPrice=1
     }
 }

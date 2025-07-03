@@ -1,12 +1,12 @@
 ﻿using Service.SnapFood.Application.Dtos;
+using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Model.Commons;
-using Service.SnapFood.Share.Query;
 
 namespace Service.SnapFood.Application.Interfaces
 {
     public interface IPromotionService
     {
-        DataTableJson GetPaged(BaseQuery query);
+        DataTableJson GetPaged(PromotionQuery query);
         List<PromotionDto> GetPromotionActivate();
         Task<PromotionDto?> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(PromotionDto item);

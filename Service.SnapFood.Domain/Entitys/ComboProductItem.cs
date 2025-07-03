@@ -9,9 +9,9 @@ namespace Service.SnapFood.Domain.Entitys
 {
     public class ComboProductItem : IntermediaryEntity
     {
-        public  Guid CartComboId { get; set; }
+        public Guid CartComboId { get; set; }
         public Guid ProductId { get; set; }
-        public Guid SizeId { get; set; }
+        public Guid? SizeId { get; set; }
         public int Quantity { get; set; }
         public virtual CartComboItem CartComboItem { get; set; } = null!;
         public virtual Sizes Size { get; set; } = null!;

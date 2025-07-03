@@ -15,7 +15,29 @@
             <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd">Thêm mới</FluentButton>
 
         </FluentStack>
-        <FluentSearch @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
+        <div style="display: flex; align-items: center; gap: 10px;">
+           
+
+            <FluentSelect Items="_SelectLoai"
+                          @bind-Value="SelectedLoai"
+                          @bind-Value:after="RefreshDataAsync"
+                          OptionText="@(x => x.Value)"
+                          OptionValue="@(x => x.Key)"
+                          Style="width:100%"
+                          Position="SelectPosition.Below"
+                          Width="170px;">
+            </FluentSelect>
+            <FluentSelect Items="_SelectTrangThai"
+                          @bind-Value="SelectedTrangThai"
+                          @bind-Value:after="RefreshDataAsync"
+                          OptionText="@(x => x.Value)"
+                          OptionValue="@(x => x.Key)"
+                          Style="width:100%"
+                          Position="SelectPosition.Below"
+                          Width="150px;">
+            </FluentSelect>
+            <FluentSearch Style="min-width:200px;" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
+        </div>
     </FluentStack>
     <FluentGridItem Style="width:100%;">
         <FluentDataGrid @ref="PromotionGrid"
@@ -26,7 +48,7 @@
         GridTemplateColumns="0.5fr 1.5fr 1.5fr 1.25fr 1.0fr 1.25fr 1.25fr 1.05fr  1.20fr 1.0fr"
         RowSize="DataGridRowSize.Large"
         ShowHover="true"
-        MultiLine="true"
+
         GenerateHeader="GenerateHeaderOption.Sticky">
 
 
@@ -36,7 +58,7 @@
                 </span>
             </TemplateColumn>
             <TemplateColumn Title="Tên" Style="display: flex; align-items: center;">
-                <span style="max-height: 80px;color:dodgerblue; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                <span style="max-height: 80px;color:dodgerblue; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;" @onclick="()=>OpenDetailsModal(context.Id)">
                     @context.PromotionName
                 </span>
             </TemplateColumn>
@@ -47,7 +69,7 @@
                 </span>
             </TemplateColumn>
             <TemplateColumn Title="Loại" Style="display: flex;align-items: center;">
-                <FluentBadge Appearance="Appearance.Neutral">
+                <FluentBadge Appearance="Appearance.Accent">
                     @context.PromotionType.GetDescription()
                 </FluentBadge>
             </TemplateColumn>
@@ -88,7 +110,7 @@
                             <span>Đang diễn ra</span>
                         }
                     }
-                    
+
                 </FluentBadge>
             </TemplateColumn>
             <TemplateColumn Title="Trạng thái XN" Style="display: flex; align-items: center;">
@@ -128,7 +150,22 @@
 
                         }
                     }
-                   
+                    else
+                    {
+                        <FluentBadge title="Trạng thái khuyến mãi" Appearance="@(context.ModerationStatus == 0 ? Appearance.Accent : Appearance.Neutral)">
+                            @if (context.ModerationStatus != 0)
+                            {
+                                <span>Hết hạn</span>
+
+                            }
+                            else
+                            {
+                                <span>Xong</span>
+                            }
+
+                        </FluentBadge>
+                    }
+
                 </FluentStack>
             </TemplateColumn>
         </FluentDataGrid>

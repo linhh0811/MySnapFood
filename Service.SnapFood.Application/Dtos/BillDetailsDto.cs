@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Service.SnapFood.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,7 @@ namespace Service.SnapFood.Application.Dtos
         public int Quantity { get; set; }
         public decimal Price { get; set; }
         public decimal PriceEndow { get; set; }
+        public ItemType ItemType { get; set; }
+        public List<BillDetailsDto>? Children { get; set; }
     }
 }
