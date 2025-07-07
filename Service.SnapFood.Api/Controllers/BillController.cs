@@ -57,7 +57,7 @@ namespace Service.SnapFood.Api.Controllers
                         TotalAmount = b.TotalAmount,
                         TotalAmountEndow = b.TotalAmountEndow,
                         Created = b.Created
-                    }).ToList();
+                    }).OrderByDescending(x=>x.Created).ToList();
                 return Ok(userBills);
             }
             catch (Exception ex)

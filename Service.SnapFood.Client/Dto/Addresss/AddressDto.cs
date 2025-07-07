@@ -1,8 +1,7 @@
-﻿using Service.SnapFood.Domain.Enums;
+﻿using Service.SnapFood.Share.Model.Enum;
 using Service.SnapFood.Share.Model.SQL;
-using System;
 
-namespace Service.SnapFood.Application.Dtos
+namespace Service.SnapFood.Client.Dto.Addresss
 {
     public class AddressDto
     {
@@ -19,10 +18,10 @@ namespace Service.SnapFood.Application.Dtos
         public double Longitude { get; set; }
         public string FullAddress { get; set; } = string.Empty;
         public AddressType AddressType { get; set; }
+
         public string Description { get; set; } = string.Empty;
+        public bool IsDiaChiMacDinh { get; set; }
 
-        public ModerationStatus ModerationStatus { get; set; }
 
-        
     }
 }

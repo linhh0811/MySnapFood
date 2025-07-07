@@ -1,0 +1,192 @@
+﻿@page "/Dia-Chi"
+@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.Addresss
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
+@using Service.SnapFood.Share.Model.Enum
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using System.Text.Json
+@using Service.SnapFood.Client.Components.Share;
+
+<div class="container p-3 m-0">
+    <div class="row d-flex align-items-center justify-content-between">
+        <div class="col-auto">
+            <h4 class="fw-bold m-0" style="color:#ff5961">ĐỊA CHỈ GIAO HÀNG</h4>
+        </div>
+        <div class="col-auto">
+            <button class="btn" style="background-color:#ff5961; color: white;" @onclick="OpenModalAdd">
+                Thêm địa chỉ
+            </button>
+        </div>
+    </div>
+
+    @if (AddressModels != null && AddressModels.Any())
+    {
+        <!-- Địa chỉ mặc định -->
+        <div class="mt-3">
+            <div class="bg-warning p-2 fw-bold">ĐỊA CHỈ MẶC ĐỊNH</div>
+            <div class="card shadow-sm m-0">
+                <div class="card-body">
+
+                    <p class="mb-1">@defaultAddress.FullName</p>
+                    <p class="mb-1">@defaultAddress.NumberPhone</p>
+                    <p class="mb-1">@defaultAddress.SpecificAddress</p>
+                    <p class="mb-1">@defaultAddress.Ward, @defaultAddress.District, @defaultAddress.Province</p>
+                    @if (!string.IsNullOrEmpty(@defaultAddress.Description))
+                    {
+                        <p class="mb-1">Ghi chú: @defaultAddress.Description</p>
+                    }               
+                    <a class="text-primary" style="cursor:pointer;" @onclick="()=>OpenModalEdit(defaultAddress.Id)">Chỉnh sửa</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Địa chỉ bổ sung -->
+        @if (additionalAddresses.Any())
+        {
+            <div class="mt-4">
+                <div class="bg-warning p-2 fw-bold">ĐỊA CHỈ BỔ SUNG</div>
+                @foreach (var item in additionalAddresses)
+                {
+                    <div class="card shadow-sm mb-2">
+                        <div class="card-body">
+                            <p class="mb-1">@item.FullName</p>
+                            <p class="mb-1">@item.NumberPhone</p>
+                            <p class="mb-1">@item.SpecificAddress</p>
+                            <p class="mb-1">@item.Ward, @item.District, @item.Province</p>
+                            @if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                <p class="mb-1">Ghi chú: @item.Description</p>
+                            }
+                            <a class="text-primary!" style="cursor:pointer;" @onclick="()=>OpenModalEdit(item.Id)">Chỉnh sửa</a>
+                            <button class="btn" style="color: red; border: none; background: none;" @onclick="()=>Delete(item.Id)">Xóa</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-warning mt-3">Không có địa chỉ nào.</div>
+    }
+
+
+</div>
+@code {
+    [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private List<AddressDto> AddressModels { get; set; } = new List<AddressDto>();
+    private AddressDto defaultAddress = new AddressDto();
+    private List<AddressDto> additionalAddresses { get; set; } = new List<AddressDto>();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        await LoadAddress();
+        isLoading = false;
+    }
+
+    private async Task LoadAddress()
+    {
+        try
+        {
+            requestRestAPI.Endpoint = $"api/Address/GetAddressByUserId/{CurrentUser.UserId}";
+            var result = await CallApi.Get<List<AddressDto>>(requestRestAPI);
+
+            if (result.Status == StatusCode.OK && result.Data is not null)
+            {
+
+                AddressModels = (List<AddressDto>)result.Data;
+                defaultAddress = AddressModels.FirstOrDefault(x => x.AddressType == AddressType.Default) ?? new AddressDto();
+                additionalAddresses = AddressModels.Where(x => x.AddressType == AddressType.Normal).ToList();
+
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải địa chỉ: {ex.Message}");
+        }
+    }
+    private async Task OpenModalAdd()
+    {
+        try
+        {
+            var parameters = new EditOrUpdateParameters
+                {
+                    IsEditMode = false,
+                    OnRefresh = EventCallback.Factory.Create(this, LoadAddress),
+
+                };
+            var dialog = await DialogService.ShowDialogAsync<Edit>(parameters, new DialogParameters
+                {
+                    Title = "Thêm địa chỉ",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal thêm địa chỉ: {ex.Message}");
+        }
+    }
+    private async Task OpenModalEdit(Guid id)
+    {
+        try
+        {
+            var parameters = new EditOrUpdateParameters
+                {
+                    IsEditMode = true,
+                    OnRefresh = EventCallback.Factory.Create(this, LoadAddress),
+                    Id = id,
+
+                };
+            var dialog = await DialogService.ShowDialogAsync<Edit>(parameters, new DialogParameters
+                {
+                    Title = "Sửa địa chỉ",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal sửa địa chỉ: {ex.Message}");
+        }
+    }
+    private async Task Delete(Guid id)
+    {
+        try
+        {
+            var dialog = await DialogService.ShowDialogAsync<ModalConfirm>(new DialogParameters());
+            var resultDialog = await dialog.Result;
+            if (resultDialog.Cancelled == false && resultDialog.Data is bool success && success)
+            {
+                requestRestAPI.Endpoint = $"api/Address/{id}";
+                ResultAPI result = await CallApi.Delete(requestRestAPI);
+                if (result.Status == StatusCode.OK)
+                {
+                    ToastService.ShowSuccess("Xóa địa chỉ thành công");
+                    await LoadAddress();
+
+                }
+                else
+                {
+                    ToastService.ShowError("Xóa thất bại: " + result.Message);
+
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("Xóa thất bại: " + ex.Message);
+        }
+
+    }
+}

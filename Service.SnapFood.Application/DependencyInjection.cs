@@ -32,9 +32,9 @@ namespace Service.SnapFood.Application
             services.AddScoped<IBillService, BillService>();
             services.AddScoped<IRequestContext, RequestContext>();
             services.AddScoped<IPromotionService, PromotionService>();
+            services.AddScoped<IAddressService, AddressService>();
             services.AddScoped<IStoreService, StoreService>();
             services.AddScoped<IMomoService, MomoService>();
-
 
 
             return services;

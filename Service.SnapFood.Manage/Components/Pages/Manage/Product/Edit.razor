@@ -93,16 +93,6 @@
                     }
                 </OptionTemplate>
             </FluentSelect>
-            <div class="mb-3 col-md-6">
-
-                <select  id="province" class="form-control">
-                    <option value="">Tỉnh/Thành phố</option>
-
-                </select>
-                <br />
-                <span asp-validation-for="Province" class="text-danger"></span>
-            </div>
-
             <FluentTextArea Label="Ghi chú" @bind-Value="ProductModel.Description" Style="width:100%" Rows="3" Resize="TextAreaResize.Both" />          
             <ValidationMessage style="color:red" For="@(() => ProductModel.Description)" />
 

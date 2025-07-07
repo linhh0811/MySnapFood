@@ -3,6 +3,8 @@
 @using Microsoft.AspNetCore.Components.Authorization;
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
 @using Service.SnapFood.Share.Interface.Extentions;
+@using Service.SnapFood.Share;
+
 
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
@@ -10,7 +12,9 @@
 
 <nav class="navbar navbar-expand-sm navbar-light bg-white fixed-top shadow-sm" style="z-index:3">
     <div class="container">
-        <a class="navbar-brand" href="#">Snap Food</a>
+        <a class="navbar-brand" href="/">
+            <img src="/Images/LogoHumbeger3.png" alt="Snap Food Logo" height="35" style="width: auto;" />
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -35,7 +39,7 @@
                         <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))">
                             <FluentIcon Value="@(new Icons.Regular.Size20.History())" /> Lịch sử đơn hàng
                         </FluentMenuItem>
-                        <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))"><FluentIcon Value="@(new Icons.Regular.Size20.Location())" /> Địa chỉ giao hàng</FluentMenuItem>
+                        <FluentMenuItem OnClick="@(() => OpenMenu("/Dia-Chi"))"><FluentIcon Value="@(new Icons.Regular.Size20.Location())" /> Địa chỉ giao hàng</FluentMenuItem>
                         <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))"><FluentIcon Value="@(new Icons.Regular.Size20.Tag())" /> Mã giảm giá</FluentMenuItem>
                         <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))"><FluentIcon Value="@(new Icons.Regular.Size20.Person())" /> Thông tin tài khoản</FluentMenuItem>
                         <hr style="margin:8px" />
@@ -47,7 +51,7 @@
 
                     <FluentSpacer Width="10" />
 
-                    <FluentLabel Style="font-size:18px;font-weight:500;" class="nav-link navbar-text">Xin chào, @CurrentUser.UserName.Trim().Split(' ').Last()</FluentLabel>
+                    <lable style="font-size:18px;font-weight:500;" class="nav-link navbar-text">Xin chào, @CurrentUser.UserName.Trim().Split(' ').Last()</lable>
 
 
                 </ul>

@@ -1,5 +1,6 @@
 ﻿@using Service.SnapFood.Client.Dto.Combo
 @using Service.SnapFood.Client.Dto.Cart
+@using Service.SnapFood.Client.Infrastructure.Service
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using Service.SnapFood.Share.Model.Commons
@@ -9,6 +10,7 @@
 @using Service.SnapFood.Client.Dto.Product
 @using Service.SnapFood.Client.Components.Pages.Auth
 @using System.Text.Json
+@inject SharedStateService SharedService
 @inherits ComponentBase
 @implements IDialogContentComponent<ViewParameters>
 <FluentDialogBody>
@@ -43,8 +45,8 @@
                                         {
                                             <div class="size-item">
                                                 <FluentButton Appearance="Appearance.Stealth"
-                                                Class="@(GetSelectedSize(item.ProductId.ToString()) == size.SizeName ? "size-button selected" : "size-button")"
-                                                @onclick="() => SelectSize(item.ProductId.ToString(),size.Id ,size.SizeName,size.AdditionalPrice)">
+                                                              Class="@(GetSelectedSize(item.ProductId.ToString()) == size.SizeName ? "size-button selected" : "size-button")"
+                                                              @onclick="() => SelectSize(item.ProductId.ToString(),size.Id ,size.SizeName,size.AdditionalPrice)">
                                                     @size.SizeName
                                                 </FluentButton>
                                                 <FluentLabel Style="color:red">+@size.AdditionalPrice.ToString("N0") đ</FluentLabel>
@@ -55,7 +57,7 @@
                                     {
                                         <div class="size-item">
                                             <FluentButton Appearance="Appearance.Stealth"
-                                            Class="size-button selected">
+                                                          Class="size-button selected">
                                                 Tiêu chuẩn
                                             </FluentButton>
                                             <FluentLabel Style="color:red">+0 đ</FluentLabel>
@@ -124,35 +126,35 @@
 
 <style>
     .size-selector {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
     }
 
     .size-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
     }
 
     .size-button {
-    min-width: 40px;
-    height: 40px;
-    border: 2px solid #ccc;
-    border-radius: 4px;
-    background-color: white;
-    color: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    padding: 0 10px;
+        min-width: 40px;
+        height: 40px;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        background-color: white;
+        color: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        padding: 0 10px;
     }
 
-    .size-button.selected {
-    border: 2px solid red;
-    }
+        .size-button.selected {
+            border: 2px solid red;
+        }
 
 </style>
 @code {
@@ -194,7 +196,7 @@
                 ProductId = x.ProductId,
                 Quantity = x.Quantity
             }).ToList();
-
+        InitializeDefaultSizes();
     }
 
     private async Task GetCombo()
@@ -212,23 +214,12 @@
     {
         foreach (var item in ComboModel.ComboItems)
         {
-            for (int i = 1; i <= item.Quantity; i++)
+            if (item.Sizes?.Any() == true)
             {
-                var instanceKey = $"{item.ProductId}_{i}";
-                if (item.Sizes?.Any() == true)
-                {
-                    var defaultSize = item.Sizes.OrderBy(s => s.DisplayOrder).First(); // Đảm bảo lấy size đầu tiên theo thứ tự
-                    selectedSizes[instanceKey] = defaultSize.Id.ToString();
-                    sizePrices[instanceKey] = defaultSize.AdditionalPrice;
-                }
-                else
-                {
-                    selectedSizes[instanceKey] = Guid.Empty.ToString(); // Không có size thì để trống
-                    sizePrices[instanceKey] = 0;
-                }
+                var defaultSize = item.Sizes.OrderBy(s => s.DisplayOrder).First(); // Đảm bảo lấy size đầu tiên theo thứ tự
+                SelectSize(item.ProductId.ToString(), defaultSize.Id, defaultSize.SizeName, defaultSize.AdditionalPrice);
             }
         }
-        UpdateTotalPrice();
     }
 
     private async Task AddComboToCart()
@@ -249,6 +240,7 @@
             if (result.Status == StatusCode.OK)
             {
                 ToastService.ShowSuccess("Đã thêm combo vào giỏ hàng.");
+                await SharedService.TriggerUpdateAsync();
                 await Dialog.CloseAsync();
                 await Content.OnRefresh.InvokeAsync();
             }
@@ -293,7 +285,7 @@
         }
 
         TotalPrice = (basePrice + sizeAdditionalPrice) * quantity;
-        if (ComboModel.PriceEndown>0)
+        if (ComboModel.PriceEndown > 0)
         {
             TotalPriceEndown = (ComboModel.PriceEndown + sizeAdditionalPrice) * quantity;
             discountPercent = Math.Round(((TotalPrice - TotalPriceEndown) / TotalPrice) * 100);
@@ -306,7 +298,7 @@
         await Dialog.CloseAsync();
     }
 
-    private void SelectSize(string productId,Guid sizeId, string size, decimal additionalPrice)
+    private void SelectSize(string productId, Guid sizeId, string size, decimal additionalPrice)
     {
         if (selectedSizes.ContainsKey(productId))
         {
