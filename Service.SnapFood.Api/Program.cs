@@ -6,6 +6,7 @@ using Service.SnapFood.Api.AppStart;
 using Service.SnapFood.Application;
 using Service.SnapFood.Infrastructure;
 using Service.SnapFood.Infrastructure.Middleware;
+using Service.SnapFood.Share.Model.Momo;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +28,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddControllers();
 
-
+builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoAPI"));
 builder.Services.AddAuthorization();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

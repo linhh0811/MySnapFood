@@ -21,7 +21,6 @@ else
     {
         <div class="row" style="margin-top:30px;">
             <div class="col-7">
-
                 <div class="container p-0">
                     <div class="card shadow">
                         <div class="card-body" style="padding:24px;">
@@ -34,11 +33,10 @@ else
                             <hr style="margin-bottom:0;" />
                             @foreach (var item in CartModel.CartItems)
                             {
-
                                 var totalItemPrice = item.BasePrice * item.Quantity;
                                 <div class="row align-items-center border-bottom pb-2">
                                     <div class="col-2">
-                                        <img style="max-width:70px;max-height:60px;" src="@item.ImageUrl" alt="@item.ItemName" class="img-fluid rounded">
+                                        <img style="max-width:70px;max-height:60px;" src="@item.ImageUrl" alt="@item.ItemName" class="img-fluid rounded" />
                                     </div>
                                     <div class="col-10">
                                         <p class="my-1 fw-bold">@item.ItemName</p>
@@ -46,24 +44,22 @@ else
                                         {
                                             <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
                                                 <div style="cursor: pointer;font-size:12px;">
-                                                    Kích thước:  @item.SizeName
+                                                    Kích thước: @item.SizeName
                                                 </div>
                                             </div>
                                         }
                                         @if (item.ItemType == ItemType.Combo)
                                         {
                                             <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
-                                                @foreach (var x in @item.ComboItems)
+                                                @foreach (var x in item.ComboItems)
                                                 {
                                                     <p style="cursor: pointer;font-size:12px; margin:0px">@x.ProductName (@x.SizeName)</p>
                                                 }
                                             </div>
-
                                         }
                                         @if (item.PriceEndown > 0)
                                         {
                                             <p class="my-2 text-muted">x @item.Quantity <span class="float-end fw-bold"><del class="float-end">@((item.BasePrice * item.Quantity).ToString("N0")) đ</del> <br />@((item.PriceEndown * item.Quantity).ToString("N0")) đ</span></p>
-
                                         }
                                         else
                                         {
@@ -71,9 +67,6 @@ else
                                         }
                                     </div>
                                 </div>
-
-
-
                             }
                             <div class="mt-3">
                                 <p class="d-flex justify-content-between my-2">
@@ -94,20 +87,7 @@ else
                                     Phí giao hàng <span class="fw-bold">10,000 đ</span>
                                 </p>
                             </div>
-
                             <hr />
-
-                            <!-- Khuyến mãi -->
-                            @* <div>
-                                <p class="fw-bold">áp dụng khuyến mãi</p>
-                                <button class="btn btn-warning w-100 mb-2">duyệt voucher</button>
-                                <div class="input-group">
-                                    <input type="text"
-                                           class="form-control"
-                                           placeholder="nhập mã phiếu quà tặng" />
-                                    <button class="btn btn-danger">áp dụng</button>
-                                </div>
-                            </div> *@
                             <div class="my-3">
                                 <label class="mb-2">Ghi chú</label>
                                 <textarea class="form-control" @bind="Notes" id="pickupNote" rows="3" placeholder="Ghi chú (nếu có)"></textarea>
@@ -125,22 +105,19 @@ else
                                 <FluentNavLink Href="/Gio-Hang">
                                     <span class="text-primary" style="cursor: pointer">✎</span>
                                 </FluentNavLink>
-
                             </h4>
                             @if (PhuongThucNhanHang == "Nhan-Tai-Quay")
                             {
                                 <div class="mt-3">
                                     <div class="mb-2">
                                         <label class="mb-2">Tên người nhận</label>
-                                        <input type="text" class="form-control" id="pickupName" @bind-value="ReceiverName">
+                                        <input type="text" class="form-control" id="pickupName" @bind-value="ReceiverName" />
                                     </div>
                                     <div class="mb-2">
                                         <label class="mb-2">Số điện thoại</label>
-                                        <input type="text" class="form-control" id="pickupPhone" @bind-value="ReceiverPhone">
+                                        <input type="text" class="form-control" id="pickupPhone" @bind-value="ReceiverPhone" />
                                     </div>
-
                                 </div>
-
                             }
                             else
                             {
@@ -150,7 +127,6 @@ else
                                         Địa chỉ của bạn trống.
                                         <a>Thêm địa chỉ</a>
                                     </div>
-
                                 }
                                 else
                                 {
@@ -159,9 +135,6 @@ else
                                     <p>@Address.FullAddress</p>
                                 }
                             }
-
-
-
                         </div>
                     </div>
                 </div>
@@ -180,12 +153,9 @@ else
                             else
                             {
                                 <p class="p-0" style="font-size:16px;">@Store.StoreName</p>
-
                                 <p style="font-size:16px;">@Store.Address.NumberPhone</p>
                                 <p style="font-size:16px;">@Store.Address.FullAddress</p>
-
                             }
-
                         </div>
                     </div>
                 </div>
@@ -197,31 +167,29 @@ else
                                 <!-- Tiền mặt -->
                                 <div class="col-md-4">
                                     <label class="border rounded p-3 d-flex flex-column align-items-center justify-content-center shadow-sm position-relative w-100 active">
-                                        <input type="radio" name="payment" value="cash" class="form-check-input position-absolute top-0 start-0 m-2" checked>
-                                        <img src="https://cdn-icons-png.flaticon.com/512/2331/2331949.png" alt="Tiền mặt" width="50">
+                                        <input type="radio" name="payment" value="cash" class="form-check-input position-absolute top-0 start-0 m-2" checked />
+                                        <img src="https://cdn-icons-png.flaticon.com/512/2331/2331949.png" alt="Tiền mặt" width="50" />
                                         <span class="mt-2 fw-bold">Tiền mặt</span>
                                     </label>
                                 </div>
-
                                 <!-- MoMo -->
                                 <div class="col-md-4">
                                     <label class="border rounded p-3 d-flex flex-column align-items-center justify-content-center shadow-sm position-relative w-100">
-                                        <input type="radio" name="payment" value="momo" class="form-check-input position-absolute top-0 start-0 m-2">
-                                        <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo E-Wallet" width="50">
+                                        <input type="radio" name="payment" value="momo" class="form-check-input position-absolute top-0 start-0 m-2"
+                                               @onchange="@(() => SelectedPaymentMethod = "momo")"
+                                               checked="@(() => SelectedPaymentMethod == "momo")" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo E-Wallet" width="50" />
                                         <span class="mt-2 fw-bold">MoMo E-Wallet</span>
                                     </label>
                                 </div>
                             </div>
+                            <div class="container mt-2 p-0 text-end">
+                                <button type="submit" style="background-color: #ff5b6a; color: white;" class="btn" disabled="@(string.IsNullOrEmpty(Store.StoreName))" @onclick="HandleCheckOut">Đặt hàng</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="container  mt-2 p-0 text-end">
-                    <button type="submit" style="background-color: #ff5b6a;color:white;" class="btn" disabled="@(string.IsNullOrEmpty(Store.StoreName))" @onclick="HandleCheckOut">Đặt hàng</button>
-                </div>
-
             </div>
-
-
         </div>
     }
 }
