@@ -23,6 +23,8 @@ namespace Service.SnapFood.Domain.Entitys
         public double Longitude { get; set; } // kinh độ
         public string FullAddress { get; set; } = string.Empty;
         public AddressType AddressType { get; set; }
+        public string Description { get; set; } = string.Empty;
+
 
         public virtual User User { get; set; } = null!;
         public virtual Store Store { get; set; } = null!;
