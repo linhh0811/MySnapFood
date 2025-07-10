@@ -6,62 +6,38 @@ using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
 using Service.SnapFood.Client.Components.Layout;
+using Service.SnapFood.Client.Enums;
+using System.Threading.Tasks;
+using Service.SnapFood.Client.Infrastructure.Service;
 
 
 namespace Service.SnapFood.Client.Components.Pages.Cart
 {
     public class CartBase : ComponentBase
     {
+        [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
         [Inject] protected ICallServiceRegistry CallApi { get; set; } = default!;
         [Inject] protected IToastService ToastService { get; set; } = default!;
         [Inject] protected NavigationManager Navigation { get; set; } = default!;
         [Inject] protected NavMenu NavMenu { get; set; } = default!; // Inject NavMenu
+        [Inject] protected SharedStateService SharedService { get; set; } = default!;
+        public decimal totalPrice=0;
+        public decimal totalPriceEndown = 0;
+        public bool IsUpdateQuantity { get; set; } = false;
+        protected CartDto CartModel { get; set; } = new CartDto();
+        public bool isLoading = true;
+        public string PhuongThucNhanHang = "Nhan-Tai-Quay";
 
-        [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
-
-        protected CartDto Cart { get; set; } = new CartDto();
-        protected List<CartItem> CartItems { get; set; } = new List<CartItem>();
-        protected Guid UserId { get; set; }
-
-        public class CartItem
-        {
-            public Guid Id { get; set; }
-            public string Name { get; set; } = string.Empty;
-            public string SizeName { get; set; } = string.Empty;
-            public decimal Price { get; set; }
-            public int Quantity { get; set; }
-            public string ImageUrl { get; set; } = string.Empty;
-            public List<ComboProductItemDto> ComboProductItems { get; set; } = new List<ComboProductItemDto>(); // Thêm để lưu sản phẩm trong combo
-            public List<CartComboItemDto> CartComboItemDto { get; set; } = new List<CartComboItemDto>();
-
-        }
-
-        public class CartProductItem : CartItem { }
-        public class CartComboItem : CartItem { }
-
-        private CancellationTokenSource _cts = new();
-
-        public void Dispose()
-        {
-            _cts.Cancel();
-            _cts.Dispose();
-        }
 
         protected override async Task OnInitializedAsync()
         {
+            isLoading = true;
             if (CurrentUser.UserId == Guid.Empty)
-            {
-                ToastService.ShowError("Vui lòng đăng nhập để xem giỏ hàng.");
-                Navigation.NavigateTo("/");
+            {             
                 return;
             }
-
-            UserId = CurrentUser.UserId;
-            try
-            {
-                await LoadCart(_cts.Token);
-            }
-            catch (OperationCanceledException) { }
+            await LoadCart();
+            isLoading = false;
         }
 
         protected void NavigateToOrderHome()
@@ -69,85 +45,48 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             Navigation.NavigateTo("/Dat-Hang");
         }
 
-        protected async Task LoadCart(CancellationToken token)
+        protected async Task LoadCart()
         {
+           
             try
             {
-                var request = new ApiRequestModel { Endpoint = $"api/cart/{UserId}" };
-                var result = await CallApi.Get<CartDto>(request).WaitAsync(token);
-                if (!token.IsCancellationRequested && result.Status == StatusCode.OK && result.Data != null)
+
+                var request = new ApiRequestModel { Endpoint = $"api/Cart/{CurrentUser.UserId}" };
+                var result = await CallApi.Get<CartDto>(request);
+                if (result.Status == StatusCode.OK && result.Data != null)
                 {
-                    Cart = (CartDto)result.Data;
-                    CartItems = Cart.CartProductItems.Select(p => new CartProductItem
-                    {
-                        Id = p.Id,
-                        Name = p.ProductName,
-                        SizeName = p.SizeName,
-                        Price = p.Price,
-                        Quantity = p.Quantity,
-                        ImageUrl = p.ImageUrl
-                    }).Cast<CartItem>().Concat(Cart.CartComboItems.Select(c => new CartComboItem
-                    {
-                        Id = c.Id,
-                        Name = c.ComboName,
-                        SizeName = c.SizeName,
-                        Price = c.Price,
-                        Quantity = c.Quantity,
-                        ImageUrl = c.ImageUrl,
-                        ComboProductItems = c.ComboProductItems // Gán danh sách sản phẩm trong combo
-                    })).ToList();
+                    CartModel = (CartDto)result.Data;
+
+                    totalPrice = CartModel.CartItems.Sum(p => p.BasePrice*p.Quantity);
+                    totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0).Sum(p => p.BasePrice*p.Quantity - p.PriceEndown*p.Quantity);
                     StateHasChanged();
-                    await NavMenu.RefreshCartItemCount();
+                    await SharedService.TriggerUpdateAsync();
                 }
-                else if (!token.IsCancellationRequested)
+                else
                 {
                     ToastService.ShowError("Không thể tải giỏ hàng.");
                 }
             }
-            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 ToastService.ShowError($"Lỗi khi tải giỏ hàng: {ex.Message}");
             }
         }
 
-        protected async Task UpdateQuantity(CartItem item)
-        {
-            try
-            {
-                var endpoint = item is CartProductItem
-                    ? $"api/cart/update/{item.Id}"
-                    : $"api/cart/updatecombo/{item.Id}";
-                var request = new ApiRequestModel { Endpoint = endpoint };
-                var result = await CallApi.Put(request, item.Quantity);
-                if (result.Status == StatusCode.OK)
-                {
-                    await LoadCart(_cts.Token);
-                    ToastService.ShowSuccess("Đã cập nhật số lượng.");
-                }
-                else
-                {
-                    ToastService.ShowError("Không thể cập nhật số lượng.");
-                }
-            }
-            catch (Exception ex)
-            {
-                ToastService.ShowError($"Lỗi khi cập nhật số lượng: {ex.Message}");
-            }
-        }
 
-        protected async Task RemoveItem(CartItem item)
+
+        protected async Task RemoveItem(Guid itemId, ItemType itemType)
         {
             try
             {
-                var endpoint = item is CartProductItem
-                    ? $"api/cart/remove/{item.Id}"
-                    : $"api/cart/removecombo/{item.Id}";
+                var endpoint = itemType== ItemType.Product
+                    ? $"api/Cart/Remove/{itemId}"
+                    : $"api/Cart/Removecombo/{itemId}";
                 var request = new ApiRequestModel { Endpoint = endpoint };
                 var result = await CallApi.Delete(request);
                 if (result.Status == StatusCode.OK)
                 {
-                    await LoadCart(_cts.Token);
+                    await LoadCart();
                     ToastService.ShowSuccess("Đã xóa mục khỏi giỏ hàng.");
                 }
                 else
@@ -163,18 +102,18 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
 
         protected void CheckOut()
         {
-            Navigation.NavigateTo("/checkout");
+            Navigation.NavigateTo($"/Thanh-Toan/{PhuongThucNhanHang}");
         }
 
         protected async Task ClearCart()
         {
             try
             {
-                var request = new ApiRequestModel { Endpoint = $"api/cart/clear/{Cart.Id}" };
+                var request = new ApiRequestModel { Endpoint = $"api/Cart/Clear/{CartModel.Id}" };
                 var result = await CallApi.Delete(request);
                 if (result.Status == StatusCode.OK)
                 {
-                    await LoadCart(_cts.Token); // Tải lại giỏ hàng và cập nhật NavMenu trong LoadCart
+                    await LoadCart(); 
                     ToastService.ShowSuccess("Đã xóa giỏ hàng.");
                 }
                 else
@@ -186,6 +125,65 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             {
                 ToastService.ShowError($"Lỗi khi xóa giỏ hàng: {ex.Message}");
             }
+        }
+
+        public async Task IncreaseQuantity(Guid cartItemId, ItemType itemType)
+        {
+            IsUpdateQuantity = true;
+            QuantityInCartDto QuantityInCartDto = new QuantityInCartDto()
+            {
+                UserId = CurrentUser.UserId,
+                ItemId = cartItemId,
+                ItemType = itemType,
+                QuantityThayDoi = 1
+            };
+            var request = new ApiRequestModel { Endpoint = $"api/Cart/UpdateQuantity", };
+
+            ResultAPI resultCheck = await CallApi.Put(request, QuantityInCartDto);
+            if (resultCheck.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Cập nhật thành công");
+                await LoadCart();
+                StateHasChanged();
+            }
+            IsUpdateQuantity = false;
+
+        }
+
+        public async Task DecreaseQuantity(Guid cartItemId, ItemType itemType, int quantity)
+        {
+            IsUpdateQuantity = true;
+
+            if (quantity > 1) {
+                QuantityInCartDto QuantityInCartDto = new QuantityInCartDto()
+                {
+                    UserId = CurrentUser.UserId,
+                    ItemId = cartItemId,
+                    ItemType = itemType,
+                    QuantityThayDoi = -1
+                };
+                var request = new ApiRequestModel { Endpoint = $"api/Cart/UpdateQuantity" };
+
+                ResultAPI resultCheck = await CallApi.Put(request, QuantityInCartDto);
+                if (resultCheck.Status == StatusCode.OK)
+                {
+                    ToastService.ShowSuccess("Cập nhật thành công");
+                    await LoadCart();
+                    StateHasChanged();
+                }
+            }
+            IsUpdateQuantity = false;
+
+
+        }
+        public void PhuongThucNhanHangClick(string phuongThuc)
+        {
+            PhuongThucNhanHang = phuongThuc;
+            StateHasChanged();
+        }
+        public string GetBorderStyle(string value)
+        {
+            return PhuongThucNhanHang == value ? "2px solid #FF969A" : "2px solid #ccc";
         }
     }
 }

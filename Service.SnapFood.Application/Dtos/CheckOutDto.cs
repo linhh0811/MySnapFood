@@ -11,13 +11,8 @@ namespace Service.SnapFood.Application.Dtos
     public class CheckOutDto
     {
         public Guid UserId { get; set; }
-        public Guid CartID { get; set; }
-        public Guid AddressID { get; set; }
-        public Guid StoreID { get; set; }
-        public List<CartProductItem> CartItemes { get; set; } = new List<CartProductItem>();
-        public Address Address { get; set; } = new Address();
-        public Store Store { get; set; } = new Store();
-        public ReceivingType ReceivingType { get; set; } //phương thức nhận hàng
+        public ReceivingType ReceivingType { get; set; } 
+        public PaymentType PaymentType { get; set; }
         public string ReceiverName { get; set; } = string.Empty;
         public string ReceiverPhone { get; set; } = string.Empty;
         public string? Description { get; set; }

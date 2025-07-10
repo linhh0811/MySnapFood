@@ -1,7 +1,10 @@
 ﻿@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.Cart
 @using Service.SnapFood.Client.Dto.Category
 @using Service.SnapFood.Client.Dto.Product
+@using Service.SnapFood.Client.Infrastructure.Service
 @using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.SQL
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using Service.SnapFood.Share.Query
@@ -9,69 +12,80 @@
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Authorization
 @using Service.SnapFood.Client.Components.Layout
-@foreach (var product in ProductDto)
+@inject SharedStateService SharedService
+
+@if (isLoading)
 {
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <FluentCard class="h-100 position-relative" style="min-height: 380px;">
-            <img src="@product.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@product.ProductName" />
-            <div style="padding: 0; min-height: 100px; display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px;">@product.ProductName</FluentLabel>
-                    @if (!string.IsNullOrEmpty(product.SizeName))
-                    {
-                        <p class="card-title" style="margin: 0;padding:0px;padding-bottom:20px;">@product.SizeName</p>
-                    }
-                    else if (!string.IsNullOrEmpty(product.CategoryName))
-                    {
-                        <p class="card-title" style="margin: 0;padding:0px;">@product.CategoryName</p>
-
-                    }
-                </div>
-                @if (product.PriceEndown > 0)
-                {
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
-                            @product.BasePrice.ToString("N0") đ
-                        </FluentLabel>
-
-                        @if (product.BasePrice > product.PriceEndown)
+    <div class="loading-center">Đang tải...</div>
+}
+else
+{
+    @foreach (var product in ProductDto)
+    {
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <FluentCard class="h-100 position-relative" style="min-height: 380px;">
+                <img src="@product.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@product.ProductName" />
+                <div style="padding: 0; min-height: 100px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px;">@product.ProductName</FluentLabel>
+                        @if (!string.IsNullOrEmpty(product.SizeName))
                         {
-                            var discountPercent = Math.Round(((product.BasePrice - product.PriceEndown) / product.BasePrice) * 100);
-                            <FluentLabel Typo="Typography.H6" Style="color: green;">
-                                -@discountPercent%
-                            </FluentLabel>
+                            <p class="card-title" style="margin: 0;padding:0px;padding-bottom:20px;">@product.SizeName</p>
+                        }
+                        else if (!string.IsNullOrEmpty(product.CategoryName))
+                        {
+                            <p class="card-title" style="margin: 0;padding:0px;">@product.CategoryName</p>
+
                         }
                     </div>
-                }
-
-            </div>
-            <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
-                <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
                     @if (product.PriceEndown > 0)
                     {
-                        <span>@product.PriceEndown.ToString("N0") đ</span>
-                    }
-                    else
-                    {
-                        <span>@product.BasePrice.ToString("N0") đ</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                @product.BasePrice.ToString("N0") đ
+                            </FluentLabel>
 
+                            @if (product.BasePrice > product.PriceEndown)
+                            {
+                                var discountPercent = Math.Round(((product.BasePrice - product.PriceEndown) / product.BasePrice) * 100);
+                                <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                    -@discountPercent%
+                                </FluentLabel>
+                            }
+                        </div>
                     }
-                    
-                </FluentLabel>
-                <FluentButton Appearance="Appearance.Accent"
-                              Title="Thêm sản phẩm"
-                              Style="padding: 0; margin-left: auto;"
-                              Type="ButtonType.Submit"
-                              OnClick="()=>HandleClick(product.Id,product.SizeId)">
-                    +
-                </FluentButton>
-            </div>
-        </FluentCard>
-    </div>
+
+                </div>
+                <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                    <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                        @if (product.PriceEndown > 0)
+                        {
+                            <span>@product.PriceEndown.ToString("N0") đ</span>
+                        }
+                        else
+                        {
+                            <span>@product.BasePrice.ToString("N0") đ</span>
+
+                        }
+
+                    </FluentLabel>
+                    <FluentButton BackgroundColor="#ff5b6a"
+                    Color="white"
+                    Title="Thêm sản phẩm"
+                    Style="padding: 0; margin-left: auto;"
+                    Type="ButtonType.Submit"
+                    OnClick="()=>HandleClick(product.Id,product.SizeId)">
+                        +
+                    </FluentButton>
+                </div>
+            </FluentCard>
+        </div>
 
     }
-
+}
 @code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -85,10 +99,13 @@
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private List<ProductDto> ProductDto = new List<ProductDto>();
     [Parameter] public ViewParameters Content { get; set; } = new();
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
         await LoadProduct();
+        isLoading = false;
     }
     protected override async Task OnParametersSetAsync()
     {
@@ -112,8 +129,8 @@
                 };
             requestRestAPI.Endpoint = "api/Product/GetPaged";
 
-            ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
-            if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+            ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
+            if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
             {
                 var items = JsonSerializer.Deserialize<List<ProductDto>>(dataTable.Data.GetRawText(),
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ProductDto>();
@@ -171,49 +188,29 @@
         }
         else
         {
-            await AddProductToCart(productId, null);
+            await AddProductToCart(productId);
         }
     }
-    private async Task AddProductToCart(Guid productId, Guid? sizeId)
+    private async Task AddProductToCart(Guid productId)
     {
         try
-        {
-            // Lấy thông tin xác thực người dùng
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-            var userIdClaim = user.FindFirst("user_id");
-
-            // Kiểm tra xem người dùng đã đăng nhập chưa
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
-            {
-                ToastService.ShowError("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.");
-                Navigation.NavigateTo("/login");
-                return;
-            }
-
-            // Tạo đối tượng DTO để gửi lên API
-            var addToCartDto = new
-            {
-                UserId = userId,
-                ProductId = productId,
-                SizeId = sizeId, // Nếu sizeId là null, dùng Guid mặc định
-                Quantity = 1 // Số lượng mặc định
-            };
-
-            // Cấu hình và gọi API
-            Console.WriteLine($"Sending to API: {JsonSerializer.Serialize(addToCartDto)}");
-            var requestRestAPI = new ApiRequestModel
+        {        
+            requestRestAPI.Endpoint = "api/Cart/AddProductToCart";
+   
+            AddProductToCartDto AddProductToCartDto = new AddProductToCartDto
                 {
-                    Endpoint = "api/cart/addproduct"
+                    ProductId = productId,
+                    UserId = CurrentUser.UserId,
+                    Quantity = 1
                 };
-
-            var result = await CallApi.Post<object>(requestRestAPI, addToCartDto);
+            var result = await CallApi.Post<object>(requestRestAPI, AddProductToCartDto);
 
             // Xử lý kết quả từ API
             if (result.Status == StatusCode.OK)
             {
                 ToastService.ShowSuccess("Đã thêm sản phẩm vào giỏ hàng.");
-                await NavMenu.RefreshCartItemCount(); // Cập nhật số lượng giỏ hàng
+                await SharedService.TriggerUpdateAsync();
+
             }
             else
             {

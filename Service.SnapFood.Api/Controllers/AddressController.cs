@@ -17,7 +17,7 @@ namespace Service.SnapFood.Api.Controllers
             _addressService = addressService;
         }
 
-        [HttpGet]
+        [HttpGet ("GetAll")]
         public async Task<IActionResult> GetAll()
         {
             var addresses = await _addressService.GetAllAsync();
@@ -32,7 +32,12 @@ namespace Service.SnapFood.Api.Controllers
                 return NotFound("Không tìm thấy địa chỉ");
             return Ok(address);
         }
-
+        [HttpGet("GetAddressByUserId/{id}")]
+        public IActionResult GetAddressByUserId(Guid id)
+        {
+            var addresses = _addressService.GetAddressByUserId(id);
+            return Ok(addresses);
+        }
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddressDto item)
         {

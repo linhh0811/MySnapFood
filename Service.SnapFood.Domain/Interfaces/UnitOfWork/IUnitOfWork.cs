@@ -29,6 +29,8 @@ namespace Service.SnapFood.Domain.Interfaces.UnitOfWork
         ICategoriesRepository CategoriesRepo { get; }
         IPromotionRepository PromotionRepository { get; }
         IPromotionItemsRepository PromotionItemsRepository { get; }
+        IComboProductItemRepository ComboProductItemRepository { get; }
+
 
         Task<int> CompleteAsync(Guid UserId = default);
         int Complete(Guid UserId = default);

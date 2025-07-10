@@ -5,38 +5,81 @@
 @using Microsoft.AspNetCore.Components.Authorization;
 
 @inject IUserService UserService
-@if (CurrentUser is not null && !string.IsNullOrEmpty(CurrentUser.UserName))
+<style>
+    body {
+        margin: 0;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 18px;
+        font-family: "Times New Roman", serif !important;
+    }
+
+
+    .loading-center {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: 1;
+    }
+
+    *, *::before, *::after {
+        font-family: inherit !important;
+    }
+
+    input, textarea, button, select {
+        font-family: inherit !important;
+    }
+</style>
+
+@if (isLoading)
 {
-     <CascadingValue Value="CurrentUser">
-    <FluentLayout>
-            
-        <FluentStack Class="body-stack" Orientation="Orientation.Horizontal" Width="100%" HorizontalGap="0">
-            
-            <NavMenu />
-            <FluentBodyContent id="body-content" Style="height: calc(100dvh - 90px);">
-                    <Header />
-                <div class="content">
-                    <article id="article">
-
-                        @Body
-
-                    </article>
-                    <FluentToastProvider MaxToastCount="10" Position="ToastPosition.BottomRight" />
-                    <FluentDialogProvider />
-                    <FluentTooltipProvider />
-                    <FluentKeyCodeProvider />
-                    <FluentMenuProvider />
-
-                </div>
-            </FluentBodyContent>
-        </FluentStack>
-    </FluentLayout>
-    </CascadingValue>
-
+    <div class="loading-center">
+        Đang tải...
+    </div>
 }
 else
 {
-    <Login></Login>
+    @if (CurrentUser is not null && !string.IsNullOrEmpty(CurrentUser.UserName))
+    {
+        <CascadingValue Value="CurrentUser">
+            <FluentLayout>
+
+                <FluentStack Class="body-stack" Orientation="Orientation.Horizontal" Width="100%" HorizontalGap="0">
+
+                    <NavMenu />
+                    <FluentBodyContent id="body-content" Style="height: calc(100dvh - 90px);">
+                        <Header />
+                        <div class="content">
+                            <article id="article">
+
+                                @Body
+
+                            </article>
+                            <FluentToastProvider MaxToastCount="10" Position="ToastPosition.BottomRight" />
+                            <FluentDialogProvider />
+                            <FluentTooltipProvider />
+                            <FluentKeyCodeProvider />
+                            <FluentMenuProvider />
+
+                        </div>
+                    </FluentBodyContent>
+                </FluentStack>
+            </FluentLayout>
+        </CascadingValue>
+
+    }
+    else
+    {
+        <Login></Login>
+    }
 }
 <div id="blazor-error-ui">
     An unhandled error has occurred.
@@ -45,10 +88,13 @@ else
 </div>
 @code {
     private CurrentUser CurrentUser = new();
+    public bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
         CurrentUser = await UserService.GetCurrentUserAsync();
+        isLoading = false;
         StateHasChanged();
     }
 }

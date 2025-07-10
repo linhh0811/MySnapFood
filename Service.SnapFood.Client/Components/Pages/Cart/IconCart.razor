@@ -1,0 +1,72 @@
+﻿@using Service.SnapFood.Client.Infrastructure.Service
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@inject SharedStateService SharedService
+<FluentNavLink Href="/Gio-Hang">
+    <div style="position: fixed; bottom: 20px; right: 100px; background: #facc15;
+                                                    padding: 15px 25px; border-radius: 20px; display: flex;
+                                                    align-items: center; font-size: 20px; font-weight: bold; z-index: 999;cursor: pointer;">
+        @if (isLoading)
+        {
+            <span>Đang tải...</span>
+        }
+        else
+        {
+            <FluentCounterBadge Count="@Quantity" Appearance="Appearance.Accent">
+                <FluentIcon Value="@(new Icons.Regular.Size24.Cart())"
+                            Style="font-size: 28px; margin-right: 10px;" />
+            </FluentCounterBadge>
+
+            <span style="padding-left:10px;">100,000 đ</span>
+        }
+        
+    </div>
+</FluentNavLink>
+
+@code{
+    [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
+    [Inject] protected ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] protected IToastService ToastService { get; set; } = default!;
+    private int Quantity { get; set; } = 0;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        SharedService.OnTrigger += HandleTriggered;
+        await GetQuantity();
+        isLoading = false;
+
+    }
+    public async Task GetQuantity()
+    {
+        try
+        {
+
+            var request = new ApiRequestModel { Endpoint = $"api/Cart/Quantity/{CurrentUser.UserId}" };
+            var result = await CallApi.Get<int>(request);
+            if (result.Status == StatusCode.OK && result.Data != null)
+            {
+                Quantity = Convert.ToInt32(result.Data);            
+                StateHasChanged();
+            }
+            else
+            {
+                ToastService.ShowError("Không thể tải giỏ hàng.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải giỏ hàng: {ex.Message}");
+        }
+    }
+    async Task  HandleTriggered()
+    {     
+        await GetQuantity();
+    }
+    public void Dispose()
+    {
+        SharedService.OnTrigger -= HandleTriggered; // đừng quên hủy đăng ký
+    }
+}

@@ -169,7 +169,8 @@ namespace Service.SnapFood.Application.Service
                     CreatedBy = product.CreatedBy,
                     LastModifiedBy = product.LastModifiedBy,
                     CreatedByName = product.CreatedBy == Guid.Empty ? "Hệ thống" : createdByUser?.FullName ?? "Không xác định",
-                    LastModifiedByName = product.LastModifiedBy == Guid.Empty ? "Hệ thống" : modifiedByUser?.FullName ?? "Không xác định"
+                    LastModifiedByName = product.LastModifiedBy == Guid.Empty ? "Hệ thống" : modifiedByUser?.FullName ?? "Không xác định",
+                    PriceEndown = GetPriceEndown(product.Id, product.BasePrice),
                 };
 
                 if (product.SizeId is not null)
