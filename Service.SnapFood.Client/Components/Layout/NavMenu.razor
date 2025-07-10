@@ -46,7 +46,9 @@
                         </FluentMenuItem>
                         <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.Location())" /> Địa chỉ giao hàng</FluentMenuItem>
                         <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.Tag())" /> Mã giảm giá</FluentMenuItem>
-                        <FluentMenuItem OnClick="OpenMenu"><FluentIcon Value="@(new Icons.Regular.Size20.Person())" /> Thông tin tài khoản</FluentMenuItem>
+                        <FluentMenuItem OnClick="@(() => Navigation.NavigateTo("/thong-tin-tai-khoan"))">
+                            <FluentIcon Value="@(new Icons.Regular.Size20.History())" /> Thông tin tài khoản
+                        </FluentMenuItem>
                         <hr style="margin:8px" />
                         <FluentMenuItem OnClick="Logout"><FluentIcon Value="@(new Icons.Regular.Size20.SignOut())" /> Đăng xuất</FluentMenuItem>
 

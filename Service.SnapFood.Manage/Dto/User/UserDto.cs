@@ -7,6 +7,7 @@
         public bool IsInRole { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string Numberphone { get; set; } = string.Empty;
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
         public Guid CreatedBy { get; set; }

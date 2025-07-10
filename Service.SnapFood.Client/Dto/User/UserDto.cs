@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Service.SnapFood.Client.Enums;
 using Service.SnapFood.Share.Model.SQL;
-using Service.SnapFood.Domain.Enums;
-namespace Service.SnapFood.Application.Dtos
+
+namespace Service.SnapFood.Client.Dto.User
 {
     public class UserDto
     {
