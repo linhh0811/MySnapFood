@@ -45,7 +45,7 @@ namespace Service.SnapFood.Api.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
             var user = await _userService.GetByIdAsync(Guid.Parse(userId));
-            return Ok(new UserDto { Id = user.Id, FullName = user.FullName, Email = user.Email });
+            return Ok(new UserDto { Id = user.Id, FullName = user.FullName, Email = user.Email, Numberphone = user.Numberphone });
         }
 
 
@@ -77,6 +77,19 @@ namespace Service.SnapFood.Api.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserDto model)
+        {
+            if (id == Guid.Empty || model == null)
+                return BadRequest("Dữ liệu không hợp lệ");
+
+            var success = await _userService.UpdateAsync(id, model);
+            if (!success)
+                return BadRequest("Cập nhật không thành công");
+
+            return Ok(new { message = "Cập nhật thành công" });
         }
     }
 }

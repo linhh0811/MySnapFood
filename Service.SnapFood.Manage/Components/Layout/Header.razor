@@ -16,17 +16,21 @@
                 <FluentLabel>@CurrentUser.Email</FluentLabel>
             </div>
         </ChildContent>
+
         <FooterTemplate>
             <FluentStack>
                 <FluentSpacer />
-                <FluentAnchor Appearance="@Appearance.Hypertext"
-                              Href=""
-                              Target="_blank">Xem chi tiết</FluentAnchor>
+                <FluentButton Title="Xem chi tiết"
+                              Appearance="Appearance.Outline"
+                              OnClick="@(() => OpenModalUpdate(CurrentUser.UserId))">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.ContactCard())" />
+                </FluentButton>
             </FluentStack>
         </FooterTemplate>
+
     </FluentProfileMenu>
 </FluentStack>
-@code{
+@code {
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; } = new();
 }
