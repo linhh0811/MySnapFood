@@ -2,6 +2,7 @@
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Enums;
+using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Query;
 using System;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         [HttpPost("GetPaged")]
-        public IActionResult GetPage([FromBody] BaseQuery query)
+        public IActionResult GetPage( BillQuery query)
         {
             var result = _billService.GetPage(query);
             return Ok(result);

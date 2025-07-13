@@ -1,6 +1,7 @@
 ﻿using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Enums;
+using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Query;
 using System;
@@ -11,7 +12,7 @@ namespace Service.SnapFood.Application.Interfaces
 {
     public interface IBillService
     {
-        DataTableJson GetPage(BaseQuery query);
+        DataTableJson GetPage(BillQuery query);
         Task<List<Bill>> GetAllAsync();
         Task<Bill> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(BillDto item);

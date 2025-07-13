@@ -4,8 +4,13 @@ using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Enums;
+
+
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
+using Service.SnapFood.Domain.Query;
+
 using Service.SnapFood.Share.Model.Commons;
+using Service.SnapFood.Share.Model.SQL;
 using Service.SnapFood.Share.Query;
 using System;
 using System.Collections.Generic;
@@ -46,42 +51,7 @@ namespace Service.SnapFood.Application.Service
             };
         }
 
-        public DataTableJson GetPage(BaseQuery query)
-        {
-            try
-            {
-                if (query == null || query.gridRequest == null)
-                    throw new ArgumentNullException(nameof(query), "Thông tin phân trang không hợp lệ");
-
-                int totalRecords = 0;
-                var dataQuery = _unitOfWork.BillRepo.FilterData(
-                    q => q, // Không có điều kiện lọc cụ thể
-                    query.gridRequest,
-                    ref totalRecords
-                );
-
-                var data = dataQuery.ToList()
-                    .Select((m, i) => new BillDto
-                    {
-                        Id = m.Id,
-                        BillCode = m.BillCode,
-                        UserId = m.UserId,
-                        FullName = _unitOfWork.UserRepo.GetById(m.UserId)?.FullName??string.Empty,
-                        StoreId = m.StoreId,
-                        Status = m.Status,
-                        TotalAmount = m.TotalAmount,
-                        TotalAmountEndow = m.TotalAmountEndow,
-                        Created = m.Created
-                    }).ToList();
-
-                return new DataTableJson(data, query.draw, totalRecords);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
+       
         public async Task<List<Bill>> GetAllAsync()
         {
             var bills = await _unitOfWork.BillRepo.GetAllAsync();
@@ -304,7 +274,47 @@ namespace Service.SnapFood.Application.Service
             return results.ToList();
         }
 
+        public DataTableJson GetPage(BillQuery query)
+        {
+         
+            try
+            {
+                if (query == null || query.gridRequest == null)
+                    throw new ArgumentNullException();
 
+                int totalRecords = 0;
 
+                var dataQuery = _unitOfWork.BillRepo.FilterData(
+                    q => query.Status.HasValue ?
+                        q.Where(x => (int)x.Status == (int)query.Status.Value) : q,
+                    query.gridRequest,
+                    ref totalRecords
+                );
+
+                var allUsers = _unitOfWork.UserRepo.GetAll().ToList();
+
+                var data = dataQuery.ToList().Select(m => new BillDto
+                {
+                    Id = m.Id,
+                    BillCode = m.BillCode,
+                    UserId = m.UserId,
+                    FullName = allUsers.FirstOrDefault(u => u.Id == m.UserId)?.FullName ?? string.Empty,
+                    StoreId = m.StoreId,
+                    Status = m.Status,
+                 
+                    TotalAmount = m.TotalAmount,
+                    TotalAmountEndow = m.TotalAmountEndow,
+                    Created = m.Created
+                }).ToList();
+
+                return new DataTableJson(data, query.draw, totalRecords);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Lỗi khi phân trang hóa đơn: " + ex.Message);
+            }
+        }
+
+       
     }
 }

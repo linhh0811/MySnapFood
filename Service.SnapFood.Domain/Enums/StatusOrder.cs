@@ -8,6 +8,7 @@ namespace Service.SnapFood.Domain.Enums
 {
     public enum StatusOrder
     {
+        None = -1,
         Pending = 0,  /*-Chờ xác nhận*/
         Confirmed = 1, /*- Đơn hàng đã được xác nhận bởi hệ thống hoặc người quản lý.*/
         Shipping = 2, /*- Đơn hàng đã được chuyển cho đơn vị vận chuyển.*/
