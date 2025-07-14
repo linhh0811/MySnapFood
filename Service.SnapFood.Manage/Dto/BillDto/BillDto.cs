@@ -1,4 +1,5 @@
 ﻿using Service.SnapFood.Manage.Enums;
+using Service.SnapFood.Share.Model.Enum;
 using System.ComponentModel.DataAnnotations;
 
 namespace Service.SnapFood.Manage.Dto.BillDto
@@ -23,7 +24,7 @@ namespace Service.SnapFood.Manage.Dto.BillDto
         public string StoreName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Trạng thái đơn hàng là bắt buộc.")]
-        public StatusOrder Status { get; set; }
+        public StatusOrder  Status { get; set; }
 
         public string StatusText { get; set; } = string.Empty;
 
