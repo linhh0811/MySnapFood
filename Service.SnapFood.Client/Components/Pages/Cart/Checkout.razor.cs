@@ -1,15 +1,18 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Service.SnapFood.Client.Components.Layout;
+using Service.SnapFood.Client.Dto.Addresss;
 using Service.SnapFood.Client.Dto.Auth;
 using Service.SnapFood.Client.Dto.Cart;
 using Service.SnapFood.Client.Dto.Momo;
 using Service.SnapFood.Client.Enums;
+using Service.SnapFood.Client.Infrastructure.Service;
 using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.Momo;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
 using System.Text.Json;
+using static Service.SnapFood.Client.Infrastructure.Service.AddressService;
 
 namespace Service.SnapFood.Client.Components.Pages.Cart
 {
@@ -21,6 +24,8 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         [Inject] protected IToastService ToastService { get; set; } = default!;
         [Inject] protected NavigationManager Navigation { get; set; } = default!;
         [Inject] protected NavMenu NavMenu { get; set; } = default!; // Inject NavMenu
+        [Inject] protected IAddressService AddressService { get; set; } = default!; // Inject NavMenu
+
         protected CartDto CartModel { get; set; } = new CartDto();
 
         protected List<object> CartItems { get; set; } = new List<object>();
@@ -34,6 +39,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         public string Notes { get; set; } = string.Empty;
         public string ReceiverName { get; set; } = string.Empty;
         public string ReceiverPhone { get; set; } = string.Empty;
+        public double KhoangCach = 0;
 
         protected void NavigateToHome()
         {
@@ -52,6 +58,14 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             await LoadCart();
             await LoadAddress();
             await LoadStores();
+            DistanceRequest DistanceRequest = new DistanceRequest
+            {
+                OriginLatitude = Store.Address.Latitude,
+                OriginLongitude = Store.Address.Longitude,
+                DestinationLatitude = Address.Latitude,
+                DestinationLongitude = Address.Longitude
+            };
+            KhoangCach = await AddressService.CalculateDistanceKmAsync(DistanceRequest) ?? 0;
             isLoading = false;
         }
 
@@ -82,6 +96,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 ToastService.ShowError($"Lỗi khi tải giỏ hàng: {ex.Message}");
             }
         }
+
 
         protected async Task LoadAddress()
         {
@@ -148,7 +163,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 else
                 {
                     checkOutDto.ReceivingType = ReceivingType.HomeDelivery;
-                    checkOutDto.PaymentType = PaymentType.Transfer;
+                    checkOutDto.PaymentType = PaymentType.Momo;
                     checkOutDto.ReceiverName = ReceiverName;
                     checkOutDto.ReceiverPhone = ReceiverPhone;
                 }

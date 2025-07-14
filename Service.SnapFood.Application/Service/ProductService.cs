@@ -427,30 +427,37 @@ namespace Service.SnapFood.Application.Service
         private decimal GetPriceEndown(Guid productId, decimal BasePrice)
         {
             var promotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.ItemId == productId).ToList();
+            List<decimal> PriceEndowns = new List<decimal>();
+ 
             foreach (var item in promotionItems)
             {
-                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now);
-                if (promotions.Count() > 0)
+                var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.Id == item.PromotionId && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now&&x.ModerationStatus== ModerationStatus.Approved);
+                
+                foreach (var promotion in promotions)
                 {
-                    var promotion = promotions.First();
                     if (promotion.PromotionType == PromotionType.FixedPrice)
                     {
-                        return promotion.PromotionValue;
+                        PriceEndowns.Add(promotion.PromotionValue);
 
                     }
                     else if (promotion.PromotionType == PromotionType.Amount)
                     {
                         if ((BasePrice - promotion.PromotionValue) <= 0)
                         {
-                            return 1000;
+                            PriceEndowns.Add(1000);
                         }
                         else
                         {
-                            return BasePrice - promotion.PromotionValue;
+                            PriceEndowns.Add(BasePrice - promotion.PromotionValue);
                         }
 
                     }
                 }
+                
+            }
+            if (PriceEndowns.Count()>0)
+            {
+                return PriceEndowns.Min();
             }
             return 0;
 

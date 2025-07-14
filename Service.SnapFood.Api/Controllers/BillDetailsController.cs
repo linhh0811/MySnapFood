@@ -30,13 +30,7 @@ namespace Service.SnapFood.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<List<BillDetails>>> GetBillDetailsByBillId(Guid id)
         {
-            var billDetails = await _billService.GetBillDetailsByBillIdAsync(id); // TRUYỀN billId vào đây
-
-            if (billDetails == null || billDetails.Count == 0)
-            {
-                return NotFound("Không tìm thấy chi tiết đơn hàng.");
-            }
-
+            var billDetails = await _billService.GetDetailsByBillIdAsync(id); // TRUYỀN billId vào đây
             return Ok(billDetails);
         }
 

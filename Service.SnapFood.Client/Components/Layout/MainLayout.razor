@@ -77,7 +77,7 @@
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.History())" OnClick="()=>OpenMenuThongTin(true)" Href="/Lich-Su-Don-Hang">Lịch sử đơn hàng</FluentNavLink>
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.Location())" Href="/Dia-Chi" OnClick="()=>OpenMenuThongTin(true)">Địa chỉ giao hàng</FluentNavLink>
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.Tag())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Mã giảm giá</FluentNavLink>
-                                                            <FluentNavLink Icon="@(new Icons.Regular.Size20.Person())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Thông tin tài khoản</FluentNavLink>
+                                                            <FluentNavLink Icon="@(new Icons.Regular.Size20.Person())" Href="/Thong-Tin-Tai-Khoan" OnClick="()=>OpenMenuThongTin(true)">Thông tin tài khoản</FluentNavLink>
                                                             <hr style="margin:8px" />
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.SignOut())">Đăng xuất</FluentNavLink>
                                                         </FluentNavMenu>
@@ -148,7 +148,16 @@
     private CurrentUser CurrentUser = new();
     private bool OpenMenu = false;
     private bool _loaded = false;
-    private bool _justOpenedMenu = false; // Biến trạng thái tạm thời
+    private bool _justOpenedMenu = false;
+
+    // Danh sách các địa chỉ URL cần hiển thị menu
+    private readonly List<string> _menuUrls = new()
+    {
+        "/Lich-Su-Don-Hang",
+        "/Dia-Chi",
+        "/Thong-Tin-Tai-Khoan",
+        "/Ma-Giam-Gia"
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -161,6 +170,10 @@
         if (firstRender)
         {
             CurrentUser = await UserService.GetCurrentUserAsync();
+
+            // Kiểm tra nếu đang ở trong danh sách URL cần mở menu
+            OpenMenu = ShouldOpenMenu(Navigation.ToBaseRelativePath(Navigation.Uri));
+
             _loaded = true;
             StateHasChanged();
         }
@@ -170,16 +183,28 @@
     {
         if (!_justOpenedMenu)
         {
-            OpenMenu = false;
+            var path = Navigation.ToBaseRelativePath(e.Location);
+            OpenMenu = ShouldOpenMenu(path);
             StateHasChanged();
         }
+
         _justOpenedMenu = false;
+    }
+
+    private bool ShouldOpenMenu(string url)
+    {
+        // Loại bỏ dấu '/' ở cuối URL nếu có
+        url = url.TrimEnd('/');
+
+        // So sánh không phân biệt hoa thường
+        return _menuUrls.Any(menuUrl => url.Contains(menuUrl.TrimStart('/'), StringComparison.OrdinalIgnoreCase));
     }
 
     public void Dispose()
     {
-        Navigation.LocationChanged -= OnLocationChanged; // Hủy đăng ký sự kiện khi component bị hủy
+        Navigation.LocationChanged -= OnLocationChanged;
     }
+
     private void OpenMenuThongTin(bool result)
     {
         OpenMenu = result;

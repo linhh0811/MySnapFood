@@ -1,10 +1,12 @@
-﻿@page "/bills/user/{id:guid}"
+﻿@page "/Lich-Su-Don-Hang/{id:guid}"
 @inject HttpClient Http
 @inject NavigationManager Nav
 
 @using Service.SnapFood.Client.Dto.Bill
 @using Service.SnapFood.Client.Dto.BillDetails
 @using Service.SnapFood.Client.Enums
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 
 <h2 style="margin-bottom: 24px;">Chi tiết đơn hàng</h2>
 
@@ -18,6 +20,7 @@ else if (!string.IsNullOrEmpty(ErrorMessage))
 }
 else
 {
+
     <!-- STEP TRẠNG THÁI -->
     <div class="step-container">
         @for (int i = 1; i <= 5; i++)
@@ -50,110 +53,192 @@ else
             </div>
         }
     </div>
+    <div class="container order-info">
+        <div class="row">
+            <!-- Bên trái -->
+            <div class="col-md-6 left">
+                <p><strong>@Item.BillDeliveryDto.ReceiverName</strong></p>
+                <p>@Item.BillDeliveryDto.ReceiverAddress</p>
+                <p>Điện thoại: @Item.BillDeliveryDto.ReceiverPhone</p>
+            </div>
 
+            <!-- Bên phải -->
+            <div class="col-md-6 right">
+                <p><span class="label">Mã đơn hàng:</span> <span class="order-id">@Item.BillCode</span></p>
+                <p><span class="label">Thời gian đặt:</span>@Item.Created</p>
+                <p><span class="label">Hình thức thanh toán:</span>@Item.BillPaymentDto.PaymentType</p>
+            </div>
+        </div>
+    </div>
 
 
     <!-- DANH SÁCH MÓN ĂN -->
-    @if (Items == null || !Items.Any())
+    @if (!Item.BillDetailsDtos.Any())
     {
         <p>Không tìm thấy đơn hàng.</p>
     }
     else
     {
+
         <div style="margin-top: 16px">
-            <div style="font-weight: bold; display: flex; padding: 10px 16px; background-color: #f2f2f2; border-radius: 6px; margin-bottom: 8px;">
-                <div style="flex: 3;">Sản phẩm</div>
-                <div style="flex: 2;">Số lượng</div>
-                <div style="flex: 2;">Giá</div>
-                <div style="flex: 3;">Thành tiền</div>
+            <FluentDataGrid Items="@Item.BillDetailsDtos.AsQueryable()"
+                            TGridItem="BillDetailsDto"
+                            GridTemplateColumns=" 0.75fr 1.45fr 0.75fr 0.75fr 0.75fr"
+                            ResizableColumns="false"
+                            MultiLine="true"
+                            ShowHover="true">
+                <ChildContent>
+                   
+                    <TemplateColumn Title="Hình ảnh" Style="display:flex;align-items:center;">
+                        <img src="@context.ImageUrl" style="max-height:60px;max-width:70px;object-fit:contain;" />
+                    </TemplateColumn>
+                    <TemplateColumn Title="Tên" Style="display: flex; flex-direction: column; justify-content: center;">
+                        <span style="font-size:16px;">
+                            @context.ItemsName
+                        </span>
+          
+                        @if (context.ItemType == ItemType.Combo)
+                        {
+                            <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
+                                @foreach (var item in context.Product)
+                                {
+                                    <div style="cursor: pointer;font-size:12px;">
+                                        @item.ProductName 
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </TemplateColumn>
+                    <TemplateColumn Title="Giá" Style="display: flex; flex-direction: column; justify-content: center;">
+                        @if (context.PriceEndow > 0)
+                        {
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <FluentLabel Style="text-decoration: line-through;font-size:12px;">
+                                    @context.Price.ToString("N0") đ
+                                </FluentLabel>
+
+                                @if (context.Price > context.PriceEndow)
+                                {
+                                    var discountPercent = Math.Round(((context.Price - context.PriceEndow) / context.Price) * 100);
+                                    <FluentLabel Style="color: green;font-size:12px;">
+                                        -@discountPercent %
+                                    </FluentLabel>
+                                }
+                            </div>
+                            <FluentLabel>@context.PriceEndow.ToString("N0") đ</FluentLabel>
+                        }
+                        else
+                        {
+                            <FluentLabel>@context.Price.ToString("N0") đ</FluentLabel>
+                        }
+                    </TemplateColumn>
+                    <TemplateColumn Title="Số lượng" Style="display:flex;align-items:center;gap:5px;">
+                        @context.Quantity
+                    </TemplateColumn>
+                    <TemplateColumn Title="Tổng" Style="display: flex; flex-direction: column; justify-content: center;">
+                        @if (context.PriceEndow > 0)
+                        {
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <FluentLabel Style="text-decoration: line-through;font-size:12px;">
+                                    @((context.Price * context.Quantity).ToString("N0")) đ
+                                </FluentLabel>
+
+                                @if (context.Price > context.PriceEndow)
+                                {
+                                    var discountPercent = Math.Round(((context.Price - context.PriceEndow) / context.Price) * 100);
+                                    <FluentLabel Style="color: green;font-size:12px;">
+                                        -@discountPercent %
+                                    </FluentLabel>
+                                }
+                            </div>
+                            <FluentLabel>@((context.PriceEndow * context.Quantity).ToString("N0")) đ</FluentLabel>
+                        }
+                        else
+                        {
+                            <FluentLabel>@((context.Price * context.Quantity).ToString("N0")) đ</FluentLabel>
+                        }
+
+                    </TemplateColumn>
+                   
+                </ChildContent>
+            </FluentDataGrid>
+           
+        </div>
+
+        <div style=" margin-top: 20px; text-align: right;">
+            <div style="display: flex; justify-content: flex-end;">
+                <p style="min-width: 120px; text-align: left;">Tạm tính:</p>
+                <p style="width:100px">@Item.TotalAmount.ToString("N0") đ</p>
             </div>
-
-            @foreach (var item in Items)
-            {
-                <div style="display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid #e0e0e0;">
-                    <div style="flex: 3; display: flex; align-items: center; gap: 12px;">
-                        <img src="@item.ImageUrl" alt="@item.ItemsName" style="width: 64px; height: 64px; object-fit: cover; border-radius: 6px;" />
-                        <div style="display: flex; flex-direction: column;">
-                            <span style="font-weight: 600;">@item.ItemsName</span>
-                            @if (item.ItemType == ItemType.Combo && item.Children != null && item.Children.Any())
-                            {
-                                <div style="margin-left: 12px; color: #555; font-size: 14px;">
-                                    @foreach (var child in item.Children)
-                                    {
-                                        <div>• @child.ItemsName</div>
-                                    }
-                                </div>
-                            }
-                        </div>
-                    </div>
-                    <div style="flex: 2;">@item.Quantity</div>
-                    <div style="flex: 2;">@item.Price.ToString("N0") đ</div>
-                    <div style="flex: 3;">@((item.Quantity * item.Price).ToString("N0")) đ</div>
-                </div>
-            }
+            <div style="display: flex; justify-content: flex-end;">
+                <p style="min-width: 120px; text-align: left;">Khuyến mãi:</p>
+                <p style="width:100px">@Item.TotalAmountEndow.ToString("N0") đ</p>
+            </div>
+            <div style="display: flex;font-size: 18px; justify-content: flex-end;">
+                <p style="min-width: 120px; text-align: left;">Tổng cộng:</p>
+                <p style="width:100px">@((Item.TotalAmount - Item.TotalAmountEndow).ToString("N0")) đ</p>
+            </div>
         </div>
 
-        <div style="text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px;">
-            Tổng cộng: @Items.Sum(i => i.Price * i.Quantity).ToString("N0") đ
-        </div>
+
     }
     <style>
         .step-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background: #fff;
-            margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #fff;
+        margin-bottom: 20px;
         }
 
         .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
         }
 
-            .step:not(:last-child)::after {
-                content: "";
-                position: absolute;
-                top: 17px;
-                right: -50%;
-                width: 100%;
-                height: 3px;
-                background-color: #ddd;
-                z-index: 0;
-            }
+        .step:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 17px;
+        right: -50%;
+        width: 100%;
+        height: 3px;
+        background-color: #ddd;
+        z-index: 0;
+        }
 
-            .step.active:not(:last-child)::after {
-                background-color: #007bff;
-            }
+        .step.active:not(:last-child)::after {
+        background-color: #007bff;
+        }
 
         .circle {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background-color: #ddd;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            z-index: 1;
-            position: relative;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background-color: #ddd;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        z-index: 1;
+        position: relative;
         }
 
         .step.active .circle {
-            background-color: #007bff;
+        background-color: #007bff;
         }
 
         .step-label {
-            margin-top: 5px;
-            font-size: 14px;
-            color: #333;
+        margin-top: 5px;
+        font-size: 14px;
+        color: #333;
         }
     </style>
 
@@ -161,37 +246,29 @@ else
 
 @code {
     [Parameter] public Guid id { get; set; }
+    [Inject] protected ICallServiceRegistry CallApi { get; set; } = default!;
 
-    private List<BillDetailsDto> Items = new();
+    private BillViewDto Item = new();
     private bool IsLoading = true;
     private string ErrorMessage = string.Empty;
     private StatusOrder OrderStatus;
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            Items = await Http.GetFromJsonAsync<List<BillDetailsDto>>($"api/Bill/DetailsByBillId/{id}") ?? new();
-            var bill = await Http.GetFromJsonAsync<BillDto>($"api/Bill/{id}");
-
-            if (bill != null)
-            {
-                OrderStatus = bill.Status;
-            }
-
-            if (!Items.Any())
-            {
-                ErrorMessage = "Không có dữ liệu cho đơn hàng.";
-            }
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Lỗi khi tải đơn hàng: {ex.Message}";
-        }
-
+        IsLoading = true;
+        await LoadItem();
         IsLoading = false;
     }
 
+    private async Task LoadItem()
+    {
+        var request = new ApiRequestModel { Endpoint = $"api/Bill/DetailsByBillId/{id}" };
+        var result = await CallApi.Get<BillViewDto>(request);
+        if (result.Status==StatusCode.OK)
+        {
+            Item = result.Data as BillViewDto ?? new BillViewDto();
+        }
+    }
     private int ConvertStatusToStep(StatusOrder status)
     {
         return status switch
