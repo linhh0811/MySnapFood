@@ -39,7 +39,7 @@
                 }
                 <FluentStack Orientation="Orientation.Vertical" Gap="15">
 
-                    <FluentTextField Label="Tên khuyến mại" @bind-Value="PromotionModel.PromotionName" Style="width:100%;" />
+                    <FluentTextField Label="Tên khuyến mãi" @bind-Value="PromotionModel.PromotionName" Style="width:100%;" />
                     <ValidationMessage style="color:red" For="@(() => PromotionModel.PromotionName)" />
 
 
@@ -314,7 +314,7 @@
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
     [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
     private Dictionary<String, String> PromotionTypeOptions = new Dictionary<string, string>();
-    private string SelectedPromotionType = "1";
+    private string SelectedPromotionType = "0";
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private PromotionDto PromotionModel { get; set; } = new PromotionDto();
     private string? ErrorMessage;
@@ -411,6 +411,20 @@
                 ErrorMessage = "Chưa có sản phẩm/combo được chọn";
                 return false;
             }
+            if (promotionType ==PromotionType.Amount)
+            {
+
+                var minPrice = PromotionModel.PromotionItems.Min(x => x.BasePrice);
+
+                if (PromotionModel.PromotionValue >= minPrice)
+                {
+                    isSaving = false;
+                    ErrorMessage = $"Giá trị khuyến mãi ({PromotionModel.PromotionValue:N0}đ) không được lớn hơn hoặc bằng giá sản phẩm nhỏ nhất ({minPrice:N0}đ)";
+                    return false;
+                }
+
+            }
+           
 
             requestRestAPI.Endpoint = "api/Promotion";
             createRequest.PromotionType = promotionType;
@@ -461,6 +475,16 @@
                 ErrorMessage = "Chưa có sản phẩm/combo được chọn";
                 isSaving = false;
                 return false;
+            }
+            if (promotionType == PromotionType.Amount)
+            {
+                var minPrice = PromotionModel.PromotionItems.Min(x => x.BasePrice);
+
+                if (PromotionModel.PromotionValue >= minPrice)
+                {
+                    ErrorMessage = $"Giá trị khuyến mãi ({PromotionModel.PromotionValue:N0}đ) không được lớn hơn hoặc bằng giá sản phẩm nhỏ nhất ({minPrice:N0}đ)";
+                    return false;
+                }
             }
             requestRestAPI.Endpoint = $"api/Promotion/{id}";
             updateRequest.PromotionType = promotionType;

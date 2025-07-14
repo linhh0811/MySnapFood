@@ -18,7 +18,6 @@ namespace Service.SnapFood.Application.Service
     public class BillService : IBillService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private object query;
 
         public BillService(IUnitOfWork unitOfWork)
         {
@@ -237,71 +236,96 @@ namespace Service.SnapFood.Application.Service
 
         //}
 
-        public async Task<List<BillDetailsDto>> GetBillDetailsByBillIdAsync(Guid billId)
+       
+
+        public async Task<BillViewDto> GetDetailsByBillIdAsync(Guid billId)
         {
-            var allDetails = (await _unitOfWork.BillDetailsRepo.GetAllAsync())
-                .Where(d => d.BillId == billId)
-                .ToList();
-
-            // Lấy danh sách ID của combo (ItemType == Combo)
-            var comboIds = allDetails
-                .Where(d => d.ItemType == ItemType.Combo)
-                .Select(d => d.Id)
-                .ToList();
-
-            // Lấy toàn bộ combo items thuộc bill hiện tại
-            var allComboItems = (await _unitOfWork.ComboItemsArchiveRepo.GetAllAsync())
-                .Where(c => comboIds.Contains(c.BillDetailsId))
-                .ToList();
-
-            // Map comboId -> List<ComboItemsArchive>
-            var comboItemGroups = allComboItems
-                .GroupBy(c => c.BillDetailsId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            var result = new List<BillDetailsDto>();
-
-            foreach (var detail in allDetails)
+          
+            var bill =await _unitOfWork.BillRepo.GetByIdAsync(billId);
+            if (bill is not null)
             {
-                var detailDto = new BillDetailsDto
-                {
-                    Id = detail.Id,
-                    ItemsName = detail.ItemsName,
-                    ImageUrl = detail.ImageUrl,
-                    Quantity = detail.Quantity,
-                    Price = detail.Price,
-                    PriceEndow = detail.PriceEndow,
-                    ItemType = detail.ItemType,
-                    Children = null
-                };
+                BillViewDto billViewDto = new BillViewDto();
 
-                // Nếu là combo, thêm danh sách sản phẩm con
-                if (detail.ItemType == ItemType.Combo && comboItemGroups.ContainsKey(detail.Id))
+                billViewDto.Id = billId;
+                billViewDto.BillCode = bill.BillCode;
+                billViewDto.TotalAmount = bill.TotalAmount;
+                billViewDto.TotalAmountEndow = bill.TotalAmountEndow;
+                billViewDto.Status = bill.Status;
+                billViewDto.Created = bill.Created;
+                billViewDto.BillDetailsDtos = _unitOfWork.BillDetailsRepo.FindWhere(x=>x.BillId== billId)
+                    .Select(x=> new BillDetailsDto()
+                    {
+                        Id = x.Id,
+                        BillId = x.BillId,
+                        ItemsName = x.ItemsName,
+                        ImageUrl = x.ImageUrl,
+                        Quantity= x.Quantity,
+                        Price= x.Price,
+                        PriceEndow= x.PriceEndow,
+                        ItemType= x.ItemType,
+
+                    }).ToList();
+                foreach (var item in billViewDto.BillDetailsDtos)
                 {
-                    detailDto.Children = comboItemGroups[detail.Id]
-                        .Select(c => new BillDetailsDto
+                    if (item.ItemType== ItemType.Combo)
+                    {
+                        item.Product = _unitOfWork.ComboItemsArchiveRepo.FindWhere(x => x.BillDetailsId == item.Id)
+                            .Select(x => new ComboItemsArchiveDto()
                         {
-                            ItemsName = c.ProductName
-                            //ImageUrl = c.ImageUrl,
-                            //Quantity = c.Quantity,
-                            //Price = c.Price,
-                            //PriceEndow = 0,
-                            //ItemType = ItemType.Product // hoặc ItemType khác tùy logic
-                        })
-                        .ToList();
+                            Id = x.Id,
+                            BillDetailsId=x.BillDetailsId,
+                            ProductName=x.ProductName,
+                            Quantity=x.Quantity,
+                            ImageUrl=x.ImageUrl,
+                            Price=x.Price,
+                           
+                        }).ToList();
+                    }
+                }
+                var billPayment = _unitOfWork.BillPaymentRepo.FirstOrDefault(x => x.BillId == billId);
+                if (billPayment is not null)
+                {
+                    billViewDto.BillPaymentDto = new BillPaymentDto()
+                    {
+                        Id = billPayment.Id,
+                        BillId = billPayment.BillId,
+                        PaymentType = billPayment.PaymentType,
+                        Amount = billPayment.Amount,
+                        PaymentDate = billPayment.PaymentDate,
+                        PaymentStatus = billPayment.PaymentStatus,
+                    };
+                }
+                billViewDto.BillNotesDtos = _unitOfWork.BillNotesRepo.FindWhere(x => x.BillId == billId)
+                    .Select(x => new BillNotesDto()
+                    {
+                        Id = x.Id,
+                        BillId = x.BillId,
+                        NoteContent = x.NoteContent,
+                        NoteType = x.NoteType,
+                        Created=x.Created,
+                        CreatedBy=x.CreatedBy,
+                    }).ToList();
+
+                var billDelivery = _unitOfWork.BillDeliveryRepo.FirstOrDefault(x => x.BillId == billId);
+                if (billDelivery is not null)
+                {
+                    billViewDto.BillDeliveryDto = new BillDeliveryDto()
+                    {
+                        Id = billDelivery.Id,
+                        BillId = billDelivery.BillId,
+                        ReceivingType=billDelivery.ReceivingType,
+                        ReceiverName = billDelivery.ReceiverName,
+                        ReceiverPhone= billDelivery.ReceiverPhone,
+                        ReceiverAddress= billDelivery.ReceiverAddress,
+                        DeliveryFee= billDelivery.DeliveryFee,
+                        Distance= billDelivery.Distance,
+                    };
                 }
 
-                result.Add(detailDto);
+                return billViewDto;
             }
-
-            return result;
-        }
-
-
-        public async Task<List<BillDetails>> GetDetailsByBillIdAsync(Guid billId)
-        {
-            var results = _unitOfWork.BillDetailsRepo.FindWhere(x => x.BillId == billId);
-            return results.ToList();
+            return new BillViewDto();
+            
         }
 
 

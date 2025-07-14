@@ -1,8 +1,13 @@
-﻿namespace Service.SnapFood.Client.Enums
+﻿using System.ComponentModel;
+
+namespace Service.SnapFood.Client.Enums
 {
     public enum PaymentType
     {
-        Transfer = 0,//chuyển khoản
+        [Description("Ví điện tử Momo")]
+        Momo = 0,//chuyển khoản
+        [Description("Tiền mặt")]
+
         Cash = 1,//tiền mặt
     }
 }

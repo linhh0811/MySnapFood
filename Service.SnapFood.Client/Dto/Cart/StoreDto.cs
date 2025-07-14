@@ -1,4 +1,6 @@
-﻿namespace Service.SnapFood.Client.Dto.Cart
+﻿using Service.SnapFood.Client.Dto.Addresss;
+
+namespace Service.SnapFood.Client.Dto.Cart
 {
     public class StoreDto
     {
