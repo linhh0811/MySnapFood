@@ -14,9 +14,11 @@ using Service.SnapFood.Share.Model.SQL;
 using Service.SnapFood.Share.Query;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -473,6 +475,139 @@ namespace Service.SnapFood.Application.Service
             }
         }
 
+        
+
+        
+
+        public async Task<decimal> GetTotalRevenueAsync()
+        {
+            var bills = await _unitOfWork.BillRepo.FindAllAsync(x => true);
+
+
+            decimal totalRevenue = bills.Sum(x => x.TotalAmount - x.TotalAmountEndow);
+
+            return totalRevenue;
+        }
+
+        public async Task<int> GetTotalInvoicesAsync()
+        {
+            var bills = await _unitOfWork.BillRepo.FindAllAsync(x => true);
+            return bills.Count();
+        }
+
+        public async Task<List<DailyRevenueDto>> GetDailyRevenueAsync(DateTime fromDate, DateTime toDate)
+        {
+            var bills = await _unitOfWork.BillRepo.FindAllAsync(x =>
+        x.Created >= fromDate.Date && x.Created <= toDate.Date.AddDays(1).AddTicks(-1));
+
+            var result = bills
+                .GroupBy(b => b.Created.Date)
+                .Select(g => new DailyRevenueDto
+                {
+                    Date = g.Key,
+                    Amount = g.Sum(b => b.TotalAmount - b.TotalAmountEndow),
+                 
+                })
+                .OrderBy(x => x.Date)
+                .ToList();
+
+            return result;
+        }
+
        
+    
+       
+
+        public async Task<List<ChartItemDto>> GetWeeklyRevenueAsync(DateTime? from = null, DateTime? to = null)
+        {
+            var bills = await _unitOfWork.BillRepo.FindAllAsync(b =>
+         b.Status == StatusOrder.Completed &&
+         (!from.HasValue || b.Created.Date >= from.Value.Date) &&
+         (!to.HasValue || b.Created.Date <= to.Value.Date));
+
+            return bills
+                .GroupBy(b => new
+                {
+                    Week = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(b.Created, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday),
+                    Month = b.Created.Month,
+                    Year = b.Created.Year
+                })
+                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Week)
+                .Select(g => new ChartItemDto
+                {
+                    Label = $"Tuần {g.Key.Week} ({g.Key.Month}/{g.Key.Year})",
+                    Value = g.Sum(x => x.TotalAmount - x.TotalAmountEndow),
+                   
+                })
+                .ToList();
+        }
+
+        public async Task<List<ChartItemDto>> GetMonthlyRevenueAsync(DateTime? from = null, DateTime? to = null)
+        {
+            var bills = await _unitOfWork.BillRepo.FindAllAsync(b =>
+             b.Status == StatusOrder.Completed &&
+             (!from.HasValue || b.Created.Date >= from.Value.Date) &&
+             (!to.HasValue || b.Created.Date <= to.Value.Date));
+
+            return bills
+                .GroupBy(b => new { b.Created.Year, b.Created.Month })
+                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                .Select(g => new ChartItemDto
+                {
+                    Label = $"{g.Key.Month}/{g.Key.Year}",
+                    Value = g.Sum(x => x.TotalAmount - x.TotalAmountEndow)
+                })
+                .ToList();
+        }
+
+       
+
+      
+       
+
+        public async Task<List<ChartItemDto>> GetTopBestSellingCombosAsync(int top = 5)
+        {
+            var query = _unitOfWork.BillDetailsRepo.Query()
+       .Where(bd => bd.ItemType == ItemType.Combo); // ✅ chỉ lọc combo
+
+            return await query
+                .GroupBy(bd => new { bd.ItemsName, bd.ImageUrl })
+                .Select(g => new ChartItemDto
+                {
+                    Label = g.Key.ItemsName,
+                    Value = g.Sum(bd => bd.Quantity),
+                    ImageUrl = g.Key.ImageUrl ?? "/images/default.png"
+                })
+                .OrderByDescending(x => x.Value)
+                .Take(top)
+                .ToListAsync();
+        }
+
+        public async Task<List<ChartItemDto>> GetTopBestSellingProductsAsync(int top = 5)
+        {
+            var query = _unitOfWork.BillDetailsRepo.Query()
+        .Where(bd => bd.ItemType == ItemType.Product); // ✅ Lọc sản phẩm
+
+           
+
+            return await query
+                .GroupBy(bd => new { bd.ItemsName, bd.ImageUrl })
+                .Select(g => new ChartItemDto
+                {
+                    Label = g.Key.ItemsName,
+                    Value = g.Sum(bd => bd.Quantity),
+                    ImageUrl = g.Key.ImageUrl ?? "/images/default.png"
+                })
+                .OrderByDescending(x => x.Value)
+                .Take(top)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetCancelledOrdersCountAsync()
+        {
+            return await _unitOfWork.BillRepo.Query()
+        .Where(b => b.Status == StatusOrder.Cancelled)
+        .CountAsync();
+        }
     }
 }

@@ -480,6 +480,11 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             else
                 return Equals;
         }
+
+        public IQueryable<T> Query()
+        {
+            return _context.Set<T>().AsQueryable();
+        }
 #pragma warning restore CS8603 // Possible null reference return.
 #pragma warning restore CS8604 // Possible null reference argument.
 

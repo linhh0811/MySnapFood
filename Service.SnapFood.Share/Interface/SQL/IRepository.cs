@@ -35,6 +35,6 @@ namespace Service.SnapFood.Share.Interface.SQL
         IEnumerable<T> FindWhere(Expression<Func<T, bool>> criteria);
 
         IQueryable<T> FilterData(Func<IQueryable<T>, IQueryable<T>> filterFunc, GridRequest gridRequest, ref int totalRecords);
-
+        IQueryable<T> Query();
     }
 }

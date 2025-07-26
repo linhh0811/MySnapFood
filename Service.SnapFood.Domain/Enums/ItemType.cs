@@ -8,7 +8,7 @@ namespace Service.SnapFood.Domain.Enums
 {
     public enum ItemType
     {
-        Product,
-        Combo
+        Product =1,
+        Combo = 2
     }
 }
