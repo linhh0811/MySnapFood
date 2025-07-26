@@ -14,7 +14,6 @@ namespace Service.SnapFood.Domain.Enums
         Shipping = 2, /*- Đơn hàng đã được chuyển cho đơn vị vận chuyển.*/
         Completed = 3, /*- Đơn hàng đã được giao thành công đến khách hàng.*/
         Cancelled = 4, /*- Đơn hàng bị hủy bởi khách hàng hoặc người quản lý.*/
-        Activity = 5,
-        InActivity = 6,
+  
     }
 }

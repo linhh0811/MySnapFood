@@ -26,5 +26,23 @@ namespace Service.SnapFood.Application.Interfaces
 
         Task<List<BillDetails>> GetDetailsByBillIdAsync(Guid billId);
 
+ 
+        Task<decimal> GetTotalRevenueAsync();
+
+        Task<int> GetTotalInvoicesAsync();
+
+        Task<List<DailyRevenueDto>> GetDailyRevenueAsync(DateTime fromDate, DateTime toDate);
+
+
+
+        Task<List<ChartItemDto>> GetWeeklyRevenueAsync(DateTime? from = null, DateTime? to = null);
+        Task<List<ChartItemDto>> GetMonthlyRevenueAsync(DateTime? from = null, DateTime? to = null);
+
+        
+        Task<List<ChartItemDto>> GetTopBestSellingProductsAsync( int top = 5);
+        Task<List<ChartItemDto>> GetTopBestSellingCombosAsync( int top = 5);
+
+        Task<int> GetCancelledOrdersCountAsync();
+
     }
 }
