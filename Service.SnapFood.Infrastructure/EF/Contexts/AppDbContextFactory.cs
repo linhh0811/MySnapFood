@@ -19,5 +19,6 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
 
             return new AppDbContext(optionsBuilder.Options);
         }
+
     }
 }

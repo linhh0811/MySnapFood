@@ -20,8 +20,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
-builder.Services.AddHttpClient<IAddressService,
-                                AddressService>();
+builder.Services.AddHttpClient<IAddressService, AddressService>();
 
 
 builder.Services.AddScoped<NavMenu>();

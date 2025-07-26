@@ -1,260 +1,199 @@
-﻿@*  @page "/index"
+﻿@page "/Dia-Chi"
+@using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Addresss
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.Enum
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
-@inject NavigationManager Navigation
-@inject ICallServiceRegistry CallApi
-@inject IToastService ToastService
-@inject IJSRuntime JS
+@using System.Text.Json
+@using Service.SnapFood.Client.Components.Share;
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="text-danger fw-bold m-0">ĐỊA CHỈ GIAO HÀNG</h3>
-     <button class="btn btn-danger" @onclick="AddAddress">Thêm địa chỉ</button> 
-</div>
-
-
-@if (addressList == null)
-{
-    <p class="text-warning">Không thể tải địa chỉ.</p>
-}
-else if (!addressList.Any())
-{
-    <p class="text-muted">Chưa có địa chỉ nào.</p>
-}
-else
-{
-    var defaultAddr = addressList.SingleOrDefault(a => a.AddressType == AddressType.Default);
-    var supplementList = addressList
-                          .Where(a => a.AddressType != AddressType.Default)
-                                
-                          .ToList();
-
-
-    if (defaultAddr != null)
-    {
-        <div class="mb-4 border rounded shadow-sm">
-            <div class="bg-warning fw-bold text-uppercase px-3 py-2">ĐỊA CHỈ MẶC ĐỊNH</div>
-            <div class="p-3">
-                @RenderAddressCard(defaultAddr, false)
-            </div>
+<div class="container p-3 m-0">
+    <div class="row d-flex align-items-center justify-content-between">
+        <div class="col-auto">
+            <h4 class="fw-bold m-0" style="color:#ff5961">ĐỊA CHỈ GIAO HÀNG</h4>
         </div>
-    }
-
-    if (supplementList.Any())
+        <div class="col-auto">
+            <button class="btn" style="background-color:#ff5961; color: white;" @onclick="OpenModalAdd">
+                Thêm địa chỉ
+            </button>
+        </div>
+    </div>
+    @if (isLoading)
     {
-        <div class="mb-4 border rounded shadow-sm">
-            <div class="bg-warning fw-bold text-uppercase px-3 py-2">ĐỊA CHỈ BỔ SUNG</div>
-            @foreach (var addr in supplementList)
+        <span>Đang tải...</span>
+    }
+    else
+    {
+        @if (AddressModels != null && AddressModels.Any())
+        {
+            <!-- Địa chỉ mặc định -->
+            <div class="mt-3">
+                <div class="bg-warning p-2 fw-bold">ĐỊA CHỈ MẶC ĐỊNH</div>
+                <div class="card shadow-sm m-0">
+                    <div class="card-body">
+
+                        <p class="mb-1">@defaultAddress.FullName</p>
+                        <p class="mb-1">@defaultAddress.NumberPhone</p>
+                        <p class="mb-1">@defaultAddress.SpecificAddress</p>
+                        <p class="mb-1">@defaultAddress.Ward, @defaultAddress.District, @defaultAddress.Province</p>
+                        @if (!string.IsNullOrEmpty(@defaultAddress.Description))
+                        {
+                            <p class="mb-1">Ghi chú: @defaultAddress.Description</p>
+                        }
+                        <a class="text-primary" style="cursor:pointer;" @onclick="()=>OpenModalEdit(defaultAddress.Id)">Chỉnh sửa</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Địa chỉ bổ sung -->
+            @if (additionalAddresses.Any())
             {
-                <div class="border-bottom p-3">
-                    @RenderAddressCard(addr, true)
+                <div class="mt-4">
+                    <div class="bg-warning p-2 fw-bold">ĐỊA CHỈ BỔ SUNG</div>
+                    @foreach (var item in additionalAddresses)
+                    {
+                        <div class="card shadow-sm mb-2">
+                            <div class="card-body">
+                                <p class="mb-1">@item.FullName</p>
+                                <p class="mb-1">@item.NumberPhone</p>
+                                <p class="mb-1">@item.SpecificAddress</p>
+                                <p class="mb-1">@item.Ward, @item.District, @item.Province</p>
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    <p class="mb-1">Ghi chú: @item.Description</p>
+                                }
+                                <a class="text-primary!" style="cursor:pointer;" @onclick="()=>OpenModalEdit(item.Id)">Chỉnh sửa</a>
+                                <button class="btn" style="color: red; border: none; background: none;" @onclick="()=>Delete(item.Id)">Xóa</button>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
-        </div>
-    }
-}
+        }
+        else
+        {
+            <div class="alert alert-warning mt-3">Không có địa chỉ nào.</div>
+        }
 
+    }
+    
+
+</div>
 @code {
-    [CascadingParameter]
-    public CurrentUser CurrentUser { get; set; } = new();
-    private List<AddresssDto>? addressList;
-    private readonly ApiRequestModel requestRestAPI = new();
+    [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private List<AddressDto> AddressModels { get; set; } = new List<AddressDto>();
+    private AddressDto defaultAddress = new AddressDto();
+    private List<AddressDto> additionalAddresses { get; set; } = new List<AddressDto>();
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-       
-            await LoadAddresses();
-        
-    }
-    protected override async Task OnParametersSetAsync()
-    {
-        // Mỗi lần điều hướng tới /index, luôn gọi API mới
-        await LoadAddresses();
+        isLoading = true;
+        await LoadAddress();
+        isLoading = false;
     }
 
-    private async Task LoadAddresses()
+    private async Task LoadAddress()
     {
         try
         {
-            requestRestAPI.Endpoint = "api/address/getall";
-            var result = await CallApi.Get<List<AddresssDto>>(requestRestAPI);
+            requestRestAPI.Endpoint = $"api/Address/GetAddressByUserId/{CurrentUser.UserId}";
+            var result = await CallApi.Get<List<AddressDto>>(requestRestAPI);
 
-            if (result.Status == StatusCode.OK && result.Data is List<AddresssDto> items)
+            if (result.Status == StatusCode.OK && result.Data is not null)
             {
-                addressList = items.Where(a => a.UserId == CurrentUser.UserId)
-        .ToList(); 
+
+                AddressModels = (List<AddressDto>)result.Data;
+                defaultAddress = AddressModels.FirstOrDefault(x => x.AddressType == AddressType.Default) ?? new AddressDto();
+                additionalAddresses = AddressModels.Where(x => x.AddressType == AddressType.Normal).ToList();
+
             }
-            else
-            {
-                ToastService.ShowError("Không thể tải danh sách địa chỉ.");
-            }
+
         }
         catch (Exception ex)
         {
             ToastService.ShowError($"Lỗi khi tải địa chỉ: {ex.Message}");
         }
-
-
-       
     }
- 
-    //public FluentDialog Dialog { get; set; } = default!;
-    private void AddAddress() => Navigation.NavigateTo("/address");
-  
-
-    private void EditAddress(Guid id) => Navigation.NavigateTo($"/address/{id}");
-
-    private async Task DeleteAddress(Guid id)
+    private async Task OpenModalAdd()
     {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa địa chỉ này không?");
-        if (confirmed)
+        try
         {
-            try
+            var parameters = new EditOrUpdateParameters
+                {
+                    IsEditMode = false,
+                    OnRefresh = EventCallback.Factory.Create(this, LoadAddress),
+
+                };
+            var dialog = await DialogService.ShowDialogAsync<Edit>(parameters, new DialogParameters
+                {
+                    Title = "Thêm địa chỉ",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal thêm địa chỉ: {ex.Message}");
+        }
+    }
+    private async Task OpenModalEdit(Guid id)
+    {
+        try
+        {
+            var parameters = new EditOrUpdateParameters
+                {
+                    IsEditMode = true,
+                    OnRefresh = EventCallback.Factory.Create(this, LoadAddress),
+                    Id = id,
+
+                };
+            var dialog = await DialogService.ShowDialogAsync<Edit>(parameters, new DialogParameters
+                {
+                    Title = "Sửa địa chỉ",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal sửa địa chỉ: {ex.Message}");
+        }
+    }
+    private async Task Delete(Guid id)
+    {
+        try
+        {
+            var dialog = await DialogService.ShowDialogAsync<ModalConfirm>(new DialogParameters());
+            var resultDialog = await dialog.Result;
+            if (resultDialog.Cancelled == false && resultDialog.Data is bool success && success)
             {
-                requestRestAPI.Endpoint = $"api/address/{id}";
-                var result = await CallApi.Delete(requestRestAPI);
+                requestRestAPI.Endpoint = $"api/Address/{id}";
+                ResultAPI result = await CallApi.Delete(requestRestAPI);
                 if (result.Status == StatusCode.OK)
                 {
-                    ToastService.ShowSuccess("Xóa thành công.");
-                    await LoadAddresses();
+                    ToastService.ShowSuccess("Xóa địa chỉ thành công");
+                    await LoadAddress();
+
                 }
                 else
                 {
-                    ToastService.ShowError("Xóa thất bại.");
+                    ToastService.ShowError("Xóa thất bại: " + result.Message);
+
                 }
             }
-            catch (Exception ex)
-            {
-                ToastService.ShowError($"Lỗi khi xóa địa chỉ: {ex.Message}");
-            }
         }
-    }
-
-    private RenderFragment RenderAddressCard(AddresssDto addr, bool allowEdit) => __builder =>
-    {
-        int seq = 0;
-        __builder.OpenElement(seq++, "div");
-        __builder.AddAttribute(seq++, "class", "text-dark");
-
-        __builder.AddContent(seq++, addr.FullName);
-        __builder.AddMarkupContent(seq++, "<br />");
-        __builder.AddContent(seq++, addr.SpecificAddress);
-        __builder.AddMarkupContent(seq++, "<br />");
-        __builder.AddContent(seq++, $"{addr.Ward}, {addr.District}, {addr.Province}");
-        __builder.AddMarkupContent(seq++, "<br />");
-        __builder.AddContent(seq++, $"SĐT: {addr.NumberPhone}");
-        __builder.AddMarkupContent(seq++, "<br />");
-
-        if (allowEdit)
+        catch (Exception ex)
         {
-            __builder.OpenElement(seq++, "a");
-            __builder.AddAttribute(seq++, "href", "#");
-            __builder.AddAttribute(seq++, "class", "text-primary me-3");
-            __builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, () => EditAddress(addr.Id)));
-            __builder.AddContent(seq++, "Chỉnh sửa");
-            __builder.CloseElement();
+            ToastService.ShowError("Xóa thất bại: " + ex.Message);
         }
 
-        __builder.OpenElement(seq++, "a");
-        __builder.AddAttribute(seq++, "href", "#");
-        __builder.AddAttribute(seq++, "class", "text-danger ms-2");
-        __builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, () => DeleteAddress(addr.Id)));
-        __builder.AddContent(seq++, "Xóa");
-        __builder.CloseElement();
-
-        __builder.CloseElement();
-    };
-} 
- *@
-
-                    @page "/Quan-Ly/Dia-Chi"
-@using Microsoft.FluentUI.AspNetCore.Components
-@using Microsoft.FluentUI.AspNetCore.Components.Icons
-@using Service.SnapFood.Client.Dto.Addresss
-@using Service.SnapFood.Share.Model.Enum
-@namespace Service.SnapFood.Client.Components.Pages.Addresss
-
-<FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
-    <h2>Danh sách địa chỉ giao hàng</h2>
-
-    <!-- Thanh công cụ: Thêm mới & Tìm kiếm -->
-    <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
-        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
-            <FluentButton Appearance="Appearance.Accent"
-                          IconStart="@(new Icons.Regular.Size20.AddCircle())"
-                          OnClick="OpenModalAdd">
-                Thêm mới
-            </FluentButton>
-
-
-        </FluentStack>
-
-   
-    </FluentStack>
-
-    <!-- Bảng dữ liệu -->
-    <FluentGridItem Style="width:100%;">
-        <FluentDataGrid @ref="AddressGrid"
-                        TGridItem="AddresssDto"
-                        ItemsProvider="@LoadAddress"
-                      
-                        ResizableColumns="false"
-                        GridTemplateColumns="0.5fr 1.6fr 2.4fr 1.0fr 1.2fr"
-                        RowSize="DataGridRowSize.Large"
-                        ShowHover="true"
-                        GenerateHeader="GenerateHeaderOption.Sticky">
-
-            <!-- STT -->
-            <TemplateColumn Title="#" Style="display:flex;align-items:center;">
-                @context.Index
-            </TemplateColumn>
-
-            <!-- Họ tên & SĐT -->
-            <TemplateColumn Title="Họ tên & SĐT" Style="display:flex;flex-direction:column;">
-                <strong>@context.FullName</strong>
-                <span>@context.NumberPhone</span>
-            </TemplateColumn>
-
-
-            <!-- Địa chỉ -->
-            <TemplateColumn Title="Địa chỉ" Style="display:flex;flex-direction:column;">
-                <span>@context.SpecificAddress</span>
-                <span>@context.Ward, @context.District, @context.Province</span>
-            </TemplateColumn>
-
-            <!-- Loại -->
-            <TemplateColumn Title="Loại" Style="display:flex;align-items:center;">
-                <FluentBadge Appearance="@(context.AddressType == AddressType.Default ? Appearance.Accent : Appearance.Neutral)">
-                    @(context.AddressType == AddressType.Default ? "Mặc định" : "Bổ sung")
-                </FluentBadge>
-            </TemplateColumn>
-
-            <!-- Thao tác -->
-            <TemplateColumn Title="Thao tác" Style="display:flex;align-items:center;gap:6px;min-width:155px;">
-                <FluentButton Title="Sửa" Appearance="Appearance.Outline"
-                              OnClick="@(() => OpenModalUpdate(context.Id))">
-                    <FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
-                </FluentButton>
-
-                @if (context.AddressType != AddressType.Default)
-                {
-                    <FluentButton Title="Đặt mặc định" Appearance="Appearance.Outline"
-                                  OnClick="@(() => SetDefaultAsync(context.Id))">
-                        <FluentIcon Value="@(new Icons.Regular.Size16.Star())" />
-                    </FluentButton>
-                }
-
-                <FluentButton Title="Xóa" Appearance="Appearance.Outline"
-                              OnClick="@(() => DeleteAsync(context.Id))">
-                    <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
-                </FluentButton>
-            </TemplateColumn>
-        </FluentDataGrid>
-
-      
-    </FluentGridItem>
-</FluentStack>
-
-
+    }
+}

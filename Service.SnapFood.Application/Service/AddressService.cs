@@ -1,4 +1,5 @@
 ﻿
+using Newtonsoft.Json;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -18,11 +20,13 @@ namespace Service.SnapFood.Application.Service
     {
         
         private readonly IUnitOfWork _unitOfWork;
-    
-      
-        public AddressService(IUnitOfWork unitOfWork)
+        private readonly string _apiKey = "GTzwweyhgu0GBvSH0XJjPkPDwYeFkVV_ok80Oyas_qA";
+        private readonly HttpClient _httpClient;
+
+        public AddressService(IUnitOfWork unitOfWork, HttpClient httpClient)
         {
             _unitOfWork = unitOfWork;
+            _httpClient= httpClient;
             
         }
 
@@ -48,6 +52,30 @@ namespace Service.SnapFood.Application.Service
 
             return address;
         }
+        public List<AddressDto> GetAddressByUserId(Guid userId)
+        {
+            var addresses = _unitOfWork.AddressRepo
+                .FindWhere(a => a.UserId == userId)
+                .Select(a => new AddressDto
+                {
+                    Id = a.Id,
+                    UserId = a.UserId,
+                    FullName = a.FullName,
+                    NumberPhone = a.NumberPhone,
+                    Province = a.Province,
+                    District = a.District,
+                    Ward = a.Ward,
+                    SpecificAddress = a.SpecificAddress,
+                    Latitude = a.Latitude,
+                    Longitude = a.Longitude,
+                    FullAddress = a.FullAddress,
+                    AddressType = a.AddressType,
+                    ModerationStatus = a.ModerationStatus,
+                    Description=a.Description
+                })
+                .ToList();
+            return addresses;
+        }
         #endregion
 
         #region Thêm, sửa, xóa
@@ -56,7 +84,6 @@ namespace Service.SnapFood.Application.Service
             if (item == null)
                 throw new ArgumentNullException(nameof(item), "Dữ liệu thêm không được để trống");
 
-            ValidateAddressInput(item);
 
             if (item.AddressType == AddressType.Default)
             {
@@ -69,11 +96,11 @@ namespace Service.SnapFood.Application.Service
                 foreach (var addr in oldDefaults)
                     addr.AddressType = AddressType.Normal;     // Chỉ đổi enum, EF sẽ nhận biết
             }
+            var fullAddress = $"{item.SpecificAddress}, {item.Ward}, {item.District}, {item.Province}";
+            var coordinates = await GetCoordinatesAsync(fullAddress);
 
-         
             var entity = new Address
             {
-                Id = Guid.NewGuid(),
                 UserId = item.UserId,
                 FullName = item.FullName,
                 NumberPhone = item.NumberPhone,
@@ -81,13 +108,13 @@ namespace Service.SnapFood.Application.Service
                 District = item.District,
                 Ward = item.Ward,
                 SpecificAddress = item.SpecificAddress,
-                Latitude = item.Latitude,
-                Longitude = item.Longitude,
-                FullAddress = item.FullAddress,
-                AddressType = item.AddressType          
+                Latitude = coordinates.Latitude,
+                Longitude = coordinates.Longitude,
+                FullAddress = fullAddress,
+                AddressType = item.AddressType,
+                Description=item.Description
             };
-
-            entity.FillDataForInsert(Guid.NewGuid());         
+    
 
             _unitOfWork.AddressRepo.Add(entity);
 
@@ -103,7 +130,6 @@ namespace Service.SnapFood.Application.Service
         {
             if (id == Guid.Empty) throw new ArgumentException("ID không hợp lệ");
             if (dto is null) throw new ArgumentNullException(nameof(dto));
-            ValidateAddressInput(dto);
 
             var address = await _unitOfWork.AddressRepo.GetByIdAsync(id)
                           ?? throw new Exception("Không tìm thấy địa chỉ");
@@ -123,18 +149,22 @@ namespace Service.SnapFood.Application.Service
               
                 _unitOfWork.AddressRepo.UpdateRange(oldDefaults);
             }
+            var fullAddress = $"{dto.SpecificAddress}, {dto.Ward}, {dto.District}, {dto.Province}";
+            var coordinates =await GetCoordinatesAsync(fullAddress);
 
-       
+
             address.FullName = dto.FullName;
             address.NumberPhone = dto.NumberPhone;
             address.Province = dto.Province;
             address.District = dto.District;
             address.Ward = dto.Ward;
             address.SpecificAddress = dto.SpecificAddress;
-            address.Latitude = dto.Latitude;
-            address.Longitude = dto.Longitude;
-            address.FullAddress = dto.FullAddress;
+            address.Latitude = coordinates.Latitude;
+            address.Longitude = coordinates.Longitude;
+            address.FullAddress = fullAddress;
             address.AddressType = dto.AddressType;
+            address.Description = dto.Description;
+
 
             _unitOfWork.AddressRepo.Update(address);
 
@@ -158,36 +188,37 @@ namespace Service.SnapFood.Application.Service
         #endregion
 
         #region Validate
-        private void ValidateAddressInput(AddressDto item)
-        {
-            if (string.IsNullOrWhiteSpace(item.FullName))
-                throw new ArgumentException("Họ tên không được để trống");
-            if (string.IsNullOrWhiteSpace(item.NumberPhone))
-                throw new ArgumentException("Số điện thoại không được để trống");
-            if (!IsValidPhoneNumber(item.NumberPhone))
-                throw new ArgumentException("Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và có 10 chữ số)");
-            if (string.IsNullOrWhiteSpace(item.Province))
-                throw new ArgumentException("Tỉnh không được để trống");
-            if (string.IsNullOrWhiteSpace(item.District))
-                throw new ArgumentException("Huyện không được để trống");
-            if (string.IsNullOrWhiteSpace(item.Ward))
-                throw new ArgumentException("Xã không được để trống");
-            if (string.IsNullOrWhiteSpace(item.SpecificAddress))
-                throw new ArgumentException("Địa chỉ cụ thể không được để trống");
-            //if (item.Latitude == 0 || item.Longitude == 0)
-            //    throw new ArgumentException("Tọa độ không hợp lệ");
-        }
+     
 
-        private bool IsValidPhoneNumber(string phoneNumber)
-        {
-            return Regex.IsMatch(phoneNumber, @"^0\d{9}$");
-        }
+      
 
-        
+
+
 
 
 
 
         #endregion
+        private async Task<(double Latitude, double Longitude)> GetCoordinatesAsync(string address)
+        {
+            string url = $"https://geocode.search.hereapi.com/v1/geocode?q={Uri.EscapeDataString(address)}&apiKey={_apiKey}";
+
+            var response = await _httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+                return (0.0, 0.0);
+
+            var result = await response.Content.ReadAsStringAsync();
+
+            var coordinates = JsonConvert.DeserializeObject<dynamic>(result);
+            if (coordinates.items != null && coordinates.items.Count > 0)
+            {
+                double latitude = coordinates.items[0].position.lat;
+                double longitude = coordinates.items[0].position.lng;
+                return (latitude, longitude);
+            }
+
+            return (0.0, 0.0);
+        }
+
     }
 }

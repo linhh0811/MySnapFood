@@ -1,271 +1,24 @@
 ﻿
-@* @page "/address"
-@page "/address/{Id:guid}"
-
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Addresss
 @using Service.SnapFood.Client.Infrastructure.Service
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.Enum
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
-@inject IJSRuntime JS
-@inject ICallServiceRegistry CallApi
-@inject NavigationManager Navigation
-@inject IToastService ToastService
-
-
-@implements Microsoft.FluentUI.AspNetCore.Components.IDialogContentComponent
-
-
-<h3>@(Id.HasValue ? "Chỉnh sửa địa chỉ" : "Thêm địa chỉ mới")</h3>
-
-<EditForm Model="@address" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <!-- Họ tên & SĐT -->
-    <div class="mb-3">
-        <InputText @bind-Value="address.FullName" class="form-control" placeholder="Họ và tên" />
-        <ValidationMessage For="@(() => address.FullName)" />
-    </div>
-    <div class="mb-3">
-        <InputText @bind-Value="address.NumberPhone" class="form-control" placeholder="Số điện thoại" />
-        <ValidationMessage For="@(() => address.NumberPhone)" />
-    </div>
-
-    <!-- Tỉnh -->
-    <div class="mb-3">
-        <select id="province" class="form-control">
-            <option value="">Tỉnh/Thành phố</option>
-        </select>
-        <input type="hidden" id="provinceHidden" @bind="address.Province" />
-        <ValidationMessage For="@(() => address.Province)" />
-    </div>
-
-    <!-- Huyện -->
-    <div class="mb-3">
-        <select id="district" class="form-control">
-            <option value="">Quận/Huyện</option>
-        </select>
-        <input type="hidden" id="districtHidden" @bind="address.District" />
-        <ValidationMessage For="@(() => address.District)" />
-    </div>
-
-    <!-- Xã -->
-    <div class="mb-3">
-        <select id="ward" class="form-control">
-            <option value="">Xã/Phường</option>
-        </select>
-        <input type="hidden" id="wardHidden" @bind="address.Ward" />
-        <ValidationMessage For="@(() => address.Ward)" />
-    </div>
-
-    <!-- Địa chỉ cụ thể -->
-    <div class="mb-3">
-        <InputText @bind-Value="address.SpecificAddress" class="form-control"
-                   placeholder="Nhập địa chỉ cụ thể" />
-        <ValidationMessage For="@(() => address.SpecificAddress)" />
-    </div>
-
-    <!-- Địa chỉ mặc định -->
-    <div class="mb-3 form-check">
-        <InputCheckbox @bind-Value="isDefault" class="form-check-input" id="chkDefault" />
-        <label class="form-check-label" for="chkDefault">
-            Đặt làm địa chỉ mặc định
-        </label>
-    </div>
-
-    <button type="submit" class="btn btn-primary">@((Id.HasValue) ? "Cập nhật" : "Lưu")</button>
-</EditForm>
-
-@code {
-    @inject IAddressService Geo
-    [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
-
-    [Parameter] public Guid? Id { get; set; }
-
-    private AddresssDto address = new();
-    private bool isDefault;
-
-    private readonly ApiRequestModel requestModel = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (Id.HasValue)
-        {
-            requestModel.Endpoint = $"api/Address/{Id}";
-            var result = await CallApi.Get<AddresssDto>(requestModel);
-
-            if (result.Status == StatusCode.OK && result.Data is AddresssDto dto)
-            {
-                address = dto;
-                isDefault = address.AddressType == AddressType.Default;
-            }
-            else
-            {
-                ToastService.ShowError("Không tìm thấy địa chỉ.");
-                Navigation.NavigateTo("/index", forceLoad: true);
-            }
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await Task.Delay(100);
-            await JS.InvokeVoidAsync("loadAddressDropdowns",
-                address.Province ?? "",
-                address.District ?? "",
-                address.Ward ?? "");
-        }
-    }
-
-    private async Task HandleValidSubmit()
-    {
-        address.AddressType = isDefault ? AddressType.Default : AddressType.Normal;
-        address.UserId = CurrentUser.UserId;
-
-
-        var full = $"{address.SpecificAddress}, {address.Ward}, {address.District}, {address.Province}";
-        var (lat, lng) = await Geo.GetCoordinatesAsync(full);   // ← sử dụng DI
-
-        if (lat == 0 && lng == 0)
-        {
-            ToastService.ShowWarning("Không tìm thấy tọa độ – hãy nhập địa chỉ chi tiết hơn.");
-            return;
-        }
-          address.Latitude = lat;
-        address.Longitude = lng;
-
-      
-     
-        if (Id.HasValue)
-        {
-            requestModel.Endpoint = $"api/Address/{Id}";
-            var result = await CallApi.Put(requestModel, address);
-
-            if (result.Status == StatusCode.OK || result.Status == StatusCode.Created)
-            {
-                ToastService.ShowSuccess("Cập nhật địa chỉ thành công!");
-                Navigation.NavigateTo("/index");
-            }
-            else
-            {
-                ToastService.ShowError($"Cập nhật thất bại: {result.Message ?? result.Status.ToString()}");
-            }
-        }
-        else
-        {
-            requestModel.Endpoint = "api/Address";
-            var result = await CallApi.Post<AddresssDto>(requestModel, address);
-
-            if (result.Status == StatusCode.OK || result.Status == StatusCode.Created)
-            {
-                ToastService.ShowSuccess("Thêm địa chỉ thành công!");
-                Navigation.NavigateTo("/index");
-            }
-            else
-            {
-                ToastService.ShowError($"Thêm địa chỉ thất bại: {result.Message ?? result.Status.ToString()}");
-            }
-        }
-    }
-}
-<!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script>
-    function loadAddressDropdowns(provinceName = "", districtName = "", wardName = "") {
-        // Load provinces
-        $.getJSON("https://provinces.open-api.vn/api/?depth=2", function (data) {
-            let selectedProvinceCode = null;
-
-            data.forEach((province) => {
-                const selected = province.name === provinceName ? "selected" : "";
-                if (selected) selectedProvinceCode = province.code;
-                $("#province").append(`<option value="${province.name}" data-code="${province.code}" ${selected}>${province.name}</option>`);
-            });
-
-            if (selectedProvinceCode) {
-                loadDistricts(selectedProvinceCode, districtName, wardName);
-            }
-        });
-
-        // Province change
-        $(document).on("change", "#province", function () {
-            const code = $("#province option:selected").data("code");
-            $("#district").html('<option value="">Quận/Huyện</option>');
-            $("#ward").html('<option value="">Xã/Phường</option>');
-            if (code) loadDistricts(code);
-        });
-
-        // District change
-        $(document).on("change", "#district", function () {
-            const code = $("#district option:selected").data("code");
-            $("#ward").html('<option value="">Xã/Phường</option>');
-            if (code) loadWards(code);
-        });
-
-        function loadDistricts(provinceCode, selectedDistrictName = "", selectedWardName = "") {
-            $.getJSON(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`, function (data) {
-                let selectedDistrictCode = null;
-                data.districts.forEach((d) => {
-                    const selected = d.name === selectedDistrictName ? "selected" : "";
-                    if (selected) selectedDistrictCode = d.code;
-                    $("#district").append(`<option value="${d.name}" data-code="${d.code}" ${selected}>${d.name}</option>`);
-                });
-                if (selectedDistrictCode) {
-                    loadWards(selectedDistrictCode, selectedWardName);
-                }
-            });
-        }
-
-        function loadWards(districtCode, selectedWardName = "") {
-            $.getJSON(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`, function (data) {
-                data.wards.forEach((w) => {
-                    const selected = w.name === selectedWardName ? "selected" : "";
-                    $("#ward").append(`<option value="${w.name}" ${selected}>${w.name}</option>`);
-                });
-            });
-        }
-    }
-
-    // Synchronize <select> value to hidden inputs for Blazor binding
-    document.addEventListener("change", e => {
-        if (e.target.matches("#province, #district, #ward")) {
-            const hidden = document.getElementById(e.target.id + "Hidden");
-            if (hidden) {
-                hidden.value = e.target.value;
-                hidden.dispatchEvent(new Event("change"));
-            }
-        }
-    });
-</script> *@
- 
- 
-         @namespace Service.SnapFood.Client.Components.Pages.Addresss
-@page "/Address/Edit"
-@page "/Address/Edit/{Id:guid}"
-@using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.FluentUI.AspNetCore.Components
-@using Service.SnapFood.Client.Dto.Addresss
-
-@using Service.SnapFood.Share.Model.Commons
-@using Service.SnapFood.Share.Model.Enum
-@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
-@using Service.SnapFood.Share.Interface.Extentions
-@using Service.SnapFood.Client.Dto
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inherits ComponentBase
 @implements IDialogContentComponent<EditOrUpdateParameters>
-@inject NavigationManager nav
 
 
 <FluentDialog @ref="Dialog" Modal="true" TrapFocus="true" Style="width: 500px;">
     <FluentDialogHeader>
-        <h3>@(Content.IsEditMode ? "Sửa địa chỉ" : "Thêm địa chỉ")</h3>
+        <h3>@(Content.IsEditMode ? "Sửa địa chỉ" : "Thêm mới địa chỉ")</h3>
     </FluentDialogHeader>
 
-    <EditForm Model="address" OnValidSubmit="HandleValidSubmit">
+    <EditForm Model="AddressModel" OnValidSubmit="HandleSubmit">
         <DataAnnotationsValidator />
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
@@ -273,222 +26,328 @@
                 @ErrorMessage
             </FluentMessageBar>
         }
+        <FluentStack Orientation="Orientation.Vertical" Gap="15">
+            <div class="row" style="width:100%; margin:0;">
+                <div class="mb-3 col-md-6" style="padding-right:10px;padding-left:0;">
+                    <FluentTextField Placeholder="Họ và tên" @bind-Value="AddressModel.FullName" Style="width:100%;" />
+                    <br />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+                <div class="mb-3  col-md-6" style="padding-left:10px;padding-right:0;">
+                    <FluentTextField Placeholder="Số điện thoại" @bind-Value="AddressModel.NumberPhone" Style="width:100%;" />
+                    <br />
+                    <span asp-validation-for="NumberPhone" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="row" style="width:100%;margin:0;">
+                <div class="mb-3 col-md-6" style="padding-right:10px;padding-left:0;">
 
-        <FluentStack Orientation="Orientation.Vertical" Gap="14">
-            <!-- Họ tên -->
-            <FluentTextField Label="Họ và tên" @bind-Value="address.FullName" />
-            <ValidationMessage For="@(() => address.FullName)" />
+                    <FluentSelect @bind-Value="SelectedProvince"
+                    @bind-Value:after="OnProvinceChangedAsync"
+                    TOption="string" Width="100%" Height="250px">
+                        <FluentOption Value="">Tỉnh/Thành phố</FluentOption>
+                        @foreach (var province in provinces)
+                        {
+                            <FluentOption Value="@province.Code.ToString()">@province.Name</FluentOption>
+                        }
+                    </FluentSelect>
 
-            <!-- SĐT -->
-            <FluentTextField Label="Số điện thoại" @bind-Value="address.NumberPhone" />
-            <ValidationMessage For="@(() => address.NumberPhone)" />
+                </div>
+                <div class="mb-3 col-md-6" style="padding-left:10px;padding-right:0;">
+                    <FluentSelect @bind-Value="SelectedDistrict"
+                    @bind-Value:after="OnDistrictChangedAsync"
+                    TOption="string" Width="100%" Height="250px">
+                        <FluentOption Value="">Quận/Huyện</FluentOption>
+                        @foreach (var district in districts)
+                        {
+                            <FluentOption Value="@district.Code.ToString()">@district.Name</FluentOption>
+                        }
+                    </FluentSelect>
+                </div>
+            </div>
+            <div class="mb-3" style="width:100%">
+                <FluentSelect @bind-Value="AddressModel.Ward"
+                TOption="string" Width="100%" Height="250px">
+                    <FluentOption Value="">Phường/Xã</FluentOption>
+                    @foreach (var ward in wards)
+                    {
+                        <FluentOption Value="@ward.Name">@ward.Name</FluentOption>
+                    }
+                </FluentSelect>
+            </div>
+            <div class="mb-3" style="width:100%">
+                <FluentTextField @bind-Value="AddressModel.SpecificAddress" Placeholder="Địa chỉ cụ thể" Style="width:100%;" />
+            </div>
 
-            <!-- Tỉnh / Huyện / Xã (dropdown bằng JS) -->
-            <label>Tỉnh / Thành phố</label>
-            <select id="province" class="form-select"></select>
-            <input type="hidden" id="provinceHidden" @bind="address.Province" />
-            <ValidationMessage For="@(() => address.Province)" />
 
-            <label>Quận / Huyện</label>
-            <select id="district" class="form-select"></select>
-            <input type="hidden" id="districtHidden" @bind="address.District" />
-            <ValidationMessage For="@(() => address.District)" />
+            <FluentTextArea @bind-Value="AddressModel.Description" Placeholder="Ghi chú về địa chỉ(nếu có)" Label="" Rows=3 Style="width:100%;" />
 
-            <label>Xã / Phường</label>
-            <select id="ward" class="form-select"></select>
-            <input type="hidden" id="wardHidden" @bind="address.Ward" />
-            <ValidationMessage For="@(() => address.Ward)" />
+            <FluentCheckbox @bind-Value="IsDiaChiMacDinh" Disabled="IsMacDinh">Đặt làm địa chỉ mặc định</FluentCheckbox>
 
-            <!-- Địa chỉ cụ thể -->
-            <FluentTextField Label="Địa chỉ cụ thể" @bind-Value="address.SpecificAddress" />
-            <ValidationMessage For="@(() => address.SpecificAddress)" />
-
-            <!-- Mặc định -->
-            <FluentCheckbox @bind-Checked="isDefault">Đặt làm địa chỉ mặc định</FluentCheckbox>
 
             <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
-                <FluentButton Appearance="Appearance.Neutral" @onclick="CloseDialog" Disabled="@isSaving">Hủy</FluentButton>
+                <FluentButton Appearance="Appearance.Neutral" @onclick="HideDialog" Disabled="@isSaving">Hủy</FluentButton>
                 <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
-                    @(isSaving ? "Đang lưu..." : "Lưu")
+                    @if (isSaving)
+                    {
+                        <span style="margin-left: 8px;">Đang lưu...</span>
+                    }
+                    else
+                    {
+                        <span>Lưu</span>
+                    }
                 </FluentButton>
             </FluentStack>
         </FluentStack>
     </EditForm>
 </FluentDialog>
-
 @code {
-    // ────────────────── DI & Parameters
-    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
-    [Inject] private IToastService ToastService { get; set; } = default!;
-    [Inject] private IJSRuntime JS { get; set; } = default!;
-
-    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
-    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
     [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
 
-    // ────────────────── State
-    private AddresssDto address = new();
-    private bool isDefault;
-    private bool isSaving;
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private AddressDto AddressModel { get; set; } = new AddressDto();
     private string? ErrorMessage;
-    private readonly ApiRequestModel req = new();
+    private bool isSaving = false;
+    private bool IsDiaChiMacDinh = false;
+    private bool IsMacDinh = false;
+
+
 
     protected override async Task OnInitializedAsync()
+    {      
+        await LoadProvinces();
+        await GetAddress();
+    }
+
+    private async Task GetAddress()
     {
         if (Content.IsEditMode)
         {
-            req.Endpoint = $"api/Address/{Content.Id}";
-            var res = await CallApi.Get<AddresssDto>(req);
-            if (res.Status == StatusCode.OK && res.Data is AddresssDto dto)
+            requestRestAPI.Endpoint = $"api/Address/{Content.Id}";
+            ResultAPI result = await CallApi.Get<AddressDto>(requestRestAPI);
+            if (result.Status == StatusCode.OK)
             {
-                address = dto;
-                isDefault = address.AddressType == AddressType.Default;
+                AddressModel = result.Data as AddressDto ?? new AddressDto();
+                if (AddressModel.AddressType==AddressType.Default)
+                {
+                    IsDiaChiMacDinh = true;
+                    IsMacDinh = true;
+                }
+                var Province = provinces.FirstOrDefault(p => p.Name.ToString() == AddressModel.Province);
+                SelectedProvince = Province?.Code.ToString() ?? string.Empty;
+                await OnProvinceChangedAsync();
+                var District = districts.FirstOrDefault(p => p.Name.ToString() == AddressModel.District);
+                SelectedDistrict = District?.Code.ToString() ?? string.Empty;
+                await OnDistrictChangedAsync();
             }
-            else ToastService.ShowWarning(res.Message ?? "Không thể tải địa chỉ");
+            
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task<bool> Create(AddressDto createRequest)
     {
-        if (firstRender)
-        {
-            await JS.InvokeVoidAsync("loadAddressDropdowns",
-                address.Province ?? string.Empty,
-                address.District ?? string.Empty,
-                address.Ward ?? string.Empty);
-        }
-    }
-
-    private async Task HandleValidSubmit()
-    {
-        isSaving = true;
         ErrorMessage = null;
-
-        // Bổ sung: luôn gán UserId (tránh null phía API)
-        address.UserId = CurrentUser?.UserId ?? address.UserId;
-
-        address.AddressType = isDefault ? AddressType.Default : AddressType.Normal;
-
         try
         {
-            ResultAPI? res = null;
 
-            if (Content.IsEditMode)
+            isSaving = true;
+            requestRestAPI.Endpoint = "api/Address";
+            if (IsDiaChiMacDinh)
             {
-                req.Endpoint = $"api/Address/{Content.Id}";
-                res = await CallApi.Put(req, address);
+                createRequest.AddressType = AddressType.Default;
             }
             else
             {
-                req.Endpoint = "api/Address";
-                res = await CallApi.Post<AddresssDto>(req, address);
+                createRequest.AddressType = AddressType.Normal;
             }
-
-            // Xử lý kết quả
-            if (res?.Status == StatusCode.OK || res?.Status == StatusCode.Created)
+            createRequest.UserId = CurrentUser.UserId;
+            ResultAPI result = await CallApi.Post<AddressDto>(requestRestAPI, createRequest);
+            if (result.Status == StatusCode.OK)
             {
-                ToastService.ShowSuccess(Content.IsEditMode ? "Cập nhật địa chỉ thành công" : "Thêm địa chỉ thành công");
-
-                // Đóng dialog & refresh
-                await Dialog.CloseAsync();
-                await Content.OnRefresh.InvokeAsync();
-                return;                    // kết thúc sớm, không show lỗi
+                ToastService.ShowSuccess("Thêm địa chỉ thành công.");
+                return true;
             }
-
-            // Nếu tới đây là lỗi phía API
-            ErrorMessage = res?.Message ?? "Thao tác thất bại";
-            ToastService.ShowWarning(ErrorMessage);
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Thêm địa chỉ thất bại: " + result.Message;
+                return false;
+            }
         }
         catch (Exception ex)
         {
-            ErrorMessage = ex.Message;
-            ToastService.ShowError($"Lỗi: {ex.Message}");
+            isSaving = false;
+            ErrorMessage = "Thêm địa chỉ thất bại: " + ex.Message;
+            return false;
         }
-        finally
+    }
+
+    private async Task<bool> Update(Guid id, AddressDto updateRequest)
+    {
+        ErrorMessage = null;
+        try
+        {
+            isSaving = true;
+            requestRestAPI.Endpoint = $"api/Address/{id}";
+            if (IsDiaChiMacDinh)
+            {
+                updateRequest.AddressType = AddressType.Default;
+            }
+            else
+            {
+                updateRequest.AddressType = AddressType.Normal;
+            }
+            ResultAPI result = await CallApi.Put(requestRestAPI, updateRequest);
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Sửa địa chỉ thành công.");
+                return true;
+            }
+            else
+            {
+                isSaving = false;
+                ErrorMessage = "Sửa địa chỉ thất bại: " + result.Message;
+                return false;
+            }
+        }
+        catch (Exception ex)
         {
             isSaving = false;
+            ErrorMessage = "Sửa địa chỉ thất bại: " + ex.Message;
+            return false;
         }
     }
 
 
-   // private async Task CloseDialog() =>  await Dialog.CloseAsync();
-    private async Task CloseDialog()
+    private async Task HandleSubmit()
+    {
+        bool result = false;
+
+        if (Content.IsEditMode)
+        {
+            result = await Update(Content.Id, AddressModel);
+        }
+        else
+        {
+            result = await Create(AddressModel);
+        }
+
+        if (result)
+        {
+            await Dialog.CloseAsync();
+            await Content.OnRefresh.InvokeAsync();
+        }
+
+    }
+    private async Task HideDialog()
     {
         await Dialog.CloseAsync();
-        nav.NavigateTo("/index", forceLoad: true);
     }
-  
+
+
+    private List<ProvinceResponse> provinces = new();
+    private List<District> districts = new();
+    private List<Ward> wards = new();
+    private string SelectedProvince = string.Empty;
+    private string SelectedDistrict = string.Empty;
+    private string SelectedWard = string.Empty;
+
+
+
+
+    private async Task LoadProvinces()
+    {
+        provinces = await Http.GetFromJsonAsync<List<ProvinceResponse>>("https://provinces.open-api.vn/api/?depth=2") ?? new();
+    }
+
+    private async Task OnProvinceChangedAsync()
+    {
+        try
+        {
+             SelectedDistrict = string.Empty;
+             SelectedWard = string.Empty;
+            districts = new List<District>();
+
+            if (!string.IsNullOrEmpty(SelectedProvince))
+            {
+                // Lấy toàn bộ response trước
+                var response = await Http.GetFromJsonAsync<ProvinceResponse>(
+                    $"https://provinces.open-api.vn/api/p/{SelectedProvince}?depth=2");
+
+                // Lấy danh sách districts từ response
+                districts = response?.Districts ?? new List<District>();
+
+                var selectedProvince = provinces.FirstOrDefault(p => p.Code.ToString() == SelectedProvince);
+                AddressModel.Province = selectedProvince?.Name ?? string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading districts: {ex.Message}");
+            ErrorMessage = "Không thể tải danh sách quận/huyện";
+        }
+
+        
+    }
+
+    private async Task OnDistrictChangedAsync()
+    {
+        // Reset giá trị phường/xã
+        SelectedWard = string.Empty;
+
+        if (!string.IsNullOrEmpty(SelectedDistrict))
+        {
+
+            var response = await Http.GetFromJsonAsync<District>(
+                 $"https://provinces.open-api.vn/api/d/{SelectedDistrict}?depth=2");
+
+            // Lấy danh sách districts từ response
+            wards = response?.Wards ?? new List<Ward>();
+            var selectedDistrict = districts.FirstOrDefault(p => p.Code.ToString() == SelectedDistrict);
+            AddressModel.District = selectedDistrict?.Name ?? string.Empty;
+        }
+        else
+        {
+            wards = new List<Ward>();
+        }
+
+        StateHasChanged();
+    }
+
+    public class ProvinceResponse
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("code")]
+        public int Code { get; set; }
+
+        [JsonPropertyName("districts")]
+        public List<District> Districts { get; set; } = new();
+    }
+
+    public class District
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("code")]
+        public int Code { get; set; }
+
+        [JsonPropertyName("wards")]
+        public List<Ward> Wards { get; set; } = new();
+    }
+
+    public class Ward
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("code")]
+        public int Code { get; set; }
+    }
 }
-
-@* <!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script>
-    function loadAddressDropdowns(provinceName = "", districtName = "", wardName = "") {
-        // Load provinces
-        $.getJSON("https://provinces.open-api.vn/api/?depth=2", function (data) {
-            let selectedProvinceCode = null;
-
-            data.forEach((province) => {
-                const selected = province.name === provinceName ? "selected" : "";
-                if (selected) selectedProvinceCode = province.code;
-                $("#province").append(`<option value="${province.name}" data-code="${province.code}" ${selected}>${province.name}</option>`);
-            });
-
-            if (selectedProvinceCode) {
-                loadDistricts(selectedProvinceCode, districtName, wardName);
-            }
-        });
-
-        // Province change
-        $(document).on("change", "#province", function () {
-            const code = $("#province option:selected").data("code");
-            $("#district").html('<option value="">Quận/Huyện</option>');
-            $("#ward").html('<option value="">Xã/Phường</option>');
-            if (code) loadDistricts(code);
-        });
-
-        // District change
-        $(document).on("change", "#district", function () {
-            const code = $("#district option:selected").data("code");
-            $("#ward").html('<option value="">Xã/Phường</option>');
-            if (code) loadWards(code);
-        });
-
-        function loadDistricts(provinceCode, selectedDistrictName = "", selectedWardName = "") {
-            $.getJSON(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`, function (data) {
-                let selectedDistrictCode = null;
-                data.districts.forEach((d) => {
-                    const selected = d.name === selectedDistrictName ? "selected" : "";
-                    if (selected) selectedDistrictCode = d.code;
-                    $("#district").append(`<option value="${d.name}" data-code="${d.code}" ${selected}>${d.name}</option>`);
-                });
-                if (selectedDistrictCode) {
-                    loadWards(selectedDistrictCode, selectedWardName);
-                }
-            });
-        }
-
-        function loadWards(districtCode, selectedWardName = "") {
-            $.getJSON(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`, function (data) {
-                data.wards.forEach((w) => {
-                    const selected = w.name === selectedWardName ? "selected" : "";
-                    $("#ward").append(`<option value="${w.name}" ${selected}>${w.name}</option>`);
-                });
-            });
-        }
-    }
-
-    // Synchronize <select> value to hidden inputs for Blazor binding
-    document.addEventListener("change", e => {
-        if (e.target.matches("#province, #district, #ward")) {
-            const hidden = document.getElementById(e.target.id + "Hidden");
-            if (hidden) {
-                hidden.value = e.target.value;
-                hidden.dispatchEvent(new Event("change"));
-            }
-        }
-    });
-</script>
-
- *@ 

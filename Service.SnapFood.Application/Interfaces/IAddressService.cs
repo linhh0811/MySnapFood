@@ -10,10 +10,13 @@ namespace Service.SnapFood.Application.Interfaces
     public interface IAddressService
     {
         Task<List<Address>> GetAllAsync();
+        List<AddressDto> GetAddressByUserId(Guid userId);
+
         Task<Address> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(AddressDto item);
         Task<bool> UpdateAsync(Guid id, AddressDto item);
         Task<bool> DeleteAsync(Guid id);
+
 
        
 

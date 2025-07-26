@@ -14,6 +14,7 @@ namespace Service.SnapFood.Application.Dtos
         public Guid? StoreId { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string Numberphone { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public UserType UserType { get; set; }
         public bool IsInRole { get; set; }

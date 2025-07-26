@@ -37,6 +37,10 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("District")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -96,13 +100,14 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             AddressType = 2,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Description = "",
                             District = "Quận Nam Từ Liêm",
                             FullAddress = "Số 36 Hàm Nghi, Phường Cầu Diễn, Quận Nam Từ Liêm, Thành phố Hà Nội",
                             FullName = "BB Chicken-Hàm Nghi",
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Latitude = 21.02983,
-                            Longitude = 105.76913,
+                            Latitude = 21.035589999999999,
+                            Longitude = 105.76297,
                             ModerationStatus = 0,
                             NumberPhone = "055931234",
                             Province = "Thành phố Hà Nội",
@@ -123,6 +128,12 @@ namespace Service.SnapFood.Infrastructure.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("PhuongThucDatHang")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReceivingType")
+                        .HasColumnType("int");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -204,6 +215,9 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("ItemType")
                         .HasColumnType("int");
@@ -636,6 +650,9 @@ namespace Service.SnapFood.Infrastructure.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ProductName")
                         .IsRequired()
@@ -1076,7 +1093,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("06a97eaa-4200-4fb2-8064-26c9a166cbee"),
+                            Id = new Guid("926286e4-ca4a-4500-b697-bd7b8eeaa034"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"),
@@ -1084,7 +1101,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("2bca8480-d20b-4831-baa0-2df3157c4a50"),
+                            Id = new Guid("91c6856e-f4ac-44f0-9533-bd028518d135"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
@@ -1092,7 +1109,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("ab40fd61-e114-4d68-95a3-bd50307bedea"),
+                            Id = new Guid("ce7e19a1-5f7c-46c3-83af-df8e943dabf9"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ad"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("b487da52-d738-4376-a1e3-c4a4d2fc7ef2"),
@@ -1100,7 +1117,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("e5c27e5f-3086-418a-a565-17da34640484"),
+                            Id = new Guid("cd725a86-697f-4226-b166-b11f697b8a6e"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ac"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("f6a71ac8-78f3-4194-88c9-c2aa9467f95e"),
@@ -1108,7 +1125,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("0b0f5af6-14d0-49ba-83fa-9da4423c38b8"),
+                            Id = new Guid("0a6574f0-e51a-4a09-ad67-6e3a5e7f8bfc"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ac"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
@@ -1116,7 +1133,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("ae5e2ddd-70c1-4d9a-8de3-8b4865fd3be9"),
+                            Id = new Guid("1b4c6684-23c7-43f7-94d3-83b52fab1ef8"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("f4a7b7e8-63b6-4c90-a38a-74c5c8d9d7b1"),
@@ -1124,7 +1141,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("11badfdf-fdfe-4712-b9cb-b1ec84406c65"),
+                            Id = new Guid("47f092ba-4bc5-4663-a04d-bd0479766fd0"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"),
@@ -1132,7 +1149,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6cee3731-2e4b-4d35-b445-8d243346e32c"),
+                            Id = new Guid("31548759-4cdd-4e43-a45e-b488c98819d6"),
                             ComboId = new Guid("a1b2c3d4-e5f6-4789-abcd-1234567890ab"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
@@ -1140,7 +1157,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("100de5e4-4cc3-4f0c-a822-a663a75306f2"),
+                            Id = new Guid("57654d0a-d08d-4121-ba58-d08924f873bb"),
                             ComboId = new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("7b17b539-8168-42c5-8b9f-1c1c783bd423"),
@@ -1148,7 +1165,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("35082191-73b8-4ec4-ba48-7117fb2c737c"),
+                            Id = new Guid("d6cd75b9-7f27-4a9f-a68c-7c3157edc3b7"),
                             ComboId = new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"),
@@ -1156,7 +1173,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("b20c1277-65d4-4fdc-8ef3-1f514564825e"),
+                            Id = new Guid("9a6e82ff-b271-4b93-b7d6-08b67a18b792"),
                             ComboId = new Guid("b2c3d4e5-f6a7-4890-abcd-2345678901bc"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
@@ -1164,7 +1181,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("001432f9-bcf6-4658-a18d-7d2355ef8f4f"),
+                            Id = new Guid("76627625-87a3-4edb-89f2-4f1e4b92fff7"),
                             ComboId = new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("dbc17836-d6f4-46cb-bb9a-77b9c54e7b13"),
@@ -1172,7 +1189,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("8b7bdf47-431a-46e2-95f3-55660c18d70c"),
+                            Id = new Guid("51e73ddc-dac3-4275-aa2c-032c337a34a8"),
                             ComboId = new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("e1bb1ea5-94b2-45c7-98a2-b1fa0f4e3e6d"),
@@ -1180,7 +1197,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("dcc9e791-5682-4b26-bdeb-ee426e2211b9"),
+                            Id = new Guid("1af7f226-e2ed-4721-a86e-81ebc4f2bbe2"),
                             ComboId = new Guid("c3d4e5f6-a7b8-4901-bcde-3456789012cd"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = new Guid("85c5e5a3-9a3d-4d9a-a09c-74647eb07bfc"),
@@ -1399,7 +1416,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("14a181c3-1fa0-4c8b-9f3a-f0ffa0f53daa"),
+                            Id = new Guid("710e9e38-ea48-4db9-8757-5b5dce6d0076"),
                             AdditionalPrice = 0m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1412,7 +1429,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("d3214a4d-6bd9-45a5-b134-025dd83d6e77"),
+                            Id = new Guid("bc661706-85c1-408d-8b6f-37e042e0e40f"),
                             AdditionalPrice = 4000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1425,7 +1442,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("f1dc439f-4733-450c-ba01-9f30840b5c3c"),
+                            Id = new Guid("7985a18d-0caa-4d46-8afb-6b58b84a6ed3"),
                             AdditionalPrice = 7000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1450,7 +1467,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("f4e7fb01-c202-41c3-90c5-176f80819b27"),
+                            Id = new Guid("ccc8eebe-cafb-4710-99ce-254109278685"),
                             AdditionalPrice = 0m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1463,7 +1480,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("acd2f684-9d00-4ccd-b2b8-9c29f56874b0"),
+                            Id = new Guid("457a6ee4-8d5f-4a3e-a137-ab25e67215b8"),
                             AdditionalPrice = 7000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1476,7 +1493,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("bdbc68c5-bae4-4ac7-8e39-93320b86a0f8"),
+                            Id = new Guid("1ce5ac63-03bc-4876-a404-4b129abb7a6a"),
                             AdditionalPrice = 15000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1501,7 +1518,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("55a9b803-02e3-49be-9ee0-001c65915dbb"),
+                            Id = new Guid("0352dcb4-0657-49c8-80f1-012b8fc0d83e"),
                             AdditionalPrice = 0m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1514,7 +1531,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("ab720625-aa55-47d3-8277-ecd80781adb5"),
+                            Id = new Guid("2edaf3ac-2702-4c29-97d2-950418a1c068"),
                             AdditionalPrice = 10000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1527,7 +1544,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("1e4911cf-90aa-4b66-b932-d9e1a0eaf182"),
+                            Id = new Guid("1a74b0c5-d4df-4b89-950f-5d1d49ac831d"),
                             AdditionalPrice = 25000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1552,7 +1569,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("fe970ae8-5051-4194-b5fd-a1ef9a23af32"),
+                            Id = new Guid("11447fa0-f061-49e0-ae85-d3d2b6440f89"),
                             AdditionalPrice = 0m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1565,7 +1582,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("59e38999-e70a-4ac5-a678-27b4e58f2ee3"),
+                            Id = new Guid("d4b213a8-418d-46da-8f0c-82b99680a529"),
                             AdditionalPrice = 12000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1578,7 +1595,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("0cae455e-e72a-45e8-b07e-15b4d9869fcd"),
+                            Id = new Guid("13c2ebe7-249f-4120-a261-3d90bb87af62"),
                             AdditionalPrice = 25000m,
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
@@ -1615,12 +1632,22 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     b.Property<int>("ModerationStatus")
                         .HasColumnType("int");
 
+                    b.Property<string>("NumberPhone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<string>("StoreName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeOnly>("ThoiGianBatDauHoatDong")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly>("ThoiGianNgungHoatDong")
+                        .HasColumnType("time");
 
                     b.HasKey("Id");
 
@@ -1639,8 +1666,44 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             ModerationStatus = 0,
+                            NumberPhone = "055931234",
                             Status = 0,
-                            StoreName = "BB Chicken-Hàm Nghi"
+                            StoreName = "BB Chicken-Hàm Nghi",
+                            ThoiGianBatDauHoatDong = new TimeOnly(8, 0, 0),
+                            ThoiGianNgungHoatDong = new TimeOnly(22, 0, 0)
+                        });
+                });
+
+            modelBuilder.Entity("Service.SnapFood.Domain.Entitys.ThongTinGiaoHang", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("BanKinhGiaoHang")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("DonHangToiThieu")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PhiGiaoHang")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ThongTinGiaoHangs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("75d50183-ce7f-463b-ab95-f4f92c5fce39"),
+                            BanKinhGiaoHang = 15.0,
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DonHangToiThieu = 50000m,
+                            PhiGiaoHang = 5000m
                         });
                 });
 
@@ -1703,7 +1766,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             ModerationStatus = 0,
-                            Password = "$2a$11$ziVaqBcBpeJG/N7dU3zixuTIXhc9m4PqJafpGsh.MdVrusMKOaZg6",
+                            Password = "$2a$11$ZvvGBdBWIB61vgCHVFM02eZ8IcfVCUjlz3wAoul6A7Z7GFu03KQeG",
                             StoreId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d0e"),
                             UserType = 1
                         },
@@ -1717,7 +1780,7 @@ namespace Service.SnapFood.Infrastructure.Migrations
                             LastModified = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LastModifiedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             ModerationStatus = 0,
-                            Password = "$2a$11$M9IzLduI.D8jPmQ6L3cdwuegxRkc6hd0dDI.AdB1ZWasx1IKmBZcm",
+                            Password = "$2a$11$kmmIX1JBxTCY6Hx3nBBMVuCeilPrmdhiuBqMm56g9SjcsvIfWfVMW",
                             StoreId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d0e"),
                             UserType = 1
                         });
@@ -1749,21 +1812,21 @@ namespace Service.SnapFood.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("c73b93ad-1b6d-4100-aed4-88b9fbd3f81a"),
+                            Id = new Guid("9a69944f-4bc1-4ee1-859d-46eebc806eed"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RoleId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"),
                             UserId = new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e")
                         },
                         new
                         {
-                            Id = new Guid("170a1ed0-34d8-481c-95df-93e8fa527ed7"),
+                            Id = new Guid("30d63c9a-f762-40e3-b286-6eed1647b105"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RoleId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
                             UserId = new Guid("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e")
                         },
                         new
                         {
-                            Id = new Guid("cfb94409-c54c-4232-86a0-e2998bad35d6"),
+                            Id = new Guid("4be0393f-8227-4c14-8dfb-f73c4c84db4b"),
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RoleId = new Guid("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
                             UserId = new Guid("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d4e")

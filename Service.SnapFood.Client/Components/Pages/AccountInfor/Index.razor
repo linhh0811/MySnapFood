@@ -1,0 +1,142 @@
+﻿@page "/thong-tin-tai-khoan"
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IToastService ToastService
+@inject ICallServiceRegistry CallApi
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using Service.SnapFood.Client.Dto.User
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+<div class="container p-3 m-0">
+    <div class="row d-flex align-items-center justify-content-between">
+        <div class="col-auto">
+            <h4 class="fw-bold m-0" style="color:#ff5961">THÔNG TIN TÀI KHOẢN</h4>
+        </div>
+        <div class="col-auto">
+        </div>
+    </div>
+    @if (IsLoading)
+    {
+        <p class="text-center">Đang tải thông tin...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <p class="text-danger text-center">@ErrorMessage</p>
+    }
+    else if (UserInfo != null)
+    {
+
+        <div class="container mt-3 info">
+
+
+            <div class="mb-3 " >
+                <label for="hoTen" class="form-label">Họ tên</label>
+                <input class="form-control" @bind="UserInfo.FullName" placeholder="Nhập họ tên" />
+            </div>
+            <div class="mb-3 ">
+                <label class="form-label">Số điện thoại</label>
+                <input class="form-control" @bind="UserInfo.Numberphone" placeholder="Số điện thoại" />
+            </div> 
+            <div class="mb-3">   
+                <label class="form-label">Email</label>
+                <input class="form-control" @bind="UserInfo.Email" placeholder="Email" />
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <FluentButton Loading=IsSaving BackgroundColor="#ff5961" Color="white" @onclick="SaveChanges">
+                    @if (IsSaving)
+                    {
+                        <span>Đang lưu...</span>
+
+                    }
+                    else
+                    {
+                        <span>Lưu thông tin</span>
+                        
+                    }
+                    
+                </FluentButton>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .info .form-control {
+        border-radius: 10px;
+        border-color: #ffcccc;
+    }
+</style>
+
+
+@code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
+    private UserDto? UserInfo;
+    private bool IsLoading = true;
+    private bool IsSaving = false;
+
+    private string ErrorMessage = string.Empty;
+    private readonly ApiRequestModel requestRestAPI = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+           
+            requestRestAPI.Endpoint = $"api/User/{CurrentUser.UserId}";
+            var result = await CallApi.Get<UserDto>(requestRestAPI);
+
+            if (result.Status == StatusCode.OK && result.Data is UserDto dto)
+            {
+                UserInfo = dto;
+            }
+            else
+            {
+                ErrorMessage = "Không thể tải thông tin người dùng.";
+            }
+               
+          
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Lỗi khi tải thông tin: " + ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        if (UserInfo == null)
+            return;
+
+        try
+        {
+            IsSaving = true;
+            requestRestAPI.Endpoint = $"api/User/{UserInfo.Id}";
+            var result = await CallApi.Put(requestRestAPI, UserInfo);
+
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Cập nhật thông tin thành công!");
+            }
+            else
+            {
+                ToastService.ShowError("Cập nhật thất bại rồi cưng: " + result.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi cập nhật: {ex.Message}");
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Service.SnapFood.Domain.Entitys;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,6 +31,15 @@ namespace Service.SnapFood.Domain.Interfaces.UnitOfWork
         IPromotionRepository PromotionRepository { get; }
         IPromotionItemsRepository PromotionItemsRepository { get; }
         IComboProductItemRepository ComboProductItemRepository { get; }
+        IThongTinGiaoHangRepository ThongTinGiaoHangRepository { get; }
+
+
+        //
+        IDiscountCodeRepository DiscountCodeRepo { get; }
+        IDiscountCodeUsageRepository DiscountCodeUsageRepo { get; }
+        
+
+
 
 
         Task<int> CompleteAsync(Guid UserId = default);

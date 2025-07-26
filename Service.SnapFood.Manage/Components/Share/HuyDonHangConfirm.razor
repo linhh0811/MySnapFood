@@ -1,0 +1,56 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Share.Model.Result
+@implements IDialogContentComponent
+
+<FluentDialogHeader ShowDismiss="true" Style="padding-bottom:10px">
+    <h3>Lý do hủy đơn hàng</h3>
+</FluentDialogHeader>
+<FluentDialogBody style="margin: 0; padding: 0;">
+    <FluentStack Orientation="Orientation.Horizontal" style="align-items: center; gap: 12px;">
+        <FluentStack Orientation="Orientation.Vertical" style="gap: 4px;">
+            <FluentTextArea Required=true @bind-Value="Reason" Rows="5" Style="width:100%" Placeholder="Nhập lý do"></FluentTextArea>
+        </FluentStack>
+    </FluentStack>
+</FluentDialogBody>
+<FluentDialogFooter Style="padding-top:15px">
+    <FluentStack Orientation="Orientation.Vertical">
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" Style="gap: 10px;">
+            <FluentButton Appearance="Appearance.Neutral"
+                          @onclick="CancelDelete"
+                          Disabled="isDeleted">
+                Thoát
+            </FluentButton>
+            <FluentButton BackgroundColor="red" Color="White"
+                          @onclick="ConfirmDelete"
+                          Disabled="isDeleted || string.IsNullOrWhiteSpace(Reason)">
+                @if (isDeleted)
+                {
+                    <span style="margin-left: 8px; ">Đang hủy ....</span>
+                }
+                else
+                {
+                    <span>Xác nhận</span>
+                }
+            </FluentButton>
+        </FluentStack>
+    </FluentStack>
+</FluentDialogFooter>
+
+@code {
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private bool isDeleted = false;
+    private string Reason { get; set; } = string.Empty;
+
+    private async Task ConfirmDelete()
+    {
+        isDeleted = true;
+        await Dialog.CloseAsync(new HuyDonHangConfirmResult { Success = true, Reason = Reason });
+    }
+
+    private async Task CancelDelete()
+    {
+        await Dialog.CloseAsync(new HuyDonHangConfirmResult { Success = false });
+    }
+}

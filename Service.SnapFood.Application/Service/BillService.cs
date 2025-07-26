@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿        using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
@@ -25,7 +25,6 @@ namespace Service.SnapFood.Application.Service
     public class BillService : IBillService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private object query;
 
         public BillService(IUnitOfWork unitOfWork)
         {
@@ -138,7 +137,7 @@ namespace Service.SnapFood.Application.Service
         #endregion
 
         #region Cập nhật trạng thái
-        public async Task<bool> UpdateStatusAsync(Guid id, StatusOrder status)
+        public async Task<bool> UpdateStatusAsync(Guid id, UpdateOrderStatusDto updateOrderStatusDto)
         {
             try
             {
@@ -149,10 +148,85 @@ namespace Service.SnapFood.Application.Service
                 if (bill == null)
                     throw new Exception("Không tìm thấy hóa đơn");
 
-                bill.Status = status;
+                bill.Status = updateOrderStatusDto.StatusOrder;
 
                 _unitOfWork.BillRepo.Update(bill);
                 await _unitOfWork.CompleteAsync();
+
+                string NoteContent = string.Empty;
+                if (updateOrderStatusDto.StatusOrder== StatusOrder.Pending)
+                {
+                    NoteContent = "Đơn hàng chờ xác nhận";
+                }else if (updateOrderStatusDto.StatusOrder == StatusOrder.Confirmed)
+                {
+                    NoteContent = "Đơn hàng đã được xác nhận";
+                }
+                else if (updateOrderStatusDto.StatusOrder == StatusOrder.Shipping)
+                {
+                    NoteContent = "Đơn hàng đã được giao cho vận chuyển";
+                }
+                else if (updateOrderStatusDto.StatusOrder == StatusOrder.Completed)
+                {
+                    NoteContent = "Đơn hàng đã được giao cho khách hàng";
+                }
+                else if (updateOrderStatusDto.StatusOrder == StatusOrder.Cancelled)
+                {
+                    NoteContent = "Đơn hàng đã bị hủy. Lý do: "+ updateOrderStatusDto.Reason;
+                }
+
+                if (!string.IsNullOrEmpty(NoteContent))
+                {
+                    BillNotes billNotes = new BillNotes()
+                    {
+                        BillId = bill.Id,
+                        NoteType = NoteType.Internal,
+                        NoteContent=NoteContent,
+                        CreatedBy= Guid.Empty
+
+                    };
+                    _unitOfWork.BillNotesRepo.Update(billNotes);
+                    await _unitOfWork.CompleteAsync();
+                }
+
+                if (updateOrderStatusDto.StatusOrder == StatusOrder.Completed)
+                {
+                    var billDetails = _unitOfWork.BillDetailsRepo.FindWhere(x => x.BillId == bill.Id);
+                    foreach (var item in billDetails)
+                    {
+                        if (item.ItemType== ItemType.Product)
+                        {
+                            var product = _unitOfWork.ProductRepo.GetById(item.ItemId);
+                            if (product is not null)
+                            {
+                                product.Quantity += item.Quantity;
+                                _unitOfWork.ProductRepo.Update(product);
+                                await _unitOfWork.CompleteAsync();
+                            }
+                        }
+                        else
+                        {
+                            var combo = _unitOfWork.ComboRepo.GetById(item.ItemId);
+                            if (combo is not null)
+                            {
+                                combo.Quantity += item.Quantity;
+                                _unitOfWork.ComboRepo.Update(combo);
+                                await _unitOfWork.CompleteAsync();
+                                var products = _unitOfWork.ComboItemsArchiveRepo.FindWhere(x => x.BillDetailsId == item.Id);
+                                foreach (var p in products)
+                                {
+                                    var product = _unitOfWork.ProductRepo.GetById(p.ProductId);
+                                    if (product is not null)
+                                    {
+                                        product.Quantity += item.Quantity;
+                                        _unitOfWork.ProductRepo.Update(product);
+                                        await _unitOfWork.CompleteAsync();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 return true;
             }
             catch (Exception ex)
@@ -209,71 +283,96 @@ namespace Service.SnapFood.Application.Service
 
         //}
 
-        public async Task<List<BillDetailsDto>> GetBillDetailsByBillIdAsync(Guid billId)
+       
+
+        public async Task<BillViewDto> GetDetailsByBillIdAsync(Guid billId)
         {
-            var allDetails = (await _unitOfWork.BillDetailsRepo.GetAllAsync())
-                .Where(d => d.BillId == billId)
-                .ToList();
-
-            // Lấy danh sách ID của combo (ItemType == Combo)
-            var comboIds = allDetails
-                .Where(d => d.ItemType == ItemType.Combo)
-                .Select(d => d.Id)
-                .ToList();
-
-            // Lấy toàn bộ combo items thuộc bill hiện tại
-            var allComboItems = (await _unitOfWork.ComboItemsArchiveRepo.GetAllAsync())
-                .Where(c => comboIds.Contains(c.BillDetailsId))
-                .ToList();
-
-            // Map comboId -> List<ComboItemsArchive>
-            var comboItemGroups = allComboItems
-                .GroupBy(c => c.BillDetailsId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            var result = new List<BillDetailsDto>();
-
-            foreach (var detail in allDetails)
+          
+            var bill =await _unitOfWork.BillRepo.GetByIdAsync(billId);
+            if (bill is not null)
             {
-                var detailDto = new BillDetailsDto
-                {
-                    Id = detail.Id,
-                    ItemsName = detail.ItemsName,
-                    ImageUrl = detail.ImageUrl,
-                    Quantity = detail.Quantity,
-                    Price = detail.Price,
-                    PriceEndow = detail.PriceEndow,
-                    ItemType = detail.ItemType,
-                    Children = null
-                };
+                BillViewDto billViewDto = new BillViewDto();
 
-                // Nếu là combo, thêm danh sách sản phẩm con
-                if (detail.ItemType == ItemType.Combo && comboItemGroups.ContainsKey(detail.Id))
+                billViewDto.Id = billId;
+                billViewDto.BillCode = bill.BillCode;
+                billViewDto.TotalAmount = bill.TotalAmount;
+                billViewDto.TotalAmountEndow = bill.TotalAmountEndow;
+                billViewDto.Status = bill.Status;
+                billViewDto.Created = bill.Created;
+                billViewDto.BillDetailsDtos = _unitOfWork.BillDetailsRepo.FindWhere(x=>x.BillId== billId)
+                    .Select(x=> new BillDetailsDto()
+                    {
+                        Id = x.Id,
+                        BillId = x.BillId,
+                        ItemsName = x.ItemsName,
+                        ImageUrl = x.ImageUrl,
+                        Quantity= x.Quantity,
+                        Price= x.Price,
+                        PriceEndow= x.PriceEndow,
+                        ItemType= x.ItemType,
+
+                    }).ToList();
+                foreach (var item in billViewDto.BillDetailsDtos)
                 {
-                    detailDto.Children = comboItemGroups[detail.Id]
-                        .Select(c => new BillDetailsDto
+                    if (item.ItemType== ItemType.Combo)
+                    {
+                        item.Product = _unitOfWork.ComboItemsArchiveRepo.FindWhere(x => x.BillDetailsId == item.Id)
+                            .Select(x => new ComboItemsArchiveDto()
                         {
-                            ItemsName = c.ProductName
-                            //ImageUrl = c.ImageUrl,
-                            //Quantity = c.Quantity,
-                            //Price = c.Price,
-                            //PriceEndow = 0,
-                            //ItemType = ItemType.Product // hoặc ItemType khác tùy logic
-                        })
-                        .ToList();
+                            Id = x.Id,
+                            BillDetailsId=x.BillDetailsId,
+                            ProductName=x.ProductName,
+                            Quantity=x.Quantity,
+                            ImageUrl=x.ImageUrl,
+                            Price=x.Price,
+                           
+                        }).ToList();
+                    }
+                }
+                var billPayment = _unitOfWork.BillPaymentRepo.FirstOrDefault(x => x.BillId == billId);
+                if (billPayment is not null)
+                {
+                    billViewDto.BillPaymentDto = new BillPaymentDto()
+                    {
+                        Id = billPayment.Id,
+                        BillId = billPayment.BillId,
+                        PaymentType = billPayment.PaymentType,
+                        Amount = billPayment.Amount,
+                        PaymentDate = billPayment.PaymentDate,
+                        PaymentStatus = billPayment.PaymentStatus,
+                    };
+                }
+                billViewDto.BillNotesDtos = _unitOfWork.BillNotesRepo.FindWhere(x => x.BillId == billId)
+                    .Select(x => new BillNotesDto()
+                    {
+                        Id = x.Id,
+                        BillId = x.BillId,
+                        NoteContent = x.NoteContent,
+                        NoteType = x.NoteType,
+                        Created=x.Created,
+                        CreatedBy=x.CreatedBy,
+                    }).ToList();
+
+                var billDelivery = _unitOfWork.BillDeliveryRepo.FirstOrDefault(x => x.BillId == billId);
+                if (billDelivery is not null)
+                {
+                    billViewDto.BillDeliveryDto = new BillDeliveryDto()
+                    {
+                        Id = billDelivery.Id,
+                        BillId = billDelivery.BillId,
+                        ReceivingType=billDelivery.ReceivingType,
+                        ReceiverName = billDelivery.ReceiverName,
+                        ReceiverPhone= billDelivery.ReceiverPhone,
+                        ReceiverAddress= billDelivery.ReceiverAddress,
+                        DeliveryFee= billDelivery.DeliveryFee,
+                        Distance= billDelivery.Distance,
+                    };
                 }
 
-                result.Add(detailDto);
+                return billViewDto;
             }
-
-            return result;
-        }
-
-
-        public async Task<List<BillDetails>> GetDetailsByBillIdAsync(Guid billId)
-        {
-            var results = _unitOfWork.BillDetailsRepo.FindWhere(x => x.BillId == billId);
-            return results.ToList();
+            return new BillViewDto();
+            
         }
 
         public DataTableJson GetPage(BillQuery query)
@@ -293,6 +392,7 @@ namespace Service.SnapFood.Application.Service
                     ref totalRecords
                 );
 
+
                 var allUsers = _unitOfWork.UserRepo.GetAll().ToList();
 
                 var data = dataQuery.ToList().Select(m => new BillDto
@@ -300,13 +400,14 @@ namespace Service.SnapFood.Application.Service
                     Id = m.Id,
                     BillCode = m.BillCode,
                     UserId = m.UserId,
-                    FullName = allUsers.FirstOrDefault(u => u.Id == m.UserId)?.FullName ?? string.Empty,
+                    FullName = allUsers.FirstOrDefault(u => u.Id == m.UserId)?.Email ?? string.Empty,
                     StoreId = m.StoreId,
-                    Status = m.Status,
-                 
+                    Status = m.Status,                
                     TotalAmount = m.TotalAmount,
                     TotalAmountEndow = m.TotalAmountEndow,
-                    Created = m.Created
+                    Created = m.Created,
+                    ReceivingType=m.ReceivingType,
+                    PhuongThucDatHang = m.PhuongThucDatHang
                 }).ToList();
 
                 return new DataTableJson(data, query.draw, totalRecords);
@@ -314,6 +415,63 @@ namespace Service.SnapFood.Application.Service
             catch (Exception ex)
             {
                 throw new Exception("Lỗi khi phân trang hóa đơn: " + ex.Message);
+            }
+        }
+        
+         public async Task<bool> ApplyDiscountAsync(Guid billId, Guid discountCodeId, Guid userId)
+        {
+            try
+            {
+                var bill = await _unitOfWork.BillRepo.GetByIdAsync(billId);
+                if (bill == null)
+                    throw new Exception("Không tìm thấy hóa đơn");
+
+                var discountCode = await _unitOfWork.DiscountCodeRepo.GetByIdAsync(discountCodeId);
+                if (discountCode == null || !discountCode.IsActive || discountCode.EndDate < DateTime.Now)
+                    throw new Exception("Mã giảm giá không hợp lệ hoặc đã hết hạn");
+
+                if (bill.UserId != userId)
+                    throw new Exception("Người dùng không hợp lệ cho hóa đơn này");
+
+                if (discountCode.UsageLimit > 0 && discountCode.UsedCount >= discountCode.UsageLimit)
+                    throw new Exception("Mã giảm giá đã hết lượt sử dụng");
+
+                if (bill.TotalAmount < discountCode.MinOrderAmount)
+                    throw new Exception($"Hóa đơn cần tối thiểu {discountCode.MinOrderAmount:N0}đ để áp dụng mã giảm");
+
+                decimal discountAmount = 0;
+
+                switch (discountCode.DiscountCodeType)
+                {
+                    case DiscountCodeType.Money:
+                        discountAmount = discountCode.DiscountAmount;
+                        break;
+
+                    case DiscountCodeType.Percent:
+                        discountAmount = bill.TotalAmount * (discountCode.DiscountAmount / 100);
+                        break;
+
+                    default:
+                        throw new Exception("Loại mã giảm giá không hợp lệ");
+                }
+
+                discountAmount = Math.Min(discountAmount, bill.TotalAmount);
+
+
+                bill.TotalAmountEndow = discountAmount;
+                bill.TotalAmount -= discountAmount;
+
+                discountCode.UsedCount++;
+
+                _unitOfWork.BillRepo.Update(bill);
+                _unitOfWork.DiscountCodeRepo.Update(discountCode);
+
+                await _unitOfWork.CompleteAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi áp dụng mã giảm giá: {ex.Message}");
             }
         }
 

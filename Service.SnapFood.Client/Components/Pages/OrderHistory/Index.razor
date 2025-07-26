@@ -8,68 +8,101 @@
 @using Service.SnapFood.Client.Dto.Bill
 @using System.Security.Claims
 @using Service.SnapFood.Client.Enums
+<div class="container p-3 m-0">
+    <div class="row d-flex align-items-center justify-content-between">
+        <div class="col-auto">
+            <h4 class="fw-bold m-0" style="color:#ff5961">LỊCH SỬ ĐƠN HÀNG</h4>
+        </div>
+        <div class="col-auto">
+            <select class="form-select w-auto" @onchange="OnStatusFilterChanged">
+                <option value="">Tất cả</option>
+                @foreach (var status in Enum.GetValues<StatusOrder>().Cast<StatusOrder>().Where(s => (int)s >= 0 && (int)s <= 4))
+                {
+                    <option value="@((int)status)">@GetStatusText(status)</option>
+                }
+            </select>
+        </div>
+    </div>
+    @if (IsLoading)
+    {
+        <p>Đang tải đơn hàng...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <p class="text-danger">@ErrorMessage</p>
+    }
+    else if (FilteredBills.Count == 0)
+    {
+        <p>Không có đơn hàng.</p>
+    }
+    else
+    {
+        <div class="mt-3">
+            <FluentGridItem Style="width:100%;">
+                <FluentDataGrid TGridItem="BillDto" Items="FilteredBills.AsQueryable()"
+                                ResizableColumns="false"
+                                GridTemplateColumns="2.0fr 1.0fr 1.5fr 1.5fr 0.5fr"
+                                RowSize="DataGridRowSize.Large"
+                                ShowHover="true"
+                                GenerateHeader="GenerateHeaderOption.Sticky">
 
-<h2 class="mb-4">LỊCH SỬ ĐƠN HÀNG</h2>
 
-<div class="d-flex justify-content-end align-items-center mb-3">
 
-    <select class="form-select w-auto" @onchange="OnStatusFilterChanged">
-        <option value="">Tất cả</option>
-        @foreach (var status in Enum.GetValues<StatusOrder>().Cast<StatusOrder>().Where(s => (int)s >= 0 && (int)s <= 4))
-        {
-            <option value="@((int)status)">@GetStatusText(status)</option>
-        }
-    </select>
+                    <TemplateColumn Title="Mã đơn hàng" Style="display:flex;align-items: center;">
+                        <span style="cursor: pointer;">
+                            @context.BillCode
+                        </span>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Trạng thái" Style="display: flex;align-items: center;">
+                        <span style="cursor: pointer;color:@GetStatusColor(context.Status)">
+                            @GetStatusText(context.Status)
+                        </span>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Tổng tiền" Style="display: flex; flex-direction: column; justify-content: center;">
+                        @if (context.TotalAmountEndow > 0)
+                        {
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <FluentLabel Style="text-decoration: line-through;font-size:12px;">
+                                    @context.TotalAmount.ToString("N0") đ
+                                </FluentLabel>
 
+                                @if (context.TotalAmount > context.TotalAmountEndow)
+                                {
+                                    var discountPercent = Math.Round((context.TotalAmountEndow / context.TotalAmount) * 100);
+                                    <FluentLabel Style="color: green;font-size:12px;">
+                                        -@discountPercent %
+                                    </FluentLabel>
+                                }
+                            </div>
+                            <FluentLabel>@((context.TotalAmount - context.TotalAmountEndow).ToString("N0")) đ</FluentLabel>
+
+                        }
+                        else
+                        {
+                            <FluentLabel>@context.TotalAmount.ToString("N0") đ</FluentLabel>
+                        }
+                    </TemplateColumn>
+                    <TemplateColumn Title="Ngày đặt" Style="display:flex;align-items: center;">
+                        <span style="cursor: pointer;">
+                            @context.Created.ToString("dd/MM/yyyy HH:mm:ss")
+                        </span>
+                    </TemplateColumn>
+                    <TemplateColumn Style="display:flex;align-items: center;">
+                        <FluentButton Appearance="Appearance.Neutral" OnClick="@(() => ViewDetail(context.Id))" Title="Xem chi tiết">
+                            <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size20.Eye())" />
+                        </FluentButton>
+                    </TemplateColumn>
+
+                </FluentDataGrid>
+            </FluentGridItem>
+        </div>
+        
+    }
 </div>
 
-@if (IsLoading)
-{
-    <p>Đang tải đơn hàng...</p>
-}
-else if (!string.IsNullOrWhiteSpace(ErrorMessage))
-{
-    <p class="text-danger">@ErrorMessage</p>
-}
-else if (FilteredBills.Count == 0)
-{
-    <p>Không có đơn hàng.</p>
-}
-else
-{
-    <div class="mt-3">
-        <div class="d-flex px-3 py-2 bg-light rounded mb-2 fw-bold">
-            <div style="flex: 2;">Mã đơn</div>
-            <div style="flex: 3;">Trạng thái</div>
-            <div style="flex: 3;">Tổng tiền</div>
-            <div style="flex: 3;">Ngày tạo</div>
-            <div style="flex: 1;"></div>
-        </div>
 
 
-        @foreach (var bill in FilteredBills)
-        {
-            <div class="d-flex align-items-center border-bottom px-3 py-2">
-                <div style="flex: 2;">@bill.BillCode</div>
-                <div style="flex: 3; color:@GetStatusColor(bill.Status)">
-                    @GetStatusText(bill.Status)
-                </div>
-                <div style="flex: 3;">@bill.TotalAmount.ToString("N0") đ</div>
-                <div style="flex: 3;">@bill.Created.ToString("dd/MM/yyyy HH:mm:ss")</div>
-                <div style="flex: 1;">
-                    <FluentButton Appearance="Appearance.Neutral" OnClick="@(() => ViewDetail(bill.Id))" Title="Xem chi tiết">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 5c-7.633 0-11 7-11 7s3.367 7 11 7 11-7 11-7-3.367-7-11-7zm0 12c-2.761 0-5-2.239-5-5s2.239-5
-                             5-5 5 2.239 5 5-2.239 5-5 5zm0-8c-1.654 0-3 1.346-3 3s1.346 3
-                             3 3 3-1.346 3-3-1.346-3-3-3z" />
-                        </svg>
-                    </FluentButton>
-                </div>
-            </div>
-        }
 
-    </div>
-}
 
 @code {
     private List<BillDto> AllBills = new();
@@ -100,7 +133,7 @@ else
         StatusOrder.Pending => "Chờ xác nhận",
         StatusOrder.Confirmed => "Đã xác nhận",
         StatusOrder.Shipping => "Đang giao",
-        StatusOrder.Completed => "Hoàn tất",
+        StatusOrder.Completed => "Hoàn thành",
         StatusOrder.Cancelled => "Đã huỷ",
         _ => "Không rõ"
     };
@@ -149,7 +182,7 @@ else
 
     private void ViewDetail(Guid id)
     {
-        Navigation.NavigateTo($"/bills/user/{id}");
+        Navigation.NavigateTo($"/Lich-Su-Don-Hang/{id}");
     }
 
     private void OnStatusFilterChanged(ChangeEventArgs e)

@@ -1,0 +1,147 @@
+﻿@page "/Quan-Ly/Cua-Hang"
+@inject HttpClient Http
+@using Service.SnapFood.Manage.Enums;
+@if (isLoading)
+{
+    <div class="loading-center2">
+        Đang tải...
+    </div>
+}
+else
+{
+    <FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Stretch"
+                     Style="width:100%; gap: 20px; align-items: stretch; display: flex;">
+            <!-- Cột bên trái 35% -->
+            <FluentStack Orientation="Orientation.Vertical" Style="width:33%; gap: 12px;">
+                <FluentCard Style="height: 100%; min-height: 400px; display: flex; flex-direction: column;">
+                    <h4>Thông tin cơ bản</h4>
+                    <hr />
+                    <FluentStack Orientation="Orientation.Vertical" Gap="15" Style="flex-grow: 1;">
+                        <FluentTextField Label="Tên cửa hàng:" @bind-Value="Store.StoreName" Style="width:100%;" />
+                        <FluentTextField Label="Số điện thoại:" @bind-Value="Store.NumberPhone" Style="width:100%;" />
+                        <FluentLabel>Thời gian hoạt động:</FluentLabel>
+                        <FluentStack Orientation="Orientation.Horizontal" Gap="10px">
+                            <FluentTimePicker @bind-Value="Store.ThoiGianBatDauHoatDong" Style="width:50%"></FluentTimePicker>
+                            <FluentTimePicker @bind-Value="Store.ThoiGianNgungHoatDong" Style="width:50%"></FluentTimePicker>
+                        </FluentStack>
+                        <FluentSelect Items="TrangThaiCuaHangOptions"
+                                      Label="Trạng thái bán trên website:"
+                                      @bind-Value="SelectedTrangThai"
+                                      OptionText="@(x => x.Value)"
+                                      OptionValue="@(x => x.Key)"
+                                      Style="width:100%"
+                                      Position="SelectPosition.Below">
+                        </FluentSelect>
+                      
+                    </FluentStack>
+                    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" Style="margin-top: auto; padding-top: 10px;">
+                        <hr />
+                        <FluentButton Appearance="Appearance.Accent" Onclick="UpdateStore" Disabled=isSavingStore>
+                            @if (isSavingStore)
+                            {
+                                <span>Đang cập nhật...</span>
+                            }
+                            else
+                            {
+                                <span>Cập nhật</span>
+                            }
+                        </FluentButton>
+                    </FluentStack>
+                </FluentCard>
+            </FluentStack>
+
+            <!-- Cột bên phải 65% -->
+            <FluentStack Orientation="Orientation.Vertical" Style="width:33%; gap: 12px;">
+                <FluentCard Style="height: 100%; min-height: 400px; display: flex; flex-direction: column;">
+                    <h4>Địa chỉ và vị trí</h4>
+                    <hr />
+                    <FluentStack Orientation="Orientation.Vertical" Gap="15" Style="flex-grow: 1;">
+                        <FluentSelect Label="Tỉnh/Thành phố:" @bind-Value="SelectedProvince"
+                                      @bind-Value:after="OnProvinceChangedAsync"
+                                      TOption="string" Width="100%" Height="250px">
+                            <FluentOption Value="">Tỉnh/Thành phố</FluentOption>
+                            @foreach (var province in provinces)
+                            {
+                                <FluentOption Value="@province.Code.ToString()">@province.Name</FluentOption>
+                            }
+                        </FluentSelect>
+                        <FluentSelect Label="Quận/Huyện:" @bind-Value="SelectedDistrict"
+                                      @bind-Value:after="OnDistrictChangedAsync"
+                                      TOption="string" Width="100%" Height="250px">
+                            <FluentOption Value="">Quận/Huyện</FluentOption>
+                            @foreach (var district in districts)
+                            {
+                                <FluentOption Value="@district.Code.ToString()">@district.Name</FluentOption>
+                            }
+                        </FluentSelect>
+                        <FluentSelect Label="Phường/Xã:" @bind-Value="SelectedWard"
+                                      @bind-Value:after="OnWardChangedAsync"
+                                      TOption="string" Width="100%" Height="250px">
+                            <FluentOption Value="">Phường/Xã</FluentOption>
+                            @foreach (var ward in wards)
+                            {
+                                <FluentOption Value="@ward.Code.ToString()">@ward.Name</FluentOption>
+                            }
+                        </FluentSelect>
+                        <FluentTextField Label="Địa chỉ cụ thể:" @bind-Value="AddressModel.SpecificAddress" Placeholder="Địa chỉ cụ thể" Style="width:100%;" />
+                        <FluentLabel>Ghi chú địa chỉ:</FluentLabel>
+                        <FluentTextArea Style="width:100%" Rows="3" @bind-Value="AddressModel.Description"></FluentTextArea>
+                    </FluentStack>
+                    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" Style="margin-top: auto; padding-top: 10px;">
+                        <hr />
+                        <FluentButton Appearance="Appearance.Accent" OnClick="UpdateAddress" Disabled=isSavingAddress>
+                            @if (isSavingAddress)
+                            {
+                                <span>Đang cập nhật...</span>
+                            }
+                            else
+                            {
+                                <span>Cập nhật</span>
+                            }
+                        </FluentButton>
+                    </FluentStack>
+                </FluentCard>
+            </FluentStack>
+            <FluentStack Orientation="Orientation.Vertical" Style="width:33%; gap: 12px;">
+                <FluentCard Style="height: 100%; min-height: 400px; display: flex; flex-direction: column;">
+                    <h4>Thông tin giao hàng</h4>
+                    <hr />
+                    <FluentStack Orientation="Orientation.Vertical" Gap="15" Style="flex-grow: 1;">
+                        <FluentNumberField @bind-Value=ThongTinGiaoHang.BanKinhGiaoHang Label="Bán kính giao hàng (km):" Style="width:100%;" />
+                        <FluentNumberField @bind-Value=ThongTinGiaoHang.PhiGiaoHang Label="Phí giao hàng (/km):" Style="width:100%;" />
+                        <FluentNumberField @bind-Value=ThongTinGiaoHang.DonHangToiThieu Label="Đơn hàng tối thiểu (đ):" Style="width:100%;" />
+                    </FluentStack>
+                    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" Style="margin-top: auto; padding-top: 10px;">
+                        <hr />
+                        <FluentButton Appearance="Appearance.Accent" OnClick="UpdateThongTinGiaoHang">
+                            @if (isSavingTTGiaoHang)
+                            {
+                                <span>Đang cập nhật...</span>
+                            }else{
+                                <span>Cập nhật</span>
+                            }
+                            
+                            </FluentButton>
+                    </FluentStack>
+                </FluentCard>
+            </FluentStack>
+        </FluentStack>
+    </FluentStack>
+}
+<style>
+    .loading-center2 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: -1;
+    }
+</style>

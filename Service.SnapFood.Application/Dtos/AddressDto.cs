@@ -19,12 +19,9 @@ namespace Service.SnapFood.Application.Dtos
         public double Longitude { get; set; }
         public string FullAddress { get; set; } = string.Empty;
         public AddressType AddressType { get; set; }
-        
+        public string Description { get; set; } = string.Empty;
+
         public ModerationStatus ModerationStatus { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime LastModified { get; set; }
-        public Guid CreatedBy { get; set; }
-        public Guid LastModifiedBy { get; set; }
 
         
     }

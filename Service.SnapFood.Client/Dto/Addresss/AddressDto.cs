@@ -3,7 +3,7 @@ using Service.SnapFood.Share.Model.SQL;
 
 namespace Service.SnapFood.Client.Dto.Addresss
 {
-    public class AddresssDto
+    public class AddressDto
     {
         public int Index { get; set; }
         public Guid Id { get; set; }
@@ -18,12 +18,10 @@ namespace Service.SnapFood.Client.Dto.Addresss
         public double Longitude { get; set; }
         public string FullAddress { get; set; } = string.Empty;
         public AddressType AddressType { get; set; }
-        
-        public string Description { get; set; }
-        public ModerationStatus ModerationStatus { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime LastModified { get; set; }
-        public Guid CreatedBy { get; set; }
-        public Guid LastModifiedBy { get; set; }
+
+        public string Description { get; set; } = string.Empty;
+        public bool IsDiaChiMacDinh { get; set; }
+
+
     }
 }

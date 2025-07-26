@@ -5,6 +5,7 @@ using Service.SnapFood.Domain.Enums;
 using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Query;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Service.SnapFood.Api.Controllers
@@ -38,9 +39,9 @@ namespace Service.SnapFood.Api.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var bill = await _billService.GetByIdAsync(id);
-            
             return Ok(bill);
         }
+
         [HttpGet("ByUser/{userId}")]
         public async Task<IActionResult> GetByUser(Guid userId)
         {
@@ -58,7 +59,7 @@ namespace Service.SnapFood.Api.Controllers
                         TotalAmount = b.TotalAmount,
                         TotalAmountEndow = b.TotalAmountEndow,
                         Created = b.Created
-                    }).OrderByDescending(x=>x.Created).ToList();
+                    }).OrderByDescending(x => x.Created).ToList();
                 return Ok(userBills);
             }
             catch (Exception ex)
@@ -66,6 +67,7 @@ namespace Service.SnapFood.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BillDto item)
         {
@@ -78,26 +80,20 @@ namespace Service.SnapFood.Api.Controllers
         {
             var result = await _billService.UpdateAsync(id, item);
             if (!result)
-                return BadRequest("Cập nhật không thành công");
+                return BadRequest();
             return NoContent();
         }
+
         [HttpPut("UpdateStatus/{id}")]
-        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] int newStatus)
+        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusDto updateOrderStatusDto)
         {
-            try
-            {
-                var statusEnum = (StatusOrder)newStatus;
 
-                var result = await _billService.UpdateStatusAsync(id, statusEnum);
+                var result = await _billService.UpdateStatusAsync(id, updateOrderStatusDto);
                 if (!result)
-                    return BadRequest("Cập nhật trạng thái thất bại");
+                    return BadRequest();
 
-                return Ok("Cập nhật trạng thái thành công");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Lỗi: {ex.Message}");
-            }
+                return Ok();
+           
         }
 
         [HttpGet("DetailsByBillId/{billId}")]
@@ -109,13 +105,15 @@ namespace Service.SnapFood.Api.Controllers
                 if (result == null || !result.Any())
                     return NotFound("Không tìm thấy chi tiết đơn hàng");
 
-                return Ok(result); 
+                return Ok(result);
+
             }
             catch (Exception ex)
             {
                 return BadRequest($"Lỗi: {ex.Message}");
             }
         }
+
 
       
 
@@ -185,5 +183,22 @@ namespace Service.SnapFood.Api.Controllers
         }
 
 
+        [HttpPost("ApplyDiscount")]
+        public async Task<IActionResult> ApplyDiscount([FromQuery] Guid billId, [FromQuery] Guid discountCodeId, [FromQuery] Guid userId)
+        {
+            try
+            {
+                var result = await _billService.ApplyDiscountAsync(billId, discountCodeId, userId);
+                if (!result)
+                    return BadRequest("Không thể áp dụng mã giảm giá");
+
+
+                return Ok("Áp dụng mã giảm giá thành công");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
     }
 }

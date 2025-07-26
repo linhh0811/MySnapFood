@@ -1,20 +1,24 @@
 ﻿@page "/bills/user/{id:guid}"
 @using Service.SnapFood.Manage.Dto.Bill
 @using Service.SnapFood.Manage.Dto.BillDetails
+@using Service.SnapFood.Manage.Enums
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Result
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @inject HttpClient Http
 
 <h3>Chi tiết đơn hàng</h3>
 
-<div class="step-container">
+<div class="step-container @(CurrentStep == 5 ? "cancelled" : "")">
     @for (int i = 1; i <= 5; i++)
     {
-        <div class="step @(i <= CurrentStep ? "active" : "")">
+        <div class="step @(i <= CurrentStep ? "active" : "")" data-step="@i">
             <div class="circle">@i</div>
             <div class="step-label">
                 @(i == 1 ? "Chờ xác nhận" :
-                    i == 2 ? "Đã xác nhận" :
-                    i == 3 ? "Giao hàng" :
-                    i == 4 ? "Hoàn thành" : "Huỷ")
+                                    i == 2 ? "Đã xác nhận" :
+                                    i == 3 ? "Giao hàng" :
+                                    i == 4 ? "Hoàn thành" : "Huỷ")
             </div>
         </div>
     }
@@ -23,166 +27,251 @@
 <div class="mb-3">
     @if (CurrentStep == 1)
     {
-        <button class="btn btn-success me-2" @onclick="() => UpdateStatus(1)">Xác nhận</button>
-        <button class="btn btn-danger" @onclick="() => UpdateStatus(4)">Huỷ</button>
+        <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Confirmed)">Xác nhận</FluentButton>
+        <FluentButton BackgroundColor="red" Color="White" @onclick="HuyDonHangAsync">Huỷ</FluentButton>
     }
     else if (CurrentStep == 2)
     {
-        <button class="btn btn-success me-2" @onclick="() => UpdateStatus(2)">Giao hàng</button>
-        <button class="btn btn-danger" @onclick="() => UpdateStatus(4)">Huỷ</button>
+        <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Shipping)">Giao hàng</FluentButton>
+        <FluentButton BackgroundColor="red" Color="White" @onclick="HuyDonHangAsync">Huỷ</FluentButton>
     }
     else if (CurrentStep == 3)
     {
-        <button class="btn btn-success me-2" @onclick="() => UpdateStatus(3)">Hoàn thành</button>
-        <button class="btn btn-danger" @onclick="() => UpdateStatus(4)">Huỷ</button>
-    }
-    else if (CurrentStep == 4)
-    {
-        <button class="btn btn-danger" @onclick="() => UpdateStatus(4)">Huỷ</button>
+        <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)">Hoàn thành</FluentButton>
+        <FluentButton BackgroundColor="Red" Color="White" @onclick="HuyDonHangAsync">Huỷ</FluentButton>
     }
 </div>
 
+<div class="order-info">
+    <div class="row">
+        <!-- Bên trái -->
+        <div class="col-md-6 left">
+            <p><strong>@Item.BillDeliveryDto.ReceiverName</strong></p>
+            <p>@Item.BillDeliveryDto.ReceiverAddress</p>
+            <p>Điện thoại: @Item.BillDeliveryDto.ReceiverPhone</p>
+        </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Hình ảnh</th>
-            <th>Tên món</th>
-            <th>Giá</th>
-            <th>Số lượng</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in BillDetails)
-        {
-            <tr>
-                <td><img src="@item.ImageUrl" width="80" /></td>
-                <td>@item.ItemsName</td>
-                <td>
-                    @if (item.PriceEndow > item.Price)
+        <!-- Bên phải -->
+        <div class="col-md-6 right">
+            <p><span class="label">Mã đơn hàng: </span><span class="order-id">@Item.BillCode</span></p>
+            <p><span class="label">Thời gian đặt: </span>@Item.Created.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><span class="label">Hình thức thanh toán: </span>@Item.BillPaymentDto.PaymentType</p>
+        </div>
+    </div>
+</div>
+
+<!-- DANH SÁCH MÓN ĂN -->
+@if (!Item.BillDetailsDtos.Any())
+{
+    <p>Không tìm thấy đơn hàng.</p>
+}
+else
+{
+    <div style="margin-top: 16px">
+        <FluentDataGrid Items="@Item.BillDetailsDtos.AsQueryable()"
+        TGridItem="BillDetailsDto"
+        GridTemplateColumns="0.75fr 1.45fr 0.75fr 0.75fr 0.75fr"
+        ResizableColumns="false"
+        MultiLine="true"
+        ShowHover="true" >
+            <ChildContent>
+                <TemplateColumn Title="Hình ảnh" Style="display:flex;align-items:center;">
+                    <img src="@context.ImageUrl" style="max-height:60px;max-width:70px;object-fit:contain;" />
+                </TemplateColumn>
+                <TemplateColumn Title="Tên" Style="display: flex; flex-direction: column; justify-content: center;">
+                    <span style="font-size:16px;">
+                        @context.ItemsName
+                    </span>
+                    @if (context.ItemType == ItemType.Combo)
                     {
-                        <span style="text-decoration: line-through; color: gray;">@item.PriceEndow.ToString("N0") đ</span>
-
-                        <br />
+                        <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
+                            @foreach (var item in context.Product)
+                            {
+                                <div style="cursor: pointer;font-size:12px;">
+                                    @item.ProductName
+                                </div>
+                            }
+                        </div>
                     }
-                    @item.Price.ToString("N0") đ
-                </td>
-                <td>@item.Quantity</td>
-            </tr>
-        }
-    </tbody>
-</table>
+                </TemplateColumn>
+                <TemplateColumn Title="Giá" Style="display: flex; flex-direction: column; justify-content: center;">
+                    @if (context.PriceEndow > 0)
+                    {
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <FluentLabel Style="text-decoration: line-through;font-size:12px;">
+                                @context.Price.ToString("N0") đ
+                            </FluentLabel>
+                            @if (context.Price > context.PriceEndow)
+                            {
+                                var discountPercent = Math.Round(((context.Price - context.PriceEndow) / context.Price) * 100);
+                                <FluentLabel Style="color: green;font-size:12px;">
+                                    -@discountPercent %
+                                </FluentLabel>
+                            }
+                        </div>
+                        <FluentLabel>@context.PriceEndow.ToString("N0") đ</FluentLabel>
+                    }
+                    else
+                    {
+                        <FluentLabel>@context.Price.ToString("N0") đ</FluentLabel>
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Số lượng" Style="display:flex;align-items:center;gap:5px;">
+                    @context.Quantity
+                </TemplateColumn>
+                <TemplateColumn Title="Tổng" Style="display: flex; flex-direction: column; justify-content: center;">
+                    @if (context.PriceEndow > 0)
+                    {
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <FluentLabel Style="text-decoration: line-through;font-size:12px;">
+                                @((context.Price * context.Quantity).ToString("N0")) đ
+                            </FluentLabel>
+                            @if (context.Price > context.PriceEndow)
+                            {
+                                var discountPercent = Math.Round(((context.Price - context.PriceEndow) / context.Price) * 100);
+                                <FluentLabel Style="color: green;font-size:12px;">
+                                    -@discountPercent %
+                                </FluentLabel>
+                            }
+                        </div>
+                        <FluentLabel>@((context.PriceEndow * context.Quantity).ToString("N0")) đ</FluentLabel>
+                    }
+                    else
+                    {
+                        <FluentLabel>@((context.Price * context.Quantity).ToString("N0")) đ</FluentLabel>
+                    }
+                </TemplateColumn>
+            </ChildContent>
+        </FluentDataGrid>
+    </div>
+    <div class="row">
+        <div class="col-8" style="margin-top: 20px;">
+            @foreach (var item in Item.BillNotesDtos)
+            {
+                <div style="display: flex; justify-content: flex-start;@(item.NoteContent.Contains("hủy")?"color:red":"")">
+                    <p style="min-width: 120px; text-align: left;">@(item.NoteType == NoteType.CustomerOrder?"Khách hàng":"Cửa hàng"): </p>
+                    <p style="width:200px;">@item.Created.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                    <p style="width:100%;">@item.NoteContent</p>
+                </div>
+            }           
+        </div>
+        <div class="col-4" style="margin-top: 20px; text-align: right;">
+            <div style="display: flex; justify-content: flex-end;">
+                <p style="min-width: 120px; text-align: left;">Tạm tính:</p>
+                <p style="width:100px">@Item.TotalAmount.ToString("N0") đ</p>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+                <p style="min-width: 120px; text-align: left;">Khuyến mãi:</p>
+                <p style="width:100px">@Item.TotalAmountEndow.ToString("N0") đ</p>
+            </div>
+            <div style="display: flex;font-size: 18px; justify-content: flex-end;">
+                <p style="min-width: 120px; text-align: left;">Tổng cộng:</p>
+                <p style="width:100px">@((Item.TotalAmount - Item.TotalAmountEndow).ToString("N0")) đ</p>
+            </div>
+        </div>
+    </div>
 
+}
 
 <style>
     .step-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 20px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        background: #fff;
-        margin-bottom: 20px;
-        position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fff;
+    margin-bottom: 20px;
+    position: relative;
     }
 
     .step {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        flex: 1;
-        position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
     }
 
-     
-        .step:not(:last-child)::after {
-            content: "";
-            position: absolute;
-            top: 17px;
-            right: -50%;
-            width: 100%;
-            height: 3px;
-            background-color: #ddd;
-            z-index: 0;
-        }
+    .step:not(:first-child)::after {
+    content: "";
+    position: absolute;
+    top: 17px;
+    right: 50%;
+    width: 100%;
+    height: 3px;
+    background-color: #ddd;
+    z-index: 0;
+    }
 
-        .step.active:not(:last-child)::after {
-            background-color: #007bff;
-        }
+    .step.active:not(:first-child)::after {
+    background-color: #007bff;
+    }
+
+    .step-container.cancelled .step.active:not(:first-child)::after {
+    background-color: #dc3545;
+    }
 
     .circle {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        background-color: #ddd;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        z-index: 1;
-        position: relative;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: #ddd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    z-index: 1;
+    position: relative;
     }
 
     .step.active .circle {
-        background-color: #007bff;
+    background-color: #007bff;
+    }
+
+    .step-container.cancelled .step.active .circle {
+    background-color: #dc3545;
     }
 
     .step-label {
-        margin-top: 5px;
-        font-size: 14px;
-        color: #333;
+    margin-top: 5px;
+    font-size: 16px;
+    color: #333;
     }
 
-    /* Nút bấm */
-    .btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 5px;
-        font-weight: bold;
-        cursor: pointer;
-        color: #fff;
-        margin-right: 10px;
+    .step-container.cancelled .step.active .step-label {
+    color: #dc3545;
     }
 
-    .btn-success {
-        background-color: #28a745;
+    /* Ensure the line stops at the current step */
+    .step:last-child.active ~ .step::after {
+    background-color: #ddd;
     }
-
-    .btn-danger {
-        background-color: #dc3545;
-    }
-
-    .btn:hover {
-        opacity: 0.9;
-    }
-
 </style>
 
 @code {
-    [Parameter] public Guid id { get; set; }
-    private List<BillDetailsDto> BillDetails = new();
+    [Parameter] public Guid id { get; set; }   
+    [Inject] protected ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
     private int CurrentStep = 0;
+    private BillViewDto Item = new();
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            Console.WriteLine($"📦 BillId: {id}");
+        await LoadItem();
+    }
 
-            BillDetails = await Http.GetFromJsonAsync<List<BillDetailsDto>>($"api/BillDetails/{id}");
-            var bill = await Http.GetFromJsonAsync<BillDto>($"api/Bill/{id}");
-
-            if (bill != null)
-            {
-                CurrentStep = ConvertStatusToStep(bill.Status);
-                Console.WriteLine($"📌 Status: {bill.Status} → Step: {CurrentStep}");
-            }
-        }
-        catch (Exception ex)
+    private async Task LoadItem()
+    {
+        var request = new ApiRequestModel { Endpoint = $"api/Bill/DetailsByBillId/{id}" };
+        var result = await CallApi.Get<BillViewDto>(request);
+        if (result.Status == StatusCode.OK)
         {
-            Console.WriteLine($"❌ Lỗi khi load dữ liệu: {ex.Message}");
+            Item = result.Data as BillViewDto ?? new BillViewDto();
+            CurrentStep = ConvertStatusToStep((int)Item.Status);
         }
     }
 
@@ -199,27 +288,47 @@
         };
     }
 
-    private async Task UpdateStatus(int status)
+    private async Task UpdateStatus(StatusOrder status, string reason = "")
     {
         try
         {
-            var body = JsonContent.Create(status);
-            var response = await Http.PutAsync($"api/Bill/UpdateStatus/{id}", body);
-
-            if (response.IsSuccessStatusCode)
+            var request = new ApiRequestModel { Endpoint = $"api/Bill/UpdateStatus/{id}" };
+            var updateDto = new UpdateOrderStatusDto
+                {
+                    StatusOrder = status,
+                    Reason = reason
+                };
+          
+            ResultAPI result = await CallApi.Put(request, updateDto);
+            if (result.Status == StatusCode.OK) 
             {
-                CurrentStep = ConvertStatusToStep(status);
+                CurrentStep = ConvertStatusToStep((int)status);
+                await LoadItem();
                 StateHasChanged();
-                Console.WriteLine("✅ Cập nhật trạng thái thành công.");
             }
-            else
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("Thao tác thất bại: " + ex.Message);
+        }
+    }
+    private async Task HuyDonHangAsync()
+    {
+        try
+        {
+            var dialog = await DialogService.ShowDialogAsync<HuyDonHangConfirm>(new DialogParameters());
+            var resultDialog = await dialog.Result;
+            if (resultDialog.Cancelled == false && resultDialog.Data is HuyDonHangConfirmResult result && result.Success)
             {
-                Console.WriteLine($"❌ Lỗi cập nhật: {response.StatusCode}");
+                // Sử dụng result.Reason để gửi lên API
+                await UpdateStatus(StatusOrder.Cancelled, result.Reason);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Lỗi khi gọi API: {ex.Message}");
+            ToastService.ShowError("Xóa thất bại: " + ex.Message);
         }
+
     }
 }

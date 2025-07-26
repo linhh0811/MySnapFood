@@ -1,12 +1,18 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Service.SnapFood.Client.Components.Layout;
+using Service.SnapFood.Client.Dto.Addresss;
 using Service.SnapFood.Client.Dto.Auth;
 using Service.SnapFood.Client.Dto.Cart;
+using Service.SnapFood.Client.Dto.Momo;
+using Service.SnapFood.Client.Enums;
+using Service.SnapFood.Client.Infrastructure.Service;
 using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Model.Commons;
+using Service.SnapFood.Share.Model.Momo;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
-using Service.SnapFood.Client.Components.Layout;
-using Service.SnapFood.Client.Enums;
+using System.Text.Json;
+using static Service.SnapFood.Client.Infrastructure.Service.AddressService;
 
 namespace Service.SnapFood.Client.Components.Pages.Cart
 {
@@ -18,19 +24,23 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         [Inject] protected IToastService ToastService { get; set; } = default!;
         [Inject] protected NavigationManager Navigation { get; set; } = default!;
         [Inject] protected NavMenu NavMenu { get; set; } = default!; // Inject NavMenu
+        [Inject] protected IAddressService AddressService { get; set; } = default!; // Inject NavMenu
+        [Inject] protected SharedStateService SharedService { get; set; } = default!;
         protected CartDto CartModel { get; set; } = new CartDto();
 
         protected List<object> CartItems { get; set; } = new List<object>();
-        protected AddressDto Address { get; set; }= new AddressDto();
+        protected AddressDto Address { get; set; } = new AddressDto();
         protected StoreDto Store { get; set; } = new StoreDto();
         protected StoreDto? SelectedStore { get; set; }
-        protected string PaymentMethod { get; set; } = "cash";
+        protected string SelectedPaymentMethod { get; set; } = "cash";
         public decimal totalPrice = 0;
         public decimal totalPriceEndown = 0;
         public bool isLoading = true;
         public string Notes { get; set; } = string.Empty;
         public string ReceiverName { get; set; } = string.Empty;
         public string ReceiverPhone { get; set; } = string.Empty;
+        public double KhoangCach = 0;
+        public decimal PhiVanChuyen = 0;
 
         protected void NavigateToHome()
         {
@@ -49,7 +59,23 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             await LoadCart();
             await LoadAddress();
             await LoadStores();
-            isLoading = false;
+            DistanceRequest DistanceRequest = new DistanceRequest
+            {
+                OriginLatitude = Store.Address.Latitude,
+                OriginLongitude = Store.Address.Longitude,
+                DestinationLatitude = Address.Latitude,
+                DestinationLongitude = Address.Longitude
+            };
+            KhoangCach = await AddressService.CalculateDistanceKmAsync(DistanceRequest) ?? 0;
+            if (KhoangCach<=3)
+            {
+                PhiVanChuyen = 10000;
+            }
+            else
+            {
+                PhiVanChuyen = (decimal)(10000 + (KhoangCach - 3) * 3500);
+            }
+                isLoading = false;
         }
 
         protected async Task LoadCart()
@@ -80,6 +106,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             }
         }
 
+
         protected async Task LoadAddress()
         {
             try
@@ -90,7 +117,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 {
                     Address = (AddressDto)result.Data;
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -108,7 +135,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 {
                     Store = result.Data as StoreDto ?? new StoreDto();
                 }
-              
+
             }
             catch (Exception ex)
             {
@@ -119,7 +146,12 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         protected async Task HandleCheckOut()
         {
             try
-            {             
+            {
+                if (SelectedPaymentMethod == "momo")
+                {
+                    await HandleMomoPayment();
+                }
+                else
                 if (string.IsNullOrEmpty(Address.NumberPhone))
                 {
                     ToastService.ShowError("Vui lòng thêm địa chỉ nhận hàng.");
@@ -131,28 +163,29 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                     UserId = CurrentUser.UserId,
                     Description = Notes,
                 };
-                if (PhuongThucNhanHang== "Nhan-Tai-Quay")
+                if (PhuongThucNhanHang == "Nhan-Tai-Quay")
                 {
                     checkOutDto.ReceivingType = ReceivingType.PickUpAtStore;
-                    checkOutDto.PaymentType = PaymentType.Cash;
-
-                }
-                else
-                {
-                    checkOutDto.ReceivingType = ReceivingType.HomeDelivery;
                     checkOutDto.PaymentType = PaymentType.Cash;
                     checkOutDto.ReceiverName = ReceiverName;
                     checkOutDto.ReceiverPhone = ReceiverPhone;
                 }
+                else
+                {
+                    checkOutDto.ReceivingType = ReceivingType.HomeDelivery;
+                    checkOutDto.PaymentType = PaymentType.Momo;
+                    
+                }
 
 
-                    var request = new ApiRequestModel { Endpoint = "api/Cart/Checkout" };
+                var request = new ApiRequestModel { Endpoint = "api/Cart/Checkout" };
                 var result = await CallApi.Post<object>(request, checkOutDto);
                 if (result.Status == StatusCode.OK)
                 {
-                    
+
                     Navigation.NavigateTo("/");
                     ToastService.ShowSuccess("Đặt hàng thành công.");
+                    await SharedService.TriggerUpdateAsync();
                 }
                 else
                 {
@@ -162,6 +195,48 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             catch (Exception ex)
             {
                 ToastService.ShowError($"Lỗi khi đặt hàng: {ex.Message}");
+            }
+        }
+        private async Task HandleMomoPayment()
+         {
+            try
+            {
+                // Tạo dữ liệu đơn hàng
+                var orderData = new OrderInfoModel
+                {
+                    FullName = CurrentUser.UserName ?? "SnapFood User",
+                    Amount = (double)(totalPrice - totalPriceEndown + 10000), // Tổng tiền bao gồm phí giao hàng
+                    OrderId = Guid.NewGuid().ToString(), // Mã đơn hàng duy nhất
+                    OrderInfo = "Thanh toán đơn hàng qua Momo tại SnapFood",
+                    RequestId = Guid.NewGuid().ToString() // Định danh yêu cầu duy nhất
+                };
+
+                // Gọi API backend để tạo thanh toán Momo
+                var request = new ApiRequestModel { Endpoint = "api/payment/create" }; // Sửa endpoint theo controller
+                var result = await CallApi.Post<MomoCreatePaymentResponseModel>(request, orderData);
+
+                // Kiểm tra kết quả từ backend
+                if (result.Status == StatusCode.OK && result.Data != null)
+                {
+                    var response = result.Data as MomoCreatePaymentResponseModel;
+                    if (response != null && !string.IsNullOrEmpty(response.PayUrl))
+                    {
+                        // Redirect người dùng đến PayUrl để thanh toán trên Momo
+                        Navigation.NavigateTo(response.PayUrl, forceLoad: true);
+                    }
+                    else
+                    {
+                        ToastService.ShowError("Không thể tạo PayUrl thanh toán.");
+                    }
+                }
+                else
+                {
+                    ToastService.ShowError("Không thể tạo yêu cầu thanh toán Momo. Lỗi: " + result.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi xử lý thanh toán Momo: {ex.Message}");
             }
         }
     }

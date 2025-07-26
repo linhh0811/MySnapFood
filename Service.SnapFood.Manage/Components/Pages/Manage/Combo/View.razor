@@ -28,12 +28,14 @@
                     <div>@ComboDto.ComboName</div>
                 </div>
             </FluentGridItem>
+
             <FluentGridItem md="12">
                 <div class="row-info">
                     <label>Hình ảnh:</label>
                     <div><img src="@ComboDto.ImageUrl" alt="Ảnh" style="max-height: 80px; max-width: 100px; object-fit: contain;" /></div>
                 </div>
             </FluentGridItem>
+
             <FluentGridItem md="12">
                 <div class="row-info">
                     <label>Sản phẩm:</label>
@@ -45,48 +47,60 @@
                     </div>
                 </div>
             </FluentGridItem>
+
             <FluentGridItem md="12">
                 <div class="row-info">
                     <label>Phân loại:</label>
                     <div>@ComboDto.CategoryName</div>
                 </div>
             </FluentGridItem>
+
             <FluentGridItem md="12">
                 <div class="row-info">
                     <label>Giá bán:</label>
                     <div>@ComboDto.BasePrice</div>
                 </div>
             </FluentGridItem>
+
             <FluentGridItem md="12">
                 <div class="row-info">
                     <label>Đã bán:</label>
                     <div>@ComboDto.Quantity</div>
                 </div>
             </FluentGridItem>
-            <FluentGridItem md="12">
-                <div class="row-info">
-                    <label>Ngày tạo:</label>
-                    <div>@ComboDto.Created</div>
-                </div>
-            </FluentGridItem>
-            <FluentGridItem md="12">
-                <div class="row-info">
-                    <label>Ngày sửa gần nhất:</label>
-                    <div>@ComboDto.LastModified</div>
-                </div>
-            </FluentGridItem>
-            <FluentGridItem md="12">
-                <div class="row-info">
-                    <label>Người tạo:</label>
-                    <div>@ComboDto.CreatedByName</div>
-                </div>
-            </FluentGridItem>
-            <FluentGridItem md="12">
-                <div class="row-info">
-                    <label>Người sửa gần nhất:</label>
-                    <div>@ComboDto.LastModifiedByName</div>
-                </div>
-            </FluentGridItem>
+
+            @if (ComboDto.CreatedByName != "Hệ thống")
+            {
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Người tạo:</label>
+                        <div>@ComboDto.CreatedByName</div>
+                    </div>
+                </FluentGridItem>
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Ngày tạo:</label>
+                        <div>@ComboDto.Created</div>
+                    </div>
+                </FluentGridItem>
+            }
+
+            @if (ComboDto.LastModifiedByName != "Hệ thống")
+            {
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Người sửa gần nhất:</label>
+                        <div>@ComboDto.LastModifiedByName</div>
+                    </div>
+                </FluentGridItem>
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Ngày sửa gần nhất:</label>
+                        <div>@ComboDto.LastModified</div>
+                    </div>
+                </FluentGridItem>
+            }
+
             <FluentGridItem md="12">
                 <div class="row-info">
                     <label>Trạng thái:</label>
@@ -95,7 +109,6 @@
                             @(ComboDto.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
                         </FluentBadge>
                     </div>
-
                 </div>
             </FluentGridItem>
         </FluentGrid>
@@ -159,7 +172,7 @@ else
             }
             else
             {
-                ErrorMessage = "Không có ID chuyên ngành để lấy thông tin.";
+                ErrorMessage = "Không có ID combo để lấy thông tin.";
             }
         }
         catch (Exception ex)
@@ -177,7 +190,7 @@ else
             ResultAPI result = await CallApi.Get<ComboDto>(Content.RequestApi);
             if (result.Status == StatusCode.OK)
             {
-                return result.Data as ComboDto ?? throw new Exception("Dữ liệu trả về không đúng định dạng ProductDto.");
+                return result.Data as ComboDto ?? throw new Exception("Dữ liệu trả về không đúng định dạng ComboDto.");
             }
             else
             {

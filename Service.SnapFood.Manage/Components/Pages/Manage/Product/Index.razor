@@ -50,7 +50,8 @@
                         GridTemplateColumns="0.5fr 1.5fr 1.0fr 2.0fr 1.5fr 1.5fr 1.0fr  1.0fr 1.0fr"
                         RowSize="DataGridRowSize.Large"
                         ShowHover="true"
-                        GenerateHeader="GenerateHeaderOption.Sticky">
+                        GenerateHeader="GenerateHeaderOption.Sticky"
+                        >
 
 
 
@@ -107,7 +108,7 @@
                     @context.BasePrice.ToString("N0") đ
                 </span>
             </TemplateColumn>
-            <TemplateColumn Title="Đã bán" Style="display: flex;align-items: center;">
+            <TemplateColumn Title="Đã bán" Sortable="true" SortBy="@_roleNameSort" Style="display: flex;align-items: center;">
                 <span style="cursor: pointer; ">
                     @context.Quantity
                 </span>
