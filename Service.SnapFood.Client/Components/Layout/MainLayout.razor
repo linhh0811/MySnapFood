@@ -1,10 +1,12 @@
-﻿@using Service.SnapFood.Client.Components.Pages.Auth
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Service.SnapFood.Client.Components.Pages.Auth
 @using Service.SnapFood.Client.Components.Pages.Cart
 @using Service.SnapFood.Client.Infrastructure.Service
 @using Service.SnapFood.Share.Model.Commons
 @inherits LayoutComponentBase
 @inject IUserService UserService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,15 +17,30 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <style>
         body {
-            margin: 0;
-            font-weight: 600;
-            font-size: 16px;
-            line-height: 18px;
-            font-family: "Times New Roman", serif !important;
+        margin: 0;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 18px;
+        font-family: "Times New Roman", serif !important;
         }
 
 
         .loading-center {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: 1;
+        }
+
+        .loading-center2 {
             position: fixed;
             top: 0;
             left: 0;
@@ -35,15 +52,15 @@
             font-size: 24px;
             font-weight: bold;
             background-color: rgba(255, 255, 255, 0.7);
-            z-index: 1;
+            z-index: -1;
         }
 
         *, *::before, *::after {
-            font-family: inherit !important;
+        font-family: inherit !important;
         }
 
         input, textarea, button, select {
-            font-family: inherit !important;
+        font-family: inherit !important;
         }
     </style>
 </head>
@@ -60,8 +77,8 @@
                             {
 
                                 <main role="main">
-                                    
-                                    
+
+
                                     <div class="container-fluid mt-3">
                                         <marquee behavior="scroll" style="color: red; font-size: 20px; font-weight: bold;padding:10px;">
                                             Kính chào quý khách! Chúc quý khách ngày mới tốt lành.
@@ -79,7 +96,7 @@
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.Tag())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Mã giảm giá</FluentNavLink>
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.Person())" Href="/Thong-Tin-Tai-Khoan" OnClick="()=>OpenMenuThongTin(true)">Thông tin tài khoản</FluentNavLink>
                                                             <hr style="margin:8px" />
-                                                            <FluentNavLink Icon="@(new Icons.Regular.Size20.SignOut())">Đăng xuất</FluentNavLink>
+                                                            <FluentNavLink Icon="@(new Icons.Regular.Size20.SignOut())" OnClick="Logout">Đăng xuất</FluentNavLink>
                                                         </FluentNavMenu>
                                                     </div>
                                                 </div>
@@ -161,7 +178,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _loaded = false;
         Navigation.LocationChanged += OnLocationChanged;
+
+        // Kiểm tra URL ngay khi khởi tạo
+        CheckAndSetMenuState();
+
         await Task.CompletedTask;
     }
 
@@ -171,8 +193,8 @@
         {
             CurrentUser = await UserService.GetCurrentUserAsync();
 
-            // Kiểm tra nếu đang ở trong danh sách URL cần mở menu
-            OpenMenu = ShouldOpenMenu(Navigation.ToBaseRelativePath(Navigation.Uri));
+            // Kiểm tra lại URL sau khi render lần đầu
+            CheckAndSetMenuState();
 
             _loaded = true;
             StateHasChanged();
@@ -181,23 +203,83 @@
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        if (!_justOpenedMenu)
+        // Luôn kiểm tra và cập nhật menu state khi URL thay đổi
+        var newPath = Navigation.ToBaseRelativePath(e.Location);
+        var shouldShowMenu = ShouldOpenMenu(newPath);
+
+        // Chỉ bỏ qua nếu vừa mới click menu và vẫn trong cùng trạng thái menu
+        if (_justOpenedMenu && OpenMenu == shouldShowMenu)
         {
-            var path = Navigation.ToBaseRelativePath(e.Location);
-            OpenMenu = ShouldOpenMenu(path);
-            StateHasChanged();
+            _justOpenedMenu = false;
+            return;
         }
 
+        OpenMenu = shouldShowMenu;
         _justOpenedMenu = false;
+
+        // Debug: In ra console để kiểm tra
+        Console.WriteLine($"URL Changed - New Path: {newPath}, Open Menu: {OpenMenu}");
+
+        StateHasChanged();
+    }
+
+    private void CheckAndSetMenuState()
+    {
+        var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        var shouldShowMenu = ShouldOpenMenu(currentPath);
+
+        // Chỉ cập nhật nếu có thay đổi
+        if (OpenMenu != shouldShowMenu)
+        {
+            OpenMenu = shouldShowMenu;
+            Console.WriteLine($"Menu State Changed - Current Path: {currentPath}, Open Menu: {OpenMenu}");
+        }
     }
 
     private bool ShouldOpenMenu(string url)
     {
-        // Loại bỏ dấu '/' ở cuối URL nếu có
-        url = url.TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
 
-        // So sánh không phân biệt hoa thường
-        return _menuUrls.Any(menuUrl => url.Contains(menuUrl.TrimStart('/'), StringComparison.OrdinalIgnoreCase));
+        // Chuẩn hóa URL: loại bỏ dấu '/' ở đầu và cuối, chuyển về lowercase
+        url = url.Trim('/').ToLower();
+
+        // Kiểm tra exact match hoặc starts with
+        return _menuUrls.Any(menuUrl =>
+        {
+            var cleanMenuUrl = menuUrl.Trim('/').ToLower();
+
+            // Kiểm tra exact match
+            if (url == cleanMenuUrl)
+                return true;
+
+            // Kiểm tra nếu URL hiện tại bắt đầu bằng menu URL
+            if (url.StartsWith(cleanMenuUrl + "/"))
+                return true;
+
+            return false;
+        });
+    }
+
+    // Alternative method với regex pattern nếu cần phức tạp hơn
+    private bool ShouldOpenMenuWithPattern(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        url = url.Trim('/').ToLower();
+
+        var patterns = new List<string>
+        {
+            @"^lich-su-don-hang.*",
+            @"^dia-chi.*",
+            @"^thong-tin-tai-khoan.*",
+            @"^ma-giam-gia.*"
+        };
+
+        return patterns.Any(pattern =>
+            System.Text.RegularExpressions.Regex.IsMatch(url, pattern,
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase));
     }
 
     public void Dispose()
@@ -210,5 +292,17 @@
         OpenMenu = result;
         _justOpenedMenu = true;
         StateHasChanged();
+
+        // Reset flag sau một khoảng thời gian ngắn để tránh xung đột
+        Task.Delay(100).ContinueWith(_ =>
+        {
+            _justOpenedMenu = false;
+        });
+    }
+
+    private async Task Logout()
+    {
+        await ((Infrastructure.Service.CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }

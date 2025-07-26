@@ -1,10 +1,10 @@
 ﻿   @page "/Quan-Ly/Bill"
 
-@using Microsoft.FluentUI.AspNetCore.Components.Extensions
 @using Service.SnapFood.Manage.Dto
 @using Service.SnapFood.Manage.Dto.BillDto
 @using System.Text.Json
 @using Service.SnapFood.Manage.Enums
+@using Service.SnapFood.Manage.Infrastructure.Services
 @using Service.SnapFood.Manage.Query
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.Enum
@@ -48,26 +48,53 @@
                     RowSize="DataGridRowSize.Large"
                     ShowHover="true"
                     GenerateHeader="GenerateHeaderOption.Sticky"
-                    GridTemplateColumns="1.5fr 2.5fr 1.5fr 1.5fr 2.5fr 3fr">
+                    GridTemplateColumns="1.5fr 1.5fr 1.5fr 1.5fr 1.5fr 1.5fr 1fr">
 
         <TemplateColumn Title="Mã hóa đơn" Context="item">
             @item.BillCode
         </TemplateColumn>
-        <TemplateColumn Title="Người dùng" Context="item">
+        <TemplateColumn Title="Khách hàng" Context="item">
             @item.FullName
         </TemplateColumn>
-        <TemplateColumn Title="Trạng thái" Context="item">
-            @GetStatusText(item.Status)
-        </TemplateColumn>
+       
 
         <TemplateColumn Title="Tổng tiền" Context="item">
-            @item.TotalAmount.ToString("N0") đ
+            @if (item.TotalAmountEndow > 0)
+            {
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <FluentLabel Style="text-decoration: line-through;font-size:12px;">
+                        @item.TotalAmount.ToString("N0") đ
+                    </FluentLabel>
+
+                    @if (item.TotalAmount > item.TotalAmountEndow)
+                    {
+                        var discountPercent = Math.Round((item.TotalAmountEndow / item.TotalAmount) * 100);
+                        <FluentLabel Style="color: green;font-size:12px;">
+                            -@discountPercent %
+                        </FluentLabel>
+                    }
+                </div>
+                <FluentLabel>@((item.TotalAmount - item.TotalAmountEndow).ToString("N0")) đ</FluentLabel>
+
+            }
+            else
+            {
+                <FluentLabel>@item.TotalAmount.ToString("N0") đ</FluentLabel>
+            }
         </TemplateColumn>
-        <TemplateColumn Title="Tiền khuyến mãi" Context="item">
-            @item.TotalAmountEndow.ToString("N0") đ
-        </TemplateColumn>
-        <TemplateColumn Title="Ngày tạo" Context="item">
+        
+        <TemplateColumn Title="Thời gian" Context="item">
             @item.Created.ToString("dd/MM/yyyy HH:mm")
+        </TemplateColumn>
+        <TemplateColumn Title="Phương thức đặt hàng" Context="item">
+            @EnumExtensions.GetDescription(item.PhuongThucDatHang)
+        </TemplateColumn>
+        <TemplateColumn Title="Phương thức nhận hàng" Context="item">
+            @EnumExtensions.GetDescription(item.ReceivingType)
+        </TemplateColumn>
+        <TemplateColumn  Title="Trạng thái" Context="item">
+            <div class="@GetStyle(item.Status)"> @GetStatusText(item.Status)</div>
+          
         </TemplateColumn>
         <TemplateColumn Title="" Context="item">
             <FluentButton Appearance="Appearance.Neutral" OnClick="@(() => GoToDetail(item.Id))" Title="Xem chi tiết">
@@ -93,7 +120,7 @@
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
     private ApiRequestModel requestRestAPI = new ApiRequestModel();
-    protected FluentDataGrid<BillDto>? BillGrid { get; set; } = default!;
+    protected FluentDataGrid<BillDto> BillGrid { get; set; } = default!;
     protected string SearchKeyword { get; set; } = string.Empty;
     private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
     private Dictionary<String, String> _SelectTrangThai = new Dictionary<string, string>();
@@ -186,6 +213,18 @@
             StatusOrder.Cancelled => "Đã hủy",
      
             _ => "Không xác định"
+        };
+    }
+    private string GetStyle(StatusOrder status)
+    {
+        return status switch
+        {
+            StatusOrder.Pending => "text-warning",    // Màu vàng
+            StatusOrder.Confirmed => "text-primary", // Màu xanh
+            StatusOrder.Shipping => "text-info",     // Màu xanh nhạt
+            StatusOrder.Completed => "text-success", // Màu xanh lá
+            StatusOrder.Cancelled => "text-danger",  // Màu đỏ
+            _ => "text-dark"                         // Mặc định
         };
     }
 

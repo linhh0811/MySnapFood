@@ -630,8 +630,8 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                     Ward = "Phường Cầu Diễn",
                     SpecificAddress = "Số 36 Hàm Nghi",
                     FullAddress = "Số 36 Hàm Nghi, Phường Cầu Diễn, Quận Nam Từ Liêm, Thành phố Hà Nội",
-                    Latitude = 21.02983,
-                    Longitude = 105.76913,
+                    Latitude = 21.03559,
+                    Longitude = 105.76297,
                     AddressType = AddressType.Store,
                     ModerationStatus = ModerationStatus.Approved,
                 }
@@ -641,8 +641,11 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 {
                     Id = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d0e"),
                     StoreName = "BB Chicken-Hàm Nghi",
+                    ThoiGianBatDauHoatDong = new TimeOnly(8, 0, 0), // 08:00 AM
+                    ThoiGianNgungHoatDong = new TimeOnly(22, 0, 0), // 10:00 PM
                     Status = Status.Activity,
                     AddressId = Guid.Parse("931F07E5-46D8-4449-B77E-533BF4F33AA3"),
+                    NumberPhone= "055931234"
                 }
 
                 );
@@ -711,6 +714,15 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                      UserId = Guid.Parse("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d4e"),
                      RoleId = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
                  });
+            builder.Entity<ThongTinGiaoHang>().HasData(
+              new ThongTinGiaoHang
+              {
+                  Id=Guid.NewGuid(),
+                  BanKinhGiaoHang =15,
+                  PhiGiaoHang=5000,
+                  DonHangToiThieu=50000
+              }
+            );
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -744,6 +756,8 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
         public DbSet<Categories> Categories { get; set; }
         public DbSet<PromotionItem> PromotionItems { get; set; }
         public DbSet<Promotions> Promotions { get; set; }
+        public DbSet<ThongTinGiaoHang> ThongTinGiaoHangs { get; set; }
+
 
 
     }

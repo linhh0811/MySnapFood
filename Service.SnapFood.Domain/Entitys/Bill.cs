@@ -1,4 +1,5 @@
 ﻿using Service.SnapFood.Domain.Enums;
+using Service.SnapFood.Share.Model.Enum;
 using Service.SnapFood.Share.Model.SQL;
 
 namespace Service.SnapFood.Domain.Entitys
@@ -23,7 +24,8 @@ namespace Service.SnapFood.Domain.Entitys
         public virtual List<BillDetails> BillDetails { get; set; } = null!;
         public virtual List<BillPayment> BillPayments { get; set; } = null!;
         public virtual List<BillNotes> BillNotes { get; set; } = null!;
+        public ReceivingType ReceivingType { get; set; }
+        public PhuongThucDatHangEnum PhuongThucDatHang { get; set; }
         public virtual List<DiscountCodeUsage> DiscountCodeUsages { get; set; } = new();
-
     }
 }

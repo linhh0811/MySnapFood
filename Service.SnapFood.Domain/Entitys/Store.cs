@@ -14,6 +14,9 @@ namespace Service.SnapFood.Domain.Entitys
         public string StoreName { get; set; } = string.Empty;
         public Status Status { get; set; }
         public Guid AddressId { get; set; }
+        public TimeOnly ThoiGianBatDauHoatDong { get; set; }
+        public TimeOnly ThoiGianNgungHoatDong { get; set; }
+        public string NumberPhone { get; set; } = string.Empty;
 
         public virtual Address Address { get; set; } = null!;
         public virtual List<User> Users { get; set; } = null!;

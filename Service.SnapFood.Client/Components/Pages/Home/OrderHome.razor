@@ -1,4 +1,6 @@
 ﻿@page "/Dat-Hang"
+@page "/Dat-Hang/{Id}"
+
 @using Service.SnapFood.Client.Components.Pages.Category
 @using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Category
@@ -12,13 +14,37 @@
 <CategoryOrderHome  OnCategorySelected="OnCategorySelected"></CategoryOrderHome>
 <hr />
 <div class="container row">
-    <Service.SnapFood.Client.Components.Pages.Product.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Product.Index>
-    <Service.SnapFood.Client.Components.Pages.Combo.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Combo.Index>
+    @if (!IsLoading)
+    {
+        <Service.SnapFood.Client.Components.Pages.Product.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Product.Index>
+        <Service.SnapFood.Client.Components.Pages.Combo.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Combo.Index>
+    }
 </div>
 
 
 @code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
     private CategoryDto categorySelected = new();
+    private bool IsLoading = true;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+    }
+    protected override void OnInitialized()
+    {
+        IsLoading = true;
+        if (!string.IsNullOrEmpty(Id))
+        {
+            categorySelected = new CategoryDto()
+            {
+                Id=Id
+            };
+
+            OnCategorySelected(categorySelected);
+        }
+        IsLoading = false;
+    }
 
     private void OnCategorySelected(CategoryDto category)
     {

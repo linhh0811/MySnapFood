@@ -23,11 +23,11 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
         protected FluentDataGrid<ComboDto> ComboGrid { get; set; } = default!;
         protected string SearchKeyword { get; set; } = string.Empty;
         private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
-
         private Dictionary<String, String> _SelectTrangThai = new Dictionary<string, string>();
         private string SelectedTrangThai = "-1";
         private string CategoryId = Guid.Empty.ToString();
         private List<CategoryDto> CategoryList { get; set; } = new List<CategoryDto>();
+        private ColumnKeyGridSort<ComboDto> _roleNameSort = new ColumnKeyGridSort<ComboDto>("Quantity");
 
         protected override async Task OnInitializedAsync()
         {

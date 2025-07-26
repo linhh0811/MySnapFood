@@ -26,7 +26,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Product
         private string SelectedTrangThai = "-1";
         private string CategoryId = Guid.Empty.ToString();
         private List<CategoryDto> CategoryList { get; set; } = new List<CategoryDto>();
-
+        private ColumnKeyGridSort<ProductDto> _roleNameSort = new ColumnKeyGridSort<ProductDto>("Quantity");
 
 
         protected override async Task OnInitializedAsync()

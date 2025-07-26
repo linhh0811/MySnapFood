@@ -36,7 +36,7 @@ namespace Service.SnapFood.Infrastructure.Controllers
        
 
         [HttpGet("momo/callback")]
-        public async Task<IActionResult> MomoCallback([FromQuery] MomoExecuteResponseModel model)
+        public IActionResult MomoCallback([FromQuery] MomoExecuteResponseModel model)
         {
             var response = _momoService.PaymentExecuteAsync(HttpContext.Request.Query);
             if (model.ResultCode == 0) // Thanh toán thành công

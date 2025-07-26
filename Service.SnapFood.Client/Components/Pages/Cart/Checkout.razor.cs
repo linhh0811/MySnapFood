@@ -25,7 +25,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         [Inject] protected NavigationManager Navigation { get; set; } = default!;
         [Inject] protected NavMenu NavMenu { get; set; } = default!; // Inject NavMenu
         [Inject] protected IAddressService AddressService { get; set; } = default!; // Inject NavMenu
-
+        [Inject] protected SharedStateService SharedService { get; set; } = default!;
         protected CartDto CartModel { get; set; } = new CartDto();
 
         protected List<object> CartItems { get; set; } = new List<object>();
@@ -40,6 +40,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         public string ReceiverName { get; set; } = string.Empty;
         public string ReceiverPhone { get; set; } = string.Empty;
         public double KhoangCach = 0;
+        public decimal PhiVanChuyen = 0;
 
         protected void NavigateToHome()
         {
@@ -66,7 +67,15 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 DestinationLongitude = Address.Longitude
             };
             KhoangCach = await AddressService.CalculateDistanceKmAsync(DistanceRequest) ?? 0;
-            isLoading = false;
+            if (KhoangCach<=3)
+            {
+                PhiVanChuyen = 10000;
+            }
+            else
+            {
+                PhiVanChuyen = (decimal)(10000 + (KhoangCach - 3) * 3500);
+            }
+                isLoading = false;
         }
 
         protected async Task LoadCart()
@@ -158,14 +167,14 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 {
                     checkOutDto.ReceivingType = ReceivingType.PickUpAtStore;
                     checkOutDto.PaymentType = PaymentType.Cash;
-
+                    checkOutDto.ReceiverName = ReceiverName;
+                    checkOutDto.ReceiverPhone = ReceiverPhone;
                 }
                 else
                 {
                     checkOutDto.ReceivingType = ReceivingType.HomeDelivery;
                     checkOutDto.PaymentType = PaymentType.Momo;
-                    checkOutDto.ReceiverName = ReceiverName;
-                    checkOutDto.ReceiverPhone = ReceiverPhone;
+                    
                 }
 
 
@@ -176,6 +185,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
 
                     Navigation.NavigateTo("/");
                     ToastService.ShowSuccess("Đặt hàng thành công.");
+                    await SharedService.TriggerUpdateAsync();
                 }
                 else
                 {
