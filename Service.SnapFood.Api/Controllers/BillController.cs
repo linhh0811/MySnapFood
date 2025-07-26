@@ -2,6 +2,7 @@
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Enums;
+using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Query;
 using System;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         [HttpPost("GetPaged")]
-        public IActionResult GetPage([FromBody] BaseQuery query)
+        public IActionResult GetPage( BillQuery query)
         {
             var result = _billService.GetPage(query);
             return Ok(result);
@@ -111,6 +112,7 @@ namespace Service.SnapFood.Api.Controllers
                     return NotFound("Không tìm thấy chi tiết đơn hàng");
 
                 return Ok(result);
+
             }
             catch (Exception ex)
             {

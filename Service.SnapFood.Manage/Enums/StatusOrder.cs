@@ -1,13 +1,27 @@
-﻿namespace Service.SnapFood.Manage.Enums
+﻿using System.ComponentModel;
+
+namespace Service.SnapFood.Manage.Enums
 {
     public enum StatusOrder
     {
-        Pending = 0,  /*-Chờ xác nhận*/
-        Confirmed = 1, /*- Đơn hàng đã được xác nhận bởi hệ thống hoặc người quản lý.*/
-        Shipping = 2, /*- Đơn hàng đã được chuyển cho đơn vị vận chuyển.*/
-        Completed = 3, /*- Đơn hàng đã được giao thành công đến khách hàng.*/
-        Cancelled = 4, /*- Đơn hàng bị hủy bởi khách hàng hoặc người quản lý.*/
-        Activity = 5,
-        InActivity = 6,
+        [Description("Tất cả trạng thái")]
+        None = -1,
+
+        [Description("Chờ xác nhận")]
+        Pending = 0,
+
+        [Description("Đã xác nhận")]
+        Confirmed = 1,
+
+        [Description("Đang giao hàng")]
+        Shipping = 2,
+
+        [Description("Đã giao thành công")]
+        Completed = 3,
+
+        [Description("Đã hủy")]
+        Cancelled = 4,
+
+     
     }
 }

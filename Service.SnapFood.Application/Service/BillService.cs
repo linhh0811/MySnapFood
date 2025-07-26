@@ -4,8 +4,13 @@ using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Enums;
+
+
 using Service.SnapFood.Domain.Interfaces.UnitOfWork;
+using Service.SnapFood.Domain.Query;
+
 using Service.SnapFood.Share.Model.Commons;
+using Service.SnapFood.Share.Model.SQL;
 using Service.SnapFood.Share.Query;
 using System;
 using System.Collections.Generic;
@@ -18,7 +23,6 @@ namespace Service.SnapFood.Application.Service
     public class BillService : IBillService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private object query;
 
         public BillService(IUnitOfWork unitOfWork)
         {
@@ -46,42 +50,7 @@ namespace Service.SnapFood.Application.Service
             };
         }
 
-        public DataTableJson GetPage(BaseQuery query)
-        {
-            try
-            {
-                if (query == null || query.gridRequest == null)
-                    throw new ArgumentNullException(nameof(query), "Thông tin phân trang không hợp lệ");
-
-                int totalRecords = 0;
-                var dataQuery = _unitOfWork.BillRepo.FilterData(
-                    q => q, // Không có điều kiện lọc cụ thể
-                    query.gridRequest,
-                    ref totalRecords
-                );
-
-                var data = dataQuery.ToList()
-                    .Select((m, i) => new BillDto
-                    {
-                        Id = m.Id,
-                        BillCode = m.BillCode,
-                        UserId = m.UserId,
-                        FullName = _unitOfWork.UserRepo.GetById(m.UserId)?.FullName??string.Empty,
-                        StoreId = m.StoreId,
-                        Status = m.Status,
-                        TotalAmount = m.TotalAmount,
-                        TotalAmountEndow = m.TotalAmountEndow,
-                        Created = m.Created
-                    }).ToList();
-
-                return new DataTableJson(data, query.draw, totalRecords);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
+       
         public async Task<List<Bill>> GetAllAsync()
         {
             var bills = await _unitOfWork.BillRepo.GetAllAsync();
@@ -237,76 +206,141 @@ namespace Service.SnapFood.Application.Service
 
         //}
 
-        public async Task<List<BillDetailsDto>> GetBillDetailsByBillIdAsync(Guid billId)
-        {
-            var allDetails = (await _unitOfWork.BillDetailsRepo.GetAllAsync())
-                .Where(d => d.BillId == billId)
-                .ToList();
-
-            // Lấy danh sách ID của combo (ItemType == Combo)
-            var comboIds = allDetails
-                .Where(d => d.ItemType == ItemType.Combo)
-                .Select(d => d.Id)
-                .ToList();
-
-            // Lấy toàn bộ combo items thuộc bill hiện tại
-            var allComboItems = (await _unitOfWork.ComboItemsArchiveRepo.GetAllAsync())
-                .Where(c => comboIds.Contains(c.BillDetailsId))
-                .ToList();
-
-            // Map comboId -> List<ComboItemsArchive>
-            var comboItemGroups = allComboItems
-                .GroupBy(c => c.BillDetailsId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            var result = new List<BillDetailsDto>();
-
-            foreach (var detail in allDetails)
-            {
-                var detailDto = new BillDetailsDto
-                {
-                    Id = detail.Id,
-                    ItemsName = detail.ItemsName,
-                    ImageUrl = detail.ImageUrl,
-                    Quantity = detail.Quantity,
-                    Price = detail.Price,
-                    PriceEndow = detail.PriceEndow,
-                    ItemType = detail.ItemType,
-                    Children = null
-                };
-
-                // Nếu là combo, thêm danh sách sản phẩm con
-                if (detail.ItemType == ItemType.Combo && comboItemGroups.ContainsKey(detail.Id))
-                {
-                    detailDto.Children = comboItemGroups[detail.Id]
-                        .Select(c => new BillDetailsDto
-                        {
-                            ItemsName = c.ProductName
-                            //ImageUrl = c.ImageUrl,
-                            //Quantity = c.Quantity,
-                            //Price = c.Price,
-                            //PriceEndow = 0,
-                            //ItemType = ItemType.Product // hoặc ItemType khác tùy logic
-                        })
-                        .ToList();
-                }
-
-                result.Add(detailDto);
-            }
-
-            return result;
-        }
-
-
-        public async Task<List<BillDetails>> GetDetailsByBillIdAsync(Guid billId)
-        {
-            var results = _unitOfWork.BillDetailsRepo.FindWhere(x => x.BillId == billId);
-            return results.ToList();
-        }
-
        
 
-        public async Task<bool> ApplyDiscountAsync(Guid billId, Guid discountCodeId, Guid userId)
+        public async Task<BillViewDto> GetDetailsByBillIdAsync(Guid billId)
+        {
+          
+            var bill =await _unitOfWork.BillRepo.GetByIdAsync(billId);
+            if (bill is not null)
+            {
+                BillViewDto billViewDto = new BillViewDto();
+
+                billViewDto.Id = billId;
+                billViewDto.BillCode = bill.BillCode;
+                billViewDto.TotalAmount = bill.TotalAmount;
+                billViewDto.TotalAmountEndow = bill.TotalAmountEndow;
+                billViewDto.Status = bill.Status;
+                billViewDto.Created = bill.Created;
+                billViewDto.BillDetailsDtos = _unitOfWork.BillDetailsRepo.FindWhere(x=>x.BillId== billId)
+                    .Select(x=> new BillDetailsDto()
+                    {
+                        Id = x.Id,
+                        BillId = x.BillId,
+                        ItemsName = x.ItemsName,
+                        ImageUrl = x.ImageUrl,
+                        Quantity= x.Quantity,
+                        Price= x.Price,
+                        PriceEndow= x.PriceEndow,
+                        ItemType= x.ItemType,
+
+                    }).ToList();
+                foreach (var item in billViewDto.BillDetailsDtos)
+                {
+                    if (item.ItemType== ItemType.Combo)
+                    {
+                        item.Product = _unitOfWork.ComboItemsArchiveRepo.FindWhere(x => x.BillDetailsId == item.Id)
+                            .Select(x => new ComboItemsArchiveDto()
+                        {
+                            Id = x.Id,
+                            BillDetailsId=x.BillDetailsId,
+                            ProductName=x.ProductName,
+                            Quantity=x.Quantity,
+                            ImageUrl=x.ImageUrl,
+                            Price=x.Price,
+                           
+                        }).ToList();
+                    }
+                }
+                var billPayment = _unitOfWork.BillPaymentRepo.FirstOrDefault(x => x.BillId == billId);
+                if (billPayment is not null)
+                {
+                    billViewDto.BillPaymentDto = new BillPaymentDto()
+                    {
+                        Id = billPayment.Id,
+                        BillId = billPayment.BillId,
+                        PaymentType = billPayment.PaymentType,
+                        Amount = billPayment.Amount,
+                        PaymentDate = billPayment.PaymentDate,
+                        PaymentStatus = billPayment.PaymentStatus,
+                    };
+                }
+                billViewDto.BillNotesDtos = _unitOfWork.BillNotesRepo.FindWhere(x => x.BillId == billId)
+                    .Select(x => new BillNotesDto()
+                    {
+                        Id = x.Id,
+                        BillId = x.BillId,
+                        NoteContent = x.NoteContent,
+                        NoteType = x.NoteType,
+                        Created=x.Created,
+                        CreatedBy=x.CreatedBy,
+                    }).ToList();
+
+                var billDelivery = _unitOfWork.BillDeliveryRepo.FirstOrDefault(x => x.BillId == billId);
+                if (billDelivery is not null)
+                {
+                    billViewDto.BillDeliveryDto = new BillDeliveryDto()
+                    {
+                        Id = billDelivery.Id,
+                        BillId = billDelivery.BillId,
+                        ReceivingType=billDelivery.ReceivingType,
+                        ReceiverName = billDelivery.ReceiverName,
+                        ReceiverPhone= billDelivery.ReceiverPhone,
+                        ReceiverAddress= billDelivery.ReceiverAddress,
+                        DeliveryFee= billDelivery.DeliveryFee,
+                        Distance= billDelivery.Distance,
+                    };
+                }
+
+                return billViewDto;
+            }
+            return new BillViewDto();
+            
+        }
+
+        public DataTableJson GetPage(BillQuery query)
+        {
+         
+            try
+            {
+                if (query == null || query.gridRequest == null)
+                    throw new ArgumentNullException();
+
+                int totalRecords = 0;
+
+                var dataQuery = _unitOfWork.BillRepo.FilterData(
+                    q => query.Status.HasValue ?
+                        q.Where(x => (int)x.Status == (int)query.Status.Value) : q,
+                    query.gridRequest,
+                    ref totalRecords
+                );
+
+
+                var allUsers = _unitOfWork.UserRepo.GetAll().ToList();
+
+                var data = dataQuery.ToList().Select(m => new BillDto
+                {
+                    Id = m.Id,
+                    BillCode = m.BillCode,
+                    UserId = m.UserId,
+                    FullName = allUsers.FirstOrDefault(u => u.Id == m.UserId)?.FullName ?? string.Empty,
+                    StoreId = m.StoreId,
+                    Status = m.Status,
+                 
+                    TotalAmount = m.TotalAmount,
+                    TotalAmountEndow = m.TotalAmountEndow,
+                    Created = m.Created
+                }).ToList();
+
+                return new DataTableJson(data, query.draw, totalRecords);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Lỗi khi phân trang hóa đơn: " + ex.Message);
+            }
+        }
+        
+         public async Task<bool> ApplyDiscountAsync(Guid billId, Guid discountCodeId, Guid userId)
         {
             try
             {
@@ -363,6 +397,6 @@ namespace Service.SnapFood.Application.Service
             }
         }
 
-
+       
     }
 }

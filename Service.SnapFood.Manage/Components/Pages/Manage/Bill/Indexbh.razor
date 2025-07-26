@@ -1,4 +1,4 @@
-﻿   @page "/Quan-Ly/Bill"
+﻿ @page "/Quan-Ly/Bill/BanHang"
 
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
 @using Service.SnapFood.Manage.Dto
@@ -7,28 +7,21 @@
 @using Service.SnapFood.Manage.Enums
 @using Service.SnapFood.Manage.Query
 @using Service.SnapFood.Share.Interface.Extentions
-@using Service.SnapFood.Share.Model.Enum
-
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using Service.SnapFood.Share.Query
 @using Service.SnapFood.Share.Query.Grid
-@using Microsoft.FluentUI.AspNetCore.Components
-
 
 @inject NavigationManager navigation
 @namespace Service.SnapFood.Manage.Components.Pages.Manage.Bill
 
 <FluentStack Orientation="Orientation.Vertical" VerticalGap="12" Style="width:100%;">
     <h2>Danh sách hóa đơn</h2>
-
-
-      <div style="display: flex; align-items: center; gap: 10px;">
-
-        <FluentSearch Style="min-width:200px;" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
+     <div style="display: flex; align-items: center; gap: 10px;">
+    <FluentSearch Style="min-width:200px;" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
 
 
 
-    <FluentSelect Items="_SelectTrangThai"
+   <FluentSelect Items="_SelectTrangThai"
                   @bind-Value="SelectedTrangThai"
                   @bind-Value:after="RefreshDataAsync"
                   OptionText="@(x => x.Value)"
@@ -37,10 +30,8 @@
                   Position="SelectPosition.Below"
                   Width="150px;">
     </FluentSelect>
-
     </div>
     <FluentDataGrid Style="width:100%;" @ref="BillGrid"
-
                     TGridItem="BillDto"
                     ItemsProvider="LoadBills"
                     Pagination="@pagination"
@@ -48,7 +39,7 @@
                     RowSize="DataGridRowSize.Large"
                     ShowHover="true"
                     GenerateHeader="GenerateHeaderOption.Sticky"
-                    GridTemplateColumns="1.5fr 2.5fr 1.5fr 1.5fr 2.5fr 3fr">
+                    GridTemplateColumns="1.5fr 2.5fr 2fr 2fr 2.5fr 3fr">
 
         <TemplateColumn Title="Mã hóa đơn" Context="item">
             @item.BillCode
@@ -84,10 +75,6 @@
 </FluentStack>
 
 @code {
-
-
-
-
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -98,37 +85,32 @@
     private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
     private Dictionary<String, String> _SelectTrangThai = new Dictionary<string, string>();
     private string SelectedTrangThai = "None";
-
     private async ValueTask<GridItemsProviderResult<BillDto>> LoadBills(GridItemsProviderRequest<BillDto> request)
     {
         try
         {
-            // if (!Enum.TryParse<StatusOrder>(SelectedTrangThai, out var selectedTrangThai))
-            // {
-            //     selectedTrangThai = StatusOrder.None; // Mặc định nếu không parse được
-            // }
             StatusOrder? selectedTrangThai = Enum.TryParse<StatusOrder>(SelectedTrangThai, out var parsedStatus)
-               ? parsedStatus
-               : null;
+             ? parsedStatus
+             : null;
             var baseQuery = new BillQuery
-            {
-                SearchIn = new List<string> { "BillCode" },
-                Keyword = SearchKeyword,
-                    Status = selectedTrangThai == StatusOrder.None ? null : selectedTrangThai,
-                gridRequest = new GridRequest
                 {
-                    page = (request.StartIndex / pagination.ItemsPerPage) + 1,
-                    pageSize = pagination.ItemsPerPage,
-                    skip = request.StartIndex,
-                    take = pagination.ItemsPerPage,
-                    sort = request.GetSortByProperties()
-                        .Select(s => new Sort
-                        {
-                            field = s.PropertyName,
-                            dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
-                        }).ToList()
-                }
-            };
+                    SearchIn = new List<string> { "BillCode" },
+                    Keyword = SearchKeyword,
+                    Status = selectedTrangThai == StatusOrder.None ? null : selectedTrangThai,
+                    gridRequest = new GridRequest
+                    {
+                        page = (request.StartIndex / pagination.ItemsPerPage) + 1,
+                        pageSize = pagination.ItemsPerPage,
+                        skip = request.StartIndex,
+                        take = pagination.ItemsPerPage,
+                        sort = request.GetSortByProperties()
+                            .Select(s => new Sort
+                            {
+                                field = s.PropertyName,
+                                dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
+                            }).ToList()
+                    }
+                };
 
             requestRestAPI.Endpoint = "api/Bill/GetPaged";
 
@@ -137,9 +119,13 @@
             {
                 var items = JsonSerializer.Deserialize<List<BillDto>>(dataTable.Data.GetRawText(),
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<BillDto>();
-           var totalRecords = dataTable.RecordsTotal ?? items.Count;
-                return GridItemsProviderResult.From(items, totalRecords);
 
+                items = items
+    .Where(x => x.Status != StatusOrder.Cancelled && x.Status != StatusOrder.Completed)
+    .ToList();
+
+                var totalRecords = dataTable.RecordsTotal ?? items.Count;
+                return GridItemsProviderResult.From(items, totalRecords);
             }
             StateHasChanged();
             return GridItemsProviderResult.From(new List<BillDto>(), 0);
@@ -150,8 +136,8 @@
             return GridItemsProviderResult.From(new List<BillDto>(), 0);
         }
     }
-   
-     private async Task RefresData(int value)
+
+    private async Task RefresData(int value)
     {
         try
         {
@@ -167,7 +153,7 @@
     {
         await BillGrid.RefreshDataAsync();
     }
-   
+
     private Task GoToDetail(Guid billId)
     {
         navigation.NavigateTo($"/bills/user/{billId}");
@@ -184,10 +170,11 @@
             StatusOrder.Shipping => "Đang giao hàng",
             StatusOrder.Completed => "Đã giao thành công",
             StatusOrder.Cancelled => "Đã hủy",
-     
+       
             _ => "Không xác định"
         };
     }
+
 
     private List<KeyValuePair<StatusOrder?, string>> StatusOptions = new()
 {
@@ -195,15 +182,15 @@
     new(StatusOrder.Pending, "Chờ xác nhận"),
     new(StatusOrder.Confirmed, "Đã xác nhận"),
     new(StatusOrder.Shipping, "Đang giao hàng"),
-    new(StatusOrder.Completed, "Đã giao thành công"),
-    new(StatusOrder.Cancelled, "Đã hủy"),
+  
 
 };
-   
+
     private void GetSelectTrangThai()
     {
         _SelectTrangThai = Enum.GetValues(typeof(StatusOrder))
             .Cast<StatusOrder>()
+            .Where(e => e != StatusOrder.Cancelled && e != StatusOrder.Completed) // ❌ Bỏ 2 trạng thái
             .OrderBy(e => e == StatusOrder.None ? 0 : 1)
             .ThenBy(e => e)
             .ToDictionary(
@@ -213,6 +200,7 @@
     }
 
 
+
     private string CapitalizeFirstLetter(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) return input;
@@ -220,10 +208,10 @@
         return char.ToUpper(input[0]) + input[1..];
     }
 
-    protected override  void OnInitialized()
+    protected override void OnInitialized()
     {
         GetSelectTrangThai();
-       
+
     }
     private bool isFirstRender = true;
 
@@ -237,13 +225,7 @@
         }
     }
 
+
+
 }
-
-
-
-
-
-
-
-
-
+ 
