@@ -27,6 +27,12 @@ namespace Service.SnapFood.Infrastructure.Configurations
                 .WithMany(x => x.Orderes)
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            //
+            builder.HasMany(x => x.DiscountCodeUsages)
+                   .WithOne(x => x.Bill)
+                   .HasForeignKey(x => x.BillId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
 
     }

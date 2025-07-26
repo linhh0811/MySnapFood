@@ -304,6 +304,64 @@ namespace Service.SnapFood.Application.Service
             return results.ToList();
         }
 
+       
+
+        public async Task<bool> ApplyDiscountAsync(Guid billId, Guid discountCodeId, Guid userId)
+        {
+            try
+            {
+                var bill = await _unitOfWork.BillRepo.GetByIdAsync(billId);
+                if (bill == null)
+                    throw new Exception("Không tìm thấy hóa đơn");
+
+                var discountCode = await _unitOfWork.DiscountCodeRepo.GetByIdAsync(discountCodeId);
+                if (discountCode == null || !discountCode.IsActive || discountCode.EndDate < DateTime.Now)
+                    throw new Exception("Mã giảm giá không hợp lệ hoặc đã hết hạn");
+
+                if (bill.UserId != userId)
+                    throw new Exception("Người dùng không hợp lệ cho hóa đơn này");
+
+                if (discountCode.UsageLimit > 0 && discountCode.UsedCount >= discountCode.UsageLimit)
+                    throw new Exception("Mã giảm giá đã hết lượt sử dụng");
+
+                if (bill.TotalAmount < discountCode.MinOrderAmount)
+                    throw new Exception($"Hóa đơn cần tối thiểu {discountCode.MinOrderAmount:N0}đ để áp dụng mã giảm");
+
+                decimal discountAmount = 0;
+
+                switch (discountCode.DiscountCodeType)
+                {
+                    case DiscountCodeType.Money:
+                        discountAmount = discountCode.DiscountAmount;
+                        break;
+
+                    case DiscountCodeType.Percent:
+                        discountAmount = bill.TotalAmount * (discountCode.DiscountAmount / 100);
+                        break;
+
+                    default:
+                        throw new Exception("Loại mã giảm giá không hợp lệ");
+                }
+
+                discountAmount = Math.Min(discountAmount, bill.TotalAmount);
+
+
+                bill.TotalAmountEndow = discountAmount;
+                bill.TotalAmount -= discountAmount;
+
+                discountCode.UsedCount++;
+
+                _unitOfWork.BillRepo.Update(bill);
+                _unitOfWork.DiscountCodeRepo.Update(discountCode);
+
+                await _unitOfWork.CompleteAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi áp dụng mã giảm giá: {ex.Message}");
+            }
+        }
 
 
     }

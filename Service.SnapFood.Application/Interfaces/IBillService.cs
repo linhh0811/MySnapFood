@@ -24,6 +24,9 @@ namespace Service.SnapFood.Application.Interfaces
         Task<List<BillDetailsDto>> GetBillDetailsByBillIdAsync(Guid billId);
 
         Task<List<BillDetails>> GetDetailsByBillIdAsync(Guid billId);
+        //
+        Task<bool> ApplyDiscountAsync(Guid billId, Guid discountCodeId, Guid userId);
+
 
     }
 }
