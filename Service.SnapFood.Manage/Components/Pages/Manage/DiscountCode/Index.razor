@@ -1,0 +1,112 @@
+﻿@page "/Quan-Ly/Ma-Giam-Gia"
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Icons
+@using Service.SnapFood.Manage.Dto.DiscountCode
+@using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Share.Model.SQL
+@namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
+
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
+    <h2>Danh sách mã giảm giá</h2>
+
+    <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+            <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd">Thêm mới</FluentButton>
+        </FluentStack>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <FluentSearch Style="min-width:200px;" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập mã hoặc mô tả" />
+        </div>
+    </FluentStack>
+
+    <FluentGridItem Style="width:100%;">
+        <FluentDataGrid @ref="DiscountCodeGrid"
+                        TGridItem="DiscountCodeDto"
+                        ItemsProvider="@LoadDiscountCodes"
+                        Pagination="@pagination"
+                        ResizableColumns="false"
+                        GridTemplateColumns="0.5fr 1.5fr 2fr 1fr 1.5fr 1.5fr 1fr 1fr 1fr 1fr"
+                        RowSize="DataGridRowSize.Large"
+                        ShowHover="true"
+                        GenerateHeader="GenerateHeaderOption.Sticky">
+
+            <TemplateColumn Title="#">
+                @context.Index
+            </TemplateColumn>
+
+            <TemplateColumn Title="Mã">
+                <span style="color:dodgerblue;cursor:pointer" @onclick="() => OpenDetailsModal(context.Id)">@context.Code</span>
+            </TemplateColumn>
+
+            <TemplateColumn Title="Mô tả">
+                @context.Description
+            </TemplateColumn>
+
+            <TemplateColumn Title="Giảm">
+                @($"{context.DiscountAmount:N0} đ")
+            </TemplateColumn>
+
+            <TemplateColumn Title="Từ">
+                @context.StartDate.ToString("dd/MM/yyyy")
+            </TemplateColumn>
+
+            <TemplateColumn Title="Đến">
+                @context.EndDate.ToString("dd/MM/yyyy")
+            </TemplateColumn>
+
+            <TemplateColumn Title="Đơn tối thiểu">
+                @($"{context.MinOrderAmount:N0} đ")
+            </TemplateColumn>
+
+            <TemplateColumn Title="Lượt dùng">
+                @context.UsedCount / @context.UsageLimit
+            </TemplateColumn>
+
+            <TemplateColumn Title="Trạng thái">
+                @{
+                    var isExpired = context.EndDate < DateTime.Now;
+                    var isActiveDisplay = context.IsActive && !isExpired;
+                    var badgeText = isActiveDisplay ? "Hoạt động" : "Tạm ngưng";
+                    var badgeAppearance = isActiveDisplay ? Appearance.Accent : Appearance.Neutral;
+                }
+
+                <FluentBadge Appearance="@badgeAppearance">@badgeText</FluentBadge>
+            </TemplateColumn>
+
+
+            <TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:155px">
+                <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                    
+                        @if (context.ModerationStatus != 0)
+                        {
+                            <FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="() => OpenModalUpdate(context.Id)">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
+                            </FluentButton>
+                        }
+
+                        @if (context.ModerationStatus == 0)
+                        {
+                            <FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id))">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
+                            </FluentButton>
+                        }
+                        else
+                        {
+                            <FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id))">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
+                            </FluentButton>
+                        }
+                        @if (context.ModerationStatus != 0)
+                        {
+                            <FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteAsync(context.Id))">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+                            </FluentButton>
+                        }
+                   
+                </FluentStack>
+            </TemplateColumn>
+        </FluentDataGrid>
+
+        <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefreshDataAsync" />
+    </FluentGridItem>
+</FluentStack>

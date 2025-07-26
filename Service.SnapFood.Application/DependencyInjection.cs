@@ -36,7 +36,7 @@ namespace Service.SnapFood.Application
             services.AddScoped<IStoreService, StoreService>();
             services.AddScoped<IMomoService, MomoService>();
 
-
+            services.AddScoped<IDiscountCodeService, DiscountCodeService>();
             return services;
         }
     }

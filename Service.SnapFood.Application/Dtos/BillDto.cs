@@ -16,5 +16,7 @@ namespace Service.SnapFood.Application.Dtos
         public decimal TotalAmount { get; set; }
         public decimal TotalAmountEndow { get; set; }
         public DateTime Created { get; set; }
+        //
+        public string? DiscountCode { get; set; }
     }
 }
