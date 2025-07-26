@@ -78,26 +78,18 @@ namespace Service.SnapFood.Api.Controllers
         {
             var result = await _billService.UpdateAsync(id, item);
             if (!result)
-                return BadRequest("Cập nhật không thành công");
+                return BadRequest();
             return NoContent();
         }
         [HttpPut("UpdateStatus/{id}")]
-        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] int newStatus)
+        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusDto updateOrderStatusDto)
         {
-            try
-            {
-                var statusEnum = (StatusOrder)newStatus;
-
-                var result = await _billService.UpdateStatusAsync(id, statusEnum);
+                var result = await _billService.UpdateStatusAsync(id, updateOrderStatusDto);
                 if (!result)
-                    return BadRequest("Cập nhật trạng thái thất bại");
+                    return BadRequest();
 
-                return Ok("Cập nhật trạng thái thành công");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Lỗi: {ex.Message}");
-            }
+                return Ok();
+           
         }
 
         [HttpGet("DetailsByBillId/{billId}")]

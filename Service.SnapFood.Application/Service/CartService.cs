@@ -400,6 +400,8 @@ namespace Service.SnapFood.Application.Service
                             TotalAmount = 0,
                             BillDetails = new List<BillDetails>(),
                             Status = StatusOrder.Pending,
+                            ReceivingType = item.ReceivingType,
+                            PhuongThucDatHang= Share.Model.Enum.PhuongThucDatHangEnum.DatTaiWeb
 
 
                         };
@@ -418,6 +420,7 @@ namespace Service.SnapFood.Application.Service
                             var billDetail = new BillDetails
                             {
                                 BillId = bill.Id,
+                                ItemId=product.Id,
                                 ItemType = ItemType.Product,
                                 ItemsName = product.ProductName + " " + "(Size: " + sizeName + ")",
                                 ImageUrl = product.ImageUrl,
@@ -452,6 +455,7 @@ namespace Service.SnapFood.Application.Service
                             var billDetail = new BillDetails
                             {
                                 BillId = bill.Id,
+                                ItemId=combo.Id,
                                 ItemType = ItemType.Combo,
                                 ItemsName = combo.ComboName,
                                 ImageUrl = combo.ImageUrl,
@@ -472,6 +476,7 @@ namespace Service.SnapFood.Application.Service
                                     ComboItemsArchive ComboItemsArchive = new ComboItemsArchive()
                                     {
                                         BillDetailsId = billDetail.Id,
+                                        ProductId=product.Id,
                                         ProductName = product.ProductName + " " + "(Size: " + sizeName + ")",
                                         Quantity = i.Quantity,
                                         ImageUrl = product.ImageUrl,
@@ -493,18 +498,7 @@ namespace Service.SnapFood.Application.Service
                         };
                         _unitOfWork.BillPaymentRepo.Add(BillPayment);
                         await _unitOfWork.CompleteAsync();
-                        if (!string.IsNullOrEmpty(item.Description))
-                        {
-                            BillNotes billNotes = new BillNotes()
-                            {
-                                BillId = bill.Id,
-                                NoteType = NoteType.CustomerOrder,
-                                NoteContent = item.Description,
-                                CreatedBy = item.UserId,
-                            };
-                            _unitOfWork.BillNotesRepo.Add(billNotes);
-                            await _unitOfWork.CompleteAsync();
-                        }
+                        
 
                         if (item.ReceivingType == ReceivingType.HomeDelivery)
                         {
@@ -542,6 +536,32 @@ namespace Service.SnapFood.Application.Service
                             _unitOfWork.BillDeliveryRepo.Add(billDelivery);
                             await _unitOfWork.CompleteAsync();
                         }
+                        BillNotes billNotes1 = new BillNotes()
+                        {
+                            BillId = bill.Id,
+                            NoteType = NoteType.CustomerOrder,
+                            NoteContent = "Đơn hàng đã được đặt tại website",
+                            CreatedBy = Guid.Empty
+
+                        };
+                        _unitOfWork.BillNotesRepo.Add(billNotes1);
+                        await _unitOfWork.CompleteAsync();
+
+                        if (!string.IsNullOrEmpty(item.Description))
+                        {
+                            BillNotes billNotes2 = new BillNotes()
+                            {
+                                BillId=bill.Id,
+                                NoteType = NoteType.CustomerOrder,
+                                NoteContent = "Ghi chú: "+item.Description,
+                                CreatedBy = Guid.Empty
+
+                            };
+
+                            _unitOfWork.BillNotesRepo.Add(billNotes2);
+                            await _unitOfWork.CompleteAsync();
+                        }
+                        
 
                         var billDetails = _unitOfWork.BillDetailsRepo.FindWhere(x => x.BillId == bill.Id).ToList();
 

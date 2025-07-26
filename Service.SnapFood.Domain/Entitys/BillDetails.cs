@@ -11,6 +11,8 @@ namespace Service.SnapFood.Domain.Entitys
     public class BillDetails : IntermediaryEntity
     {
         public Guid BillId { get; set; }
+        public Guid ItemId { get; set; }
+
         public ItemType ItemType { get; set; }
         public string ItemsName { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;

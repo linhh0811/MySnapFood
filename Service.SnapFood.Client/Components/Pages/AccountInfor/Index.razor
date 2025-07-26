@@ -7,49 +7,77 @@
 @using System.Security.Claims
 @using Service.SnapFood.Client.Dto.User
 @using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+<div class="container p-3 m-0">
+    <div class="row d-flex align-items-center justify-content-between">
+        <div class="col-auto">
+            <h4 class="fw-bold m-0" style="color:#ff5961">THÔNG TIN TÀI KHOẢN</h4>
+        </div>
+        <div class="col-auto">
+        </div>
+    </div>
+    @if (IsLoading)
+    {
+        <p class="text-center">Đang tải thông tin...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <p class="text-danger text-center">@ErrorMessage</p>
+    }
+    else if (UserInfo != null)
+    {
 
-<h2 class="text-center mt-4 mb-4 fw-bold text-uppercase" style="color: #2c3e50;">Thông tin tài khoản</h2>
+        <div class="container mt-3 info">
 
-@if (IsLoading)
-{
-    <p class="text-center">Đang tải thông tin...</p>
-}
-else if (!string.IsNullOrWhiteSpace(ErrorMessage))
-{
-    <p class="text-danger text-center">@ErrorMessage</p>
-}
-else if (UserInfo != null)
-{
-    <div class="container d-flex justify-content-center">
-        <div class="card shadow p-4" style="width: 100%; max-width: 500px;">
-            <h5 class="mb-4 fw-semibold" style="color: #34495e;">Thông tin cá nhân</h5>
 
-            <div class="mb-3">
-                <label class="form-label">Họ tên</label>
+            <div class="mb-3 " >
+                <label for="hoTen" class="form-label">Họ tên</label>
                 <input class="form-control" @bind="UserInfo.FullName" placeholder="Nhập họ tên" />
             </div>
-
-            <div class="mb-3">
+            <div class="mb-3 ">
                 <label class="form-label">Số điện thoại</label>
                 <input class="form-control" @bind="UserInfo.Numberphone" placeholder="Số điện thoại" />
-            </div>
-
-            <div class="mb-3">
+            </div> 
+            <div class="mb-3">   
                 <label class="form-label">Email</label>
                 <input class="form-control" @bind="UserInfo.Email" placeholder="Email" />
             </div>
 
-            <div class="text-center">
-                <button class="btn btn-primary px-4" @onclick="SaveChanges">Lưu thông tin</button>
+            <div class="d-flex justify-content-between">
+                <FluentButton Loading=IsSaving BackgroundColor="#ff5961" Color="white" @onclick="SaveChanges">
+                    @if (IsSaving)
+                    {
+                        <span>Đang lưu...</span>
+
+                    }
+                    else
+                    {
+                        <span>Lưu thông tin</span>
+                        
+                    }
+                    
+                </FluentButton>
             </div>
         </div>
-    </div>
-}
+    }
+</div>
+
+<style>
+    .info .form-control {
+        border-radius: 10px;
+        border-color: #ffcccc;
+    }
+</style>
+
 
 @code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
     private UserDto? UserInfo;
     private bool IsLoading = true;
+    private bool IsSaving = false;
+
     private string ErrorMessage = string.Empty;
     private readonly ApiRequestModel requestRestAPI = new();
 
@@ -57,35 +85,20 @@ else if (UserInfo != null)
     {
         try
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
+           
+            requestRestAPI.Endpoint = $"api/User/{CurrentUser.UserId}";
+            var result = await CallApi.Get<UserDto>(requestRestAPI);
 
-            if (user.Identity?.IsAuthenticated == true)
+            if (result.Status == StatusCode.OK && result.Data is UserDto dto)
             {
-                var userIdClaim = user.FindFirst("user_id");
-                if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
-                {
-                    requestRestAPI.Endpoint = $"api/User/{userId}";
-                    var result = await CallApi.Get<UserDto>(requestRestAPI);
-
-                    if (result.Status == StatusCode.OK && result.Data is UserDto dto)
-                    {
-                        UserInfo = dto;
-                    }
-                    else
-                    {
-                        ErrorMessage = "Không thể tải thông tin người dùng.";
-                    }
-                }
-                else
-                {
-                    ErrorMessage = "Không tìm thấy UserId.";
-                }
+                UserInfo = dto;
             }
             else
             {
-                ErrorMessage = "Người dùng chưa đăng nhập.";
+                ErrorMessage = "Không thể tải thông tin người dùng.";
             }
+               
+          
         }
         catch (Exception ex)
         {
@@ -104,6 +117,7 @@ else if (UserInfo != null)
 
         try
         {
+            IsSaving = true;
             requestRestAPI.Endpoint = $"api/User/{UserInfo.Id}";
             var result = await CallApi.Put(requestRestAPI, UserInfo);
 
@@ -119,6 +133,10 @@ else if (UserInfo != null)
         catch (Exception ex)
         {
             ToastService.ShowError($"Lỗi khi cập nhật: {ex.Message}");
+        }
+        finally
+        {
+            IsSaving = false;
         }
     }
 }

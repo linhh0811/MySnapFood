@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿        using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
@@ -135,7 +135,7 @@ namespace Service.SnapFood.Application.Service
         #endregion
 
         #region Cập nhật trạng thái
-        public async Task<bool> UpdateStatusAsync(Guid id, StatusOrder status)
+        public async Task<bool> UpdateStatusAsync(Guid id, UpdateOrderStatusDto updateOrderStatusDto)
         {
             try
             {
@@ -146,10 +146,85 @@ namespace Service.SnapFood.Application.Service
                 if (bill == null)
                     throw new Exception("Không tìm thấy hóa đơn");
 
-                bill.Status = status;
+                bill.Status = updateOrderStatusDto.StatusOrder;
 
                 _unitOfWork.BillRepo.Update(bill);
                 await _unitOfWork.CompleteAsync();
+
+                string NoteContent = string.Empty;
+                if (updateOrderStatusDto.StatusOrder== StatusOrder.Pending)
+                {
+                    NoteContent = "Đơn hàng chờ xác nhận";
+                }else if (updateOrderStatusDto.StatusOrder == StatusOrder.Confirmed)
+                {
+                    NoteContent = "Đơn hàng đã được xác nhận";
+                }
+                else if (updateOrderStatusDto.StatusOrder == StatusOrder.Shipping)
+                {
+                    NoteContent = "Đơn hàng đã được giao cho vận chuyển";
+                }
+                else if (updateOrderStatusDto.StatusOrder == StatusOrder.Completed)
+                {
+                    NoteContent = "Đơn hàng đã được giao cho khách hàng";
+                }
+                else if (updateOrderStatusDto.StatusOrder == StatusOrder.Cancelled)
+                {
+                    NoteContent = "Đơn hàng đã bị hủy. Lý do: "+ updateOrderStatusDto.Reason;
+                }
+
+                if (!string.IsNullOrEmpty(NoteContent))
+                {
+                    BillNotes billNotes = new BillNotes()
+                    {
+                        BillId = bill.Id,
+                        NoteType = NoteType.Internal,
+                        NoteContent=NoteContent,
+                        CreatedBy= Guid.Empty
+
+                    };
+                    _unitOfWork.BillNotesRepo.Update(billNotes);
+                    await _unitOfWork.CompleteAsync();
+                }
+
+                if (updateOrderStatusDto.StatusOrder == StatusOrder.Completed)
+                {
+                    var billDetails = _unitOfWork.BillDetailsRepo.FindWhere(x => x.BillId == bill.Id);
+                    foreach (var item in billDetails)
+                    {
+                        if (item.ItemType== ItemType.Product)
+                        {
+                            var product = _unitOfWork.ProductRepo.GetById(item.ItemId);
+                            if (product is not null)
+                            {
+                                product.Quantity += item.Quantity;
+                                _unitOfWork.ProductRepo.Update(product);
+                                await _unitOfWork.CompleteAsync();
+                            }
+                        }
+                        else
+                        {
+                            var combo = _unitOfWork.ComboRepo.GetById(item.ItemId);
+                            if (combo is not null)
+                            {
+                                combo.Quantity += item.Quantity;
+                                _unitOfWork.ComboRepo.Update(combo);
+                                await _unitOfWork.CompleteAsync();
+                                var products = _unitOfWork.ComboItemsArchiveRepo.FindWhere(x => x.BillDetailsId == item.Id);
+                                foreach (var p in products)
+                                {
+                                    var product = _unitOfWork.ProductRepo.GetById(p.ProductId);
+                                    if (product is not null)
+                                    {
+                                        product.Quantity += item.Quantity;
+                                        _unitOfWork.ProductRepo.Update(product);
+                                        await _unitOfWork.CompleteAsync();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 return true;
             }
             catch (Exception ex)
@@ -322,13 +397,14 @@ namespace Service.SnapFood.Application.Service
                     Id = m.Id,
                     BillCode = m.BillCode,
                     UserId = m.UserId,
-                    FullName = allUsers.FirstOrDefault(u => u.Id == m.UserId)?.FullName ?? string.Empty,
+                    FullName = allUsers.FirstOrDefault(u => u.Id == m.UserId)?.Email ?? string.Empty,
                     StoreId = m.StoreId,
-                    Status = m.Status,
-                 
+                    Status = m.Status,                
                     TotalAmount = m.TotalAmount,
                     TotalAmountEndow = m.TotalAmountEndow,
-                    Created = m.Created
+                    Created = m.Created,
+                    ReceivingType=m.ReceivingType,
+                    PhuongThucDatHang = m.PhuongThucDatHang
                 }).ToList();
 
                 return new DataTableJson(data, query.draw, totalRecords);

@@ -84,7 +84,6 @@ namespace Service.SnapFood.Application.Service
             if (item == null)
                 throw new ArgumentNullException(nameof(item), "Dữ liệu thêm không được để trống");
 
-            ValidateAddressInput(item);
 
             if (item.AddressType == AddressType.Default)
             {
@@ -131,7 +130,6 @@ namespace Service.SnapFood.Application.Service
         {
             if (id == Guid.Empty) throw new ArgumentException("ID không hợp lệ");
             if (dto is null) throw new ArgumentNullException(nameof(dto));
-            ValidateAddressInput(dto);
 
             var address = await _unitOfWork.AddressRepo.GetByIdAsync(id)
                           ?? throw new Exception("Không tìm thấy địa chỉ");
@@ -190,30 +188,9 @@ namespace Service.SnapFood.Application.Service
         #endregion
 
         #region Validate
-        private void ValidateAddressInput(AddressDto item)
-        {
-            if (string.IsNullOrWhiteSpace(item.FullName))
-                throw new ArgumentException("Họ tên không được để trống");
-            if (string.IsNullOrWhiteSpace(item.NumberPhone))
-                throw new ArgumentException("Số điện thoại không được để trống");
-            if (!IsValidPhoneNumber(item.NumberPhone))
-                throw new ArgumentException("Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và có 10 chữ số)");
-            if (string.IsNullOrWhiteSpace(item.Province))
-                throw new ArgumentException("Tỉnh không được để trống");
-            if (string.IsNullOrWhiteSpace(item.District))
-                throw new ArgumentException("Huyện không được để trống");
-            if (string.IsNullOrWhiteSpace(item.Ward))
-                throw new ArgumentException("Xã không được để trống");
-            if (string.IsNullOrWhiteSpace(item.SpecificAddress))
-                throw new ArgumentException("Địa chỉ cụ thể không được để trống");
-            //if (item.Latitude == 0 || item.Longitude == 0)
-            //    throw new ArgumentException("Tọa độ không hợp lệ");
-        }
+     
 
-        private bool IsValidPhoneNumber(string phoneNumber)
-        {
-            return Regex.IsMatch(phoneNumber, @"^0\d{9}$");
-        }
+      
 
 
 

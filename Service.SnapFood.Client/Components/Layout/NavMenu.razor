@@ -42,7 +42,7 @@
 
                         <FluentMenuItem OnClick="@(() => OpenMenu("/Dia-Chi"))"><FluentIcon Value="@(new Icons.Regular.Size20.Location())" /> Địa chỉ giao hàng</FluentMenuItem>
                         <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))"><FluentIcon Value="@(new Icons.Regular.Size20.Tag())" /> Mã giảm giá</FluentMenuItem>
-                        <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))"><FluentIcon Value="@(new Icons.Regular.Size20.Person())" /> Thông tin tài khoản</FluentMenuItem>
+                        <FluentMenuItem OnClick="@(() => OpenMenu("/Thong-Tin-Tai-Khoan"))"><FluentIcon Value="@(new Icons.Regular.Size20.Person())" /> Thông tin tài khoản</FluentMenuItem>
                         <hr style="margin:8px" />
                         <FluentMenuItem OnClick="Logout"><FluentIcon Value="@(new Icons.Regular.Size20.SignOut())" /> Đăng xuất</FluentMenuItem>
 
@@ -181,26 +181,7 @@
         }
 
 
-        // await LoadCartItemCount();
-        // try
-        // {
-        //     var request = new ApiRequestModel { Endpoint = $"api/cart/quantity/{CurrentUser.UserId}" };
-        //     var result = await CallApi.Get<int>(request);
-        //     if (result.Status == StatusCode.OK && result.Data != null)
-        //     {
-        //         CartItemCount = (int)result.Data;
-        //     }
-        //     else
-        //     {
-        //         CartItemCount = 0;
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     CartItemCount = 0;
-        //     ToastService.ShowError($"Lỗi khi tải số lượng giỏ hàng: {ex.Message}");
-        // }
-        // StateHasChanged();
+
 
 
     }
