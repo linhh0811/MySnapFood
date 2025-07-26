@@ -1,0 +1,172 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.DiscountCode
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Manage.Components.Share
+@using Service.SnapFood.Manage.Enums
+
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+@if (DiscountCodeDto != null)
+{
+    <FluentDialogHeader ShowDismiss="true">
+        <FluentStack VerticalAlignment="VerticalAlignment.Center">
+            <FluentIcon Value="@(new Icons.Regular.Size24.Info())" />
+            <FluentLabel Typo="Typography.PaneHeader">
+                @Dialog.Instance.Parameters.Title
+            </FluentLabel>
+        </FluentStack>
+    </FluentDialogHeader>
+
+    <FluentDialogBody>
+        <FluentGrid Spacing="2" AdaptiveRendering="true">
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Tên mã giảm giá:</label>
+                    <div>@DiscountCodeDto.Code</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Mã:</label>
+                    <div>@DiscountCodeDto.Code</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Giá trị giảm:</label>
+                    <div>@DiscountCodeDto.DiscountAmount.ToString("N0") đ</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ngày bắt đầu:</label>
+                    <div>@DiscountCodeDto.StartDate.ToString("dd/MM/yyyy HH:mm:ss")</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ngày kết thúc:</label>
+                    <div>@DiscountCodeDto.EndDate.ToString("dd/MM/yyyy HH:mm:ss")</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Trạng thái:</label>
+                    <FluentBadge Appearance="@(DiscountCodeDto.ModerationStatus == ModerationStatus.Approved ? Appearance.Accent : Appearance.Neutral)">
+                        @(DiscountCodeDto.ModerationStatus == ModerationStatus.Approved ? "Đã duyệt" : "Chưa duyệt")
+                    </FluentBadge>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ngày tạo:</label>
+                    <div>@DiscountCodeDto.Created</div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Người tạo:</label>
+                    <div>@(DiscountCodeDto.CreatedByName ?? "Hệ thống")</div>
+                </div>
+            </FluentGridItem>
+            @if (DiscountCodeDto.LastModifiedBy != Guid.Empty)
+            {
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Ngày sửa gần nhất:</label>
+                        <div>@DiscountCodeDto.LastModified</div>
+                    </div>
+                </FluentGridItem>
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Người sửa gần nhất:</label>
+                        <div>@DiscountCodeDto.LastModifiedByName</div>
+                    </div>
+                </FluentGridItem>
+            }
+        </FluentGrid>
+    </FluentDialogBody>
+
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync">Đóng</FluentButton>
+    </FluentDialogFooter>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <FluentDialogBody>
+        <p>@ErrorMessage</p>
+    </FluentDialogBody>
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync">Đóng</FluentButton>
+    </FluentDialogFooter>
+}
+else
+{
+    <FluentDialogBody style="display: flex; justify-content: center; align-items: center;">
+        <FluentProgressRing />
+    </FluentDialogBody>
+}
+
+<style>
+    .row-info {
+        display: grid;
+        grid-template-columns: 40% 60%;
+        align-items: center;
+        padding: 6px 0;
+    }
+
+        .row-info label {
+            font-weight: 600;
+        }
+</style>
+
+@code {
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    private DiscountCodeDto DiscountCodeDto { get; set; } = new();
+    private string? ErrorMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Content.Id != Guid.Empty)
+            {
+                DiscountCodeDto = await GetById(Content.Id);
+            }
+            else
+            {
+                ErrorMessage = "Không có ID để truy vấn.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi lấy dữ liệu: {ex.Message}";
+        }
+    }
+
+    private async Task<DiscountCodeDto> GetById(Guid id)
+    {
+        Content.RequestApi.Endpoint = $"api/DiscountCode/{id}";
+        ResultAPI result = await CallApi.Get<DiscountCodeDto>(Content.RequestApi);
+        if (result.Status == StatusCode.OK)
+        {
+            return result.Data as DiscountCodeDto ?? throw new Exception("Không đúng định dạng dữ liệu.");
+        }
+        else
+        {
+            throw new Exception(result.Message ?? "Không thể lấy thông tin.");
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

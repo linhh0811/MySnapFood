@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Service.SnapFood.Domain.Entitys;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,13 @@ namespace Service.SnapFood.Domain.Interfaces.UnitOfWork
         IPromotionItemsRepository PromotionItemsRepository { get; }
         IComboProductItemRepository ComboProductItemRepository { get; }
         IThongTinGiaoHangRepository ThongTinGiaoHangRepository { get; }
+
+
+        //
+        IDiscountCodeRepository DiscountCodeRepo { get; }
+        IDiscountCodeUsageRepository DiscountCodeUsageRepo { get; }
+        
+
 
 
 

@@ -19,5 +19,6 @@ namespace Service.SnapFood.Application.Dtos
         public DateTime Created { get; set; }
         public ReceivingType ReceivingType { get; set; }
         public PhuongThucDatHangEnum PhuongThucDatHang { get; set; }
+        public string? DiscountCode { get; set; }
     }
 }

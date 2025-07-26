@@ -12,6 +12,12 @@ namespace Service.SnapFood.Domain.Entitys
         public StatusOrder Status { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal TotalAmountEndow { get; set; }
+
+        public Guid? DiscountCodeId { get; set; }
+        public decimal DiscountAmount { get; set; } = 0;
+        public decimal TotalAfterDiscount { get; set; } = 0;
+
+
         public virtual User User { get; set; } = null!;
         public virtual Store Store { get; set; } = null!;
         public virtual BillDelivery BillDelivery { get; set; } = null!;
@@ -20,5 +26,6 @@ namespace Service.SnapFood.Domain.Entitys
         public virtual List<BillNotes> BillNotes { get; set; } = null!;
         public ReceivingType ReceivingType { get; set; }
         public PhuongThucDatHangEnum PhuongThucDatHang { get; set; }
+        public virtual List<DiscountCodeUsage> DiscountCodeUsages { get; set; } = new();
     }
 }

@@ -62,7 +62,10 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
 
         public IComboProductItemRepository ComboProductItemRepository { get; private set; }
 
+
         public IThongTinGiaoHangRepository ThongTinGiaoHangRepository { get; private set; }
+        public IDiscountCodeRepository DiscountCodeRepo { get; private set; }
+        public IDiscountCodeUsageRepository DiscountCodeUsageRepo { get; private set; }
 
         public UnitOfWork(AppDbContext context, IRequestContext requestContext)
         {
@@ -91,6 +94,8 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             PromotionItemsRepository = new PromotionItemsRepository(_context);
             ComboProductItemRepository = new ComboProductItemRepository(_context);
             ThongTinGiaoHangRepository = new ThongTinGiaoHangRepository(_context);
+            DiscountCodeRepo = new DiscountCodeRepository(_context);
+
         }
 
         public void BeginTransaction()

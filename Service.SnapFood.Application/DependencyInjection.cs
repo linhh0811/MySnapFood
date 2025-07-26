@@ -38,7 +38,7 @@ namespace Service.SnapFood.Application
             services.AddScoped<IThongTinGiaoHangService, ThongTinGiaoHangService>();
 
 
-
+            services.AddScoped<IDiscountCodeService, DiscountCodeService>();
             return services;
         }
     }
