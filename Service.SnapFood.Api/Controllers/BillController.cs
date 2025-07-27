@@ -101,10 +101,7 @@ namespace Service.SnapFood.Api.Controllers
         {
             try
             {
-                var result = await _billService.GetBillDetailsByBillIdAsync(billId);
-                if (result == null || !result.Any())
-                    return NotFound("Không tìm thấy chi tiết đơn hàng");
-
+                var result = await _billService.GetBillDetailsByBillIdAsync(billId);             
                 return Ok(result);
 
             }

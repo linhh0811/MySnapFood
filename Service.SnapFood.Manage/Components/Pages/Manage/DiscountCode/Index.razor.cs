@@ -26,7 +26,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
         private Dictionary<string, string> _SelectTrangThai = new();
         private string SelectedTrangThai = "-1";
 
-        protected override async Task OnInitializedAsync()
+        protected override  void OnInitialized()
         {
             GetSelectTrangThai();
         }
@@ -160,7 +160,6 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
                     Modal = true,
-                    Width = "1000px"
                 });
             }
             catch (Exception ex)
@@ -187,7 +186,6 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
                     Modal = true,
-                    Width = "1000px"
                 });
 
             }

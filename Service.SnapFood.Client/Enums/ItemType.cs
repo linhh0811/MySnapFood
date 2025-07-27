@@ -5,8 +5,8 @@ namespace Service.SnapFood.Client.Enums
     public enum ItemType
     {
         [Description("Sản phẩm")]
-        Product,
+        Product =1,
         [Description("Combo")]
-        Combo
+        Combo =2
     }
 }
