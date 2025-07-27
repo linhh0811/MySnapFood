@@ -263,29 +263,11 @@ namespace Service.SnapFood.Application.Service
 
 
         #endregion
-        //public async Task<List<BillDetailsDto>> GetBillDetailsByBillIdAsync(Guid billId)
-        //{
-        //    var allDetails = await _unitOfWork.BillDetailsRepo.GetAllAsync(); // Trả về IEnumerable<BillDetails>
 
-        //    var result = allDetails
-        //        .Where(b => b.BillId == billId) // Lọc theo BillId
-        //        .Select(b => new BillDetailsDto
-        //        {
-        //            ItemsName = b.ItemsName,
-        //            ImageUrl = b.ImageUrl,
-        //            Quantity = b.Quantity,
-        //            Price = b.Price,
-        //            PriceEndow = b.PriceEndow
-        //        })
-        //        .ToList(); // Chuyển sang List
 
-        //    return result;
-
-        //}
 
        
-
-        public async Task<BillViewDto> GetDetailsByBillIdAsync(Guid billId)
+        public async Task<BillViewDto> GetBillDetailsByBillIdAsync(Guid billId)
         {
           
             var bill =await _unitOfWork.BillRepo.GetByIdAsync(billId);
@@ -609,5 +591,7 @@ namespace Service.SnapFood.Application.Service
         .Where(b => b.Status == StatusOrder.Cancelled)
         .CountAsync();
         }
+
+       
     }
 }

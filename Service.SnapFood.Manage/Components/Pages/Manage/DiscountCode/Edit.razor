@@ -9,9 +9,12 @@
 <FluentDialogHeader Style="padding:8px">
     <h3>@(Content.IsEditMode ? "Sửa mã giảm giá" : "Thêm mã giảm giá")</h3>
 </FluentDialogHeader>
-
+<FluentDialogBody>
 <EditForm Model="DiscountCodeModel" OnValidSubmit="HandleSubmit">
     <DataAnnotationsValidator />
+    
+
+   
     <FluentStack Orientation="Orientation.Vertical" Gap="12" Style="padding: 16px">
 
         @if (!string.IsNullOrEmpty(ErrorMessage))
@@ -46,22 +49,26 @@
             <FluentTimePicker @bind-Value="EndDateTime" Style="width:50%" />
         </FluentStack>
 
-        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
-            <FluentButton Appearance="Appearance.Neutral" OnClick="@HideDialog" Disabled="@isSaving">Hủy</FluentButton>
-            <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
-                @if (isSaving)
-                {
-                    <span>Đang lưu...</span>
-                }
-                else
-                {
-                    <span>Lưu</span>
-                }
-            </FluentButton>
-        </FluentStack>
+        
     </FluentStack>
 </EditForm>
+</FluentDialogBody>
 
+<FluentDialogFooter>
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
+        <FluentButton Appearance="Appearance.Neutral" OnClick="@HideDialog" Disabled="@isSaving">Hủy</FluentButton>
+        <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
+            @if (isSaving)
+            {
+                <span>Đang lưu...</span>
+            }
+            else
+            {
+                <span>Lưu</span>
+            }
+        </FluentButton>
+    </FluentStack>
+</FluentDialogFooter>
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
