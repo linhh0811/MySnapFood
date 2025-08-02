@@ -84,6 +84,11 @@ namespace Service.SnapFood.Application.Service
             if (item == null)
                 throw new ArgumentNullException(nameof(item), "Dữ liệu thêm không được để trống");
 
+            var checkAddress = _unitOfWork.AddressRepo.FindWhere(x => x.UserId == item.UserId && x.AddressType == AddressType.Default);
+            if (!checkAddress.Any())
+            {
+                item.AddressType = AddressType.Default;
+            }
 
             if (item.AddressType == AddressType.Default)
             {

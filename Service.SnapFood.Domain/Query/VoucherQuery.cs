@@ -9,7 +9,6 @@ namespace Service.SnapFood.Domain.Query
 {
     public class VoucherQuery : BaseQuery
     {
-        public bool? IsActive { get; set; }
-        public string? OrderType { get; set; } 
+        public bool IsActive { get; set; } = false;
     }
 }

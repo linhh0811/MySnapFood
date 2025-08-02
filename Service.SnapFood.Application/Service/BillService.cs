@@ -59,6 +59,24 @@ namespace Service.SnapFood.Application.Service
             return bills.ToList(); // Chuyển đổi từ IEnumerable sang List
         }
 
+        public List<BillDto> GetByUser(Guid id)
+        {
+            var bills = _unitOfWork.BillRepo.FindWhere(x => x.UserId == id).Select(b => new BillDto
+            {
+                Id = b.Id,
+                BillCode = b.BillCode,
+                UserId = b.UserId,
+                StoreId = b.StoreId,
+                Status = b.Status,
+                TotalAmount = b.TotalAmount,
+                TotalAmountEndow = b.TotalAmountEndow,
+                DiscountAmount = b.DiscountAmount,
+                PhiVanChuyen = _unitOfWork.BillDeliveryRepo.FirstOrDefault(x => x.BillId == b.Id)?.DeliveryFee??0,
+                Created = b.Created
+            }).OrderByDescending(x => x.Created).ToList(); ;
+            return bills;
+        }
+        
         public async Task<Bill> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
@@ -279,6 +297,8 @@ namespace Service.SnapFood.Application.Service
                 billViewDto.BillCode = bill.BillCode;
                 billViewDto.TotalAmount = bill.TotalAmount;
                 billViewDto.TotalAmountEndow = bill.TotalAmountEndow;
+                billViewDto.DiscountAmount = bill.DiscountAmount;
+
                 billViewDto.Status = bill.Status;
                 billViewDto.Created = bill.Created;
                 billViewDto.BillDetailsDtos = _unitOfWork.BillDetailsRepo.FindWhere(x=>x.BillId== billId)
@@ -320,7 +340,6 @@ namespace Service.SnapFood.Application.Service
                         BillId = billPayment.BillId,
                         PaymentType = billPayment.PaymentType,
                         Amount = billPayment.Amount,
-                        PaymentDate = billPayment.PaymentDate,
                         PaymentStatus = billPayment.PaymentStatus,
                     };
                 }
@@ -368,11 +387,13 @@ namespace Service.SnapFood.Application.Service
                 int totalRecords = 0;
 
                 var dataQuery = _unitOfWork.BillRepo.FilterData(
-                    q => query.Status.HasValue ?
-                        q.Where(x => (int)x.Status == (int)query.Status.Value) : q,
-                    query.gridRequest,
-                    ref totalRecords
-                );
+                     q => q.Where(x =>
+                         (query.Status == StatusOrder.None || x.Status == query.Status) &&
+                         (!query.IsBanHang || (x.Status != StatusOrder.Completed && x.Status != StatusOrder.Cancelled))
+                     ),
+                     query.gridRequest,
+                     ref totalRecords
+                 );
 
 
                 var allUsers = _unitOfWork.UserRepo.GetAll().ToList();
@@ -387,6 +408,8 @@ namespace Service.SnapFood.Application.Service
                     Status = m.Status,                
                     TotalAmount = m.TotalAmount,
                     TotalAmountEndow = m.TotalAmountEndow,
+                    DiscountAmount = m.DiscountAmount,
+                    PhiVanChuyen = _unitOfWork.BillDeliveryRepo.FirstOrDefault(x => x.BillId == m.Id)?.DeliveryFee ?? 0,
                     Created = m.Created,
                     ReceivingType=m.ReceivingType,
                     PhuongThucDatHang = m.PhuongThucDatHang
@@ -409,7 +432,7 @@ namespace Service.SnapFood.Application.Service
                     throw new Exception("Không tìm thấy hóa đơn");
 
                 var discountCode = await _unitOfWork.DiscountCodeRepo.GetByIdAsync(discountCodeId);
-                if (discountCode == null || !discountCode.IsActive || discountCode.EndDate < DateTime.Now)
+                if (discountCode == null  || discountCode.EndDate < DateTime.Now)
                     throw new Exception("Mã giảm giá không hợp lệ hoặc đã hết hạn");
 
                 if (bill.UserId != userId)
@@ -426,11 +449,11 @@ namespace Service.SnapFood.Application.Service
                 switch (discountCode.DiscountCodeType)
                 {
                     case DiscountCodeType.Money:
-                        discountAmount = discountCode.DiscountAmount;
+                        discountAmount = discountCode.DiscountValue;
                         break;
 
                     case DiscountCodeType.Percent:
-                        discountAmount = bill.TotalAmount * (discountCode.DiscountAmount / 100);
+                        discountAmount = bill.TotalAmount * (discountCode.DiscountValue / 100);
                         break;
 
                     default:

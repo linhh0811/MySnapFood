@@ -4,6 +4,6 @@ namespace Service.SnapFood.Manage.Query
 {
     public class DiscountCodeQuery : BaseQuery
     {
-        public bool? IsActive { get; set; }
+        public bool IsActive { get; set; } = false;
     }
 }

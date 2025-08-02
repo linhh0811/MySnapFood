@@ -9,13 +9,11 @@ namespace Service.SnapFood.Domain.Entitys
         public string BillCode { get; set; } = string.Empty;
         public Guid UserId { get; set; }
         public Guid StoreId { get; set; }
-        public StatusOrder Status { get; set; }
-        public decimal TotalAmount { get; set; }
-        public decimal TotalAmountEndow { get; set; }
 
-        public Guid? DiscountCodeId { get; set; }
-        public decimal DiscountAmount { get; set; } = 0;
-        public decimal TotalAfterDiscount { get; set; } = 0;
+        public StatusOrder Status { get; set; }
+        public decimal TotalAmount { get; set; }//Tổng chưa trừ gì hết
+        public decimal TotalAmountEndow { get; set; }
+        public decimal DiscountAmount { get; set; }
 
 
         public virtual User User { get; set; } = null!;
@@ -26,6 +24,6 @@ namespace Service.SnapFood.Domain.Entitys
         public virtual List<BillNotes> BillNotes { get; set; } = null!;
         public ReceivingType ReceivingType { get; set; }
         public PhuongThucDatHangEnum PhuongThucDatHang { get; set; }
-        public virtual List<DiscountCodeUsage> DiscountCodeUsages { get; set; } = new();
+        public virtual DiscountCodeUsage DiscountCodeUsages { get; set; } = null!;
     }
 }

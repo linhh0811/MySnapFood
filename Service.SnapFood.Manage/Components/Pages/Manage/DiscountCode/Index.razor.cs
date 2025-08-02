@@ -65,7 +65,13 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
                     var totalRecords = dataTable.RecordsTotal ?? items.Count;
                     return GridItemsProviderResult.From(items, totalRecords);
                 }
-                return GridItemsProviderResult.From(new List<DiscountCodeDto>(), 0);
+                else
+                {
+                    ToastService.ShowError("Lỗi: "+ result.Message);
+
+                    return GridItemsProviderResult.From(new List<DiscountCodeDto>(), 0);
+                }
+                   
             }
             catch (Exception ex)
             {
@@ -160,6 +166,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
                     Modal = true,
+                    Width="800px"
                 });
             }
             catch (Exception ex)
@@ -186,6 +193,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
                     Modal = true,
+                    Width = "800px"
+
                 });
 
             }

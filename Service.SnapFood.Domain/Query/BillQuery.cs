@@ -10,6 +10,8 @@ namespace Service.SnapFood.Domain.Query
 {
     public  class BillQuery:BaseQuery
     {
-        public StatusOrder? Status { get; set; }
+        public StatusOrder Status { get; set; }
+        public bool IsBanHang { get; set; } = false;
+
     }
 }

@@ -18,8 +18,14 @@ namespace Service.SnapFood.Api.Controllers
         [HttpGet]
         public IActionResult GetPromotionActivate()
         {
-            var combo = _promotionService.GetPromotionActivate();
-            return Ok(combo);
+            var item = _promotionService.GetPromotionActivate();
+            return Ok(item);
+        }
+        [HttpGet("GetPromotionActivateCount")]
+        public IActionResult GetPromotionActivateCount()
+        {
+            var item = _promotionService.GetPromotionActivateCount();
+            return Ok(item);
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid Id)

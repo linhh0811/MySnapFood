@@ -15,7 +15,7 @@ namespace Service.SnapFood.Domain.Entitys
         public string ReceiverName { get; set; } = string.Empty; //tên người nhận
         public string ReceiverPhone { get; set; } = string.Empty; //số điện thoại người nhận
         public string ReceiverAddress { get; set; } = string.Empty; //địa chỉ người nhận
-        public decimal Distance { get; set; } //Khoảng cách
+        public double Distance { get; set; } //Khoảng cách
         public decimal DeliveryFee { get; set; }//Phí giao hàng
         public virtual Bill Bill { get; set; } = null!;
     }

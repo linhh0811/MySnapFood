@@ -17,16 +17,8 @@ namespace Service.SnapFood.Infrastructure.Configurations
 
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.Code).IsRequired().HasMaxLength(50);
-            builder.Property(x => x.Description).HasMaxLength(255);
-            builder.Property(x => x.DiscountAmount).HasColumnType("decimal(18,2)");
-            builder.Property(x => x.MinOrderAmount).HasColumnType("decimal(18,2)");
-            builder.Property(x => x.ApplyToOrderTypes).HasMaxLength(100);
 
-            builder.HasMany(x => x.DiscountCodeUsages)
-                   .WithOne(x => x.DiscountCode)
-                   .HasForeignKey(x => x.DiscountCodeId)
-                   .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Service.SnapFood.Application.Service
         #region get dữ liệu     
         public List<PromotionDto> GetPromotionActivate()
         {
-            var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now && x.ModerationStatus == ModerationStatus.Approved).ToList()
+            var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.EndDate > DateTime.Now && x.ModerationStatus == ModerationStatus.Approved).ToList()
                 .Select(p => new PromotionDto
                 {
                     Id = p.Id,
@@ -34,7 +34,7 @@ namespace Service.SnapFood.Application.Service
                     CreatedBy = p.CreatedBy,
                     LastModifiedBy = p.LastModifiedBy,
                     Description = p.Description,
-
+                    IsDangKM=(p.StartDate<DateTime.Now&&p.EndDate>DateTime.Now),
                     PromotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.PromotionId == p.Id).Select(x => new PromotionItemDto()
                     {
                         Id = x.Id,
@@ -42,6 +42,7 @@ namespace Service.SnapFood.Application.Service
                         ItemId = x.ItemId,
                         ItemType = x.ItemType
                     }).ToList()
+                    
                 }).ToList();
             foreach (var promotion in promotions)
             {
@@ -240,6 +241,17 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Sản phẩm trống");
                 }
+
+                var checkDatePromotion = _unitOfWork.PromotionRepository
+                                    .FindWhere(x => (x.StartDate<=item.StartDate&&item.StartDate<=x.EndDate) 
+                                    || (x.StartDate <= item.EndDate && item.EndDate <= x.EndDate)
+                                    || (x.StartDate >= item.StartDate && item.EndDate >= x.EndDate));
+                if (checkDatePromotion.Count()>0)
+                {
+                    throw new Exception("Trong khoảng thời gian này đã tồn tại khuyến mãi");
+
+                }
+
                 Promotions promotion = new Promotions
                 {
                     PromotionName = item.PromotionName,
@@ -321,7 +333,16 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Sản phẩm trống");
                 }
+                var checkDatePromotion = _unitOfWork.PromotionRepository
+                                    .FindWhere(x => (x.Id!=id)&&((x.StartDate <= item.StartDate && item.StartDate <= x.EndDate)
+                                    || (x.StartDate <= item.EndDate && item.EndDate <= x.EndDate)
+                                    || (x.StartDate >= item.StartDate && item.EndDate >= x.EndDate)));
 
+                if (checkDatePromotion.Count() > 0)
+                {
+                    throw new Exception("Trong khoảng thời gian này đã tồn tại khuyến mãi");
+
+                }
 
                 promotion.PromotionName = item.PromotionName;
                 promotion.PromotionType = item.PromotionType;
@@ -460,5 +481,10 @@ namespace Service.SnapFood.Application.Service
 
         }
 
+        public int GetPromotionActivateCount()
+        {
+            var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.EndDate > DateTime.Now && x.ModerationStatus == ModerationStatus.Approved).Count();
+            return promotions;
+        }
     }
 }

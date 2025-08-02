@@ -17,6 +17,9 @@ namespace Service.SnapFood.Manage.Dto.BillDto
         public string StatusText { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
         public decimal TotalAmountEndow { get; set; }
+        public decimal DiscountAmount { get; set; }
+
+        public decimal PhiVanChuyen { get; set; }
         public DateTime Created { get; set; }
         public ReceivingType ReceivingType { get; set; }
         public PhuongThucDatHangEnum PhuongThucDatHang { get; set; }

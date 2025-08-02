@@ -13,8 +13,10 @@ namespace Service.SnapFood.Application.Dtos
         public Guid Id { get; set; }
         public int Index { get; set; }
         public string Code { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public decimal DiscountAmount { get; set; }
+        public string? Description { get; set; }
+        public decimal DiscountValue { get; set; }
+        public decimal DiscountValueMax { get; set; }
+
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public int UsageLimit { get; set; }

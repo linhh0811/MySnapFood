@@ -1,6 +1,7 @@
 ﻿@using Microsoft.FluentUI.AspNetCore.Components
 @using Service.SnapFood.Manage.Dto
 @using Service.SnapFood.Manage.Dto.DiscountCode
+@using Service.SnapFood.Manage.Infrastructure.Services
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.SQL
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
@@ -23,12 +24,7 @@
 
     <FluentDialogBody>
         <FluentGrid Spacing="2" AdaptiveRendering="true">
-            <FluentGridItem md="12">
-                <div class="row-info">
-                    <label>Tên mã giảm giá:</label>
-                    <div>@DiscountCodeDto.Code</div>
-                </div>
-            </FluentGridItem>
+            
             <FluentGridItem md="12">
                 <div class="row-info">
                     <label>Mã:</label>
@@ -37,10 +33,46 @@
             </FluentGridItem>
             <FluentGridItem md="12">
                 <div class="row-info">
-                    <label>Giá trị giảm:</label>
-                    <div>@DiscountCodeDto.DiscountAmount.ToString("N0") đ</div>
+                    <label>Phương thức:</label>
+                    <div>@DiscountCodeDto.DiscountCodeType.GetDescription()</div>
                 </div>
             </FluentGridItem>
+            @if (DiscountCodeDto.DiscountCodeType == DiscountCodeType.Money)
+            {
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Giá trị giảm:</label>
+                        <div>
+ 
+                                @($"{DiscountCodeDto.DiscountValue:N0} đ")
+                            
+                        </div>
+
+                    </div>
+                </FluentGridItem>
+            }
+            else
+            {
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Giá trị giảm:</label>
+                        <div>
+                            @($"{DiscountCodeDto.DiscountValue:N0} %")
+                        </div>
+
+                    </div>
+                </FluentGridItem>
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Giá trị tối đa:</label>
+                        <div>
+                            @($"{DiscountCodeDto.DiscountValueMax:N0} đ")
+                        </div>
+
+                    </div>
+                </FluentGridItem>
+            }
+           
             <FluentGridItem md="12">
                 <div class="row-info">
                     <label>Ngày bắt đầu:</label>
@@ -55,10 +87,43 @@
             </FluentGridItem>
             <FluentGridItem md="12">
                 <div class="row-info">
+                    <label>Trạng thái KM:</label>
+                    <div>
+                        <FluentBadge title="Trạng thái khuyến mãi" Appearance="@(DiscountCodeDto.StartDate<=DateTime.Now &&DiscountCodeDto.EndDate>=DateTime.Now&&DiscountCodeDto.ModerationStatus == 0 ? Appearance.Accent : Appearance.Neutral)">
+                            @if (DiscountCodeDto.ModerationStatus != 0)
+                            {
+                                <span>Chưa phê duyệt</span>
+
+                            }
+                            else
+                            {
+                                @if (DiscountCodeDto.StartDate > DateTime.Now)
+                                {
+                                    <span>Chưa bắt đầu</span>
+                                }
+                                else if (DiscountCodeDto.EndDate < DateTime.Now)
+                                {
+                                    <span>Đã kết thúc</span>
+                                }
+                                else
+                                {
+                                    <span>Đang diễn ra</span>
+                                }
+                            }
+
+                        </FluentBadge>
+                    </div>
+                </div>
+            </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
                     <label>Trạng thái:</label>
-                    <FluentBadge Appearance="@(DiscountCodeDto.ModerationStatus == ModerationStatus.Approved ? Appearance.Accent : Appearance.Neutral)">
-                        @(DiscountCodeDto.ModerationStatus == ModerationStatus.Approved ? "Đã duyệt" : "Chưa duyệt")
-                    </FluentBadge>
+                    <div>
+                        <FluentBadge Appearance="@(DiscountCodeDto.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
+                            @(DiscountCodeDto.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
+                        </FluentBadge>
+                    </div>
+
                 </div>
             </FluentGridItem>
             <FluentGridItem md="12">

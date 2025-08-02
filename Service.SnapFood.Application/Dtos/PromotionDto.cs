@@ -23,5 +23,6 @@ namespace Service.SnapFood.Application.Dtos
         public List<PromotionItemDto> PromotionItems { get; set; } = new List<PromotionItemDto>();
         public string CreatedByName { get; set; } = string.Empty;
         public string LastModifiedByName { get; set; } = string.Empty;
+        public bool IsDangKM { get; set; }
     }
 }

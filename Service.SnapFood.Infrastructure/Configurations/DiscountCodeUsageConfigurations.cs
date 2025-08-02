@@ -25,12 +25,12 @@ namespace Service.SnapFood.Infrastructure.Configurations
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.Bill)
-                   .WithMany(x => x.DiscountCodeUsages)
-                   .HasForeignKey(x => x.BillId)
+                   .WithOne(x => x.DiscountCodeUsages)
+                   .HasForeignKey<DiscountCodeUsage>(x => x.BillId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.User)
-                   .WithMany()
+                   .WithMany(x=>x.DiscountCodeUsage)
                    .HasForeignKey(x => x.UserId)
                    .OnDelete(DeleteBehavior.Restrict);
         }

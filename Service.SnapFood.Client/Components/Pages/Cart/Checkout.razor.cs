@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Service.SnapFood.Client.Components.Layout;
+using Service.SnapFood.Client.Components.Pages.DiscountCode;
+using Service.SnapFood.Client.Dto;
 using Service.SnapFood.Client.Dto.Addresss;
 using Service.SnapFood.Client.Dto.Auth;
 using Service.SnapFood.Client.Dto.Cart;
+using Service.SnapFood.Client.Dto.DiscountCode;
 using Service.SnapFood.Client.Dto.Momo;
+using Service.SnapFood.Client.Dto.ThongTinGiaoHang;
 using Service.SnapFood.Client.Enums;
 using Service.SnapFood.Client.Infrastructure.Service;
 using Service.SnapFood.Share.Interface.Extentions;
@@ -26,21 +30,27 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         [Inject] protected NavMenu NavMenu { get; set; } = default!; // Inject NavMenu
         [Inject] protected IAddressService AddressService { get; set; } = default!; // Inject NavMenu
         [Inject] protected SharedStateService SharedService { get; set; } = default!;
+        [Inject] private IDialogService DialogService { get; set; } = default!;
+
         protected CartDto CartModel { get; set; } = new CartDto();
 
         protected List<object> CartItems { get; set; } = new List<object>();
         protected AddressDto Address { get; set; } = new AddressDto();
         protected StoreDto Store { get; set; } = new StoreDto();
-        protected StoreDto? SelectedStore { get; set; }
-        protected string SelectedPaymentMethod { get; set; } = "cash";
-        public decimal totalPrice = 0;
-        public decimal totalPriceEndown = 0;
-        public bool isLoading = true;
-        public string Notes { get; set; } = string.Empty;
-        public string ReceiverName { get; set; } = string.Empty;
-        public string ReceiverPhone { get; set; } = string.Empty;
-        public double KhoangCach = 0;
-        public decimal PhiVanChuyen = 0;
+        private ThongTinGiaoHangDto ThongTinGiaoHang = new ThongTinGiaoHangDto(); 
+        protected DiscountCodeDto DiscountCode = new DiscountCodeDto();
+        protected PaymentType SelectedPaymentMethod { get; set; } = PaymentType.Cash;
+        protected decimal totalPrice = 0;
+        protected decimal totalPriceEndown = 0;
+        protected bool isLoading = true;
+        protected string Notes { get; set; } = string.Empty;
+        protected string ReceiverName { get; set; } = string.Empty;
+        protected string ReceiverPhone { get; set; } = string.Empty;
+        protected double KhoangCach = 0;
+        protected decimal PhiVanChuyen = 0;
+        private Guid SelectedDiscountCode;
+
+       protected decimal DiscountCodeValue { get; set; }
 
         protected void NavigateToHome()
         {
@@ -59,25 +69,52 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             await LoadCart();
             await LoadAddress();
             await LoadStores();
-            DistanceRequest DistanceRequest = new DistanceRequest
-            {
-                OriginLatitude = Store.Address.Latitude,
-                OriginLongitude = Store.Address.Longitude,
-                DestinationLatitude = Address.Latitude,
-                DestinationLongitude = Address.Longitude
-            };
-            KhoangCach = await AddressService.CalculateDistanceKmAsync(DistanceRequest) ?? 0;
-            if (KhoangCach<=3)
-            {
-                PhiVanChuyen = 10000;
-            }
-            else
-            {
-                PhiVanChuyen = (decimal)(10000 + (KhoangCach - 3) * 3500);
-            }
+            await LoadThongTinGiaoHang();
+
                 isLoading = false;
         }
 
+        protected async Task LoadThongTinGiaoHang()
+        {
+
+            try
+            {
+
+                var request = new ApiRequestModel { Endpoint = $"api/ThongTinGiaoHang" };
+                var result = await CallApi.Get<ThongTinGiaoHangDto>(request);
+                if (result.Status == StatusCode.OK && result.Data != null)
+                {
+                    ThongTinGiaoHang = (ThongTinGiaoHangDto)result.Data;
+
+                    DistanceRequest DistanceRequest = new DistanceRequest
+                    {
+                        OriginLatitude = Store.Address.Latitude,
+                        OriginLongitude = Store.Address.Longitude,
+                        DestinationLatitude = Address.Latitude,
+                        DestinationLongitude = Address.Longitude
+                    };
+
+                    if(PhuongThucNhanHang== "Giao-Tan-Noi")
+                    {
+                        KhoangCach = await AddressService.CalculateDistanceKmAsync(DistanceRequest) ?? 0;
+
+                        PhiVanChuyen = (decimal)KhoangCach * ThongTinGiaoHang.PhiGiaoHang;
+                    }
+                   
+
+
+                    StateHasChanged();
+                }
+                else
+                {
+                    ToastService.ShowError("Không thể tải giỏ hàng.");
+                }
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi tải giỏ hàng: {ex.Message}");
+            }
+        }
         protected async Task LoadCart()
         {
 
@@ -93,7 +130,6 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                     totalPrice = CartModel.CartItems.Sum(p => p.BasePrice * p.Quantity);
                     totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0).Sum(p => p.BasePrice * p.Quantity - p.PriceEndown * p.Quantity);
                     StateHasChanged();
-                    await NavMenu.RefreshCartItemCount();
                 }
                 else
                 {
@@ -147,17 +183,8 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         {
             try
             {
-                if (SelectedPaymentMethod == "momo")
-                {
-                    await HandleMomoPayment();
-                }
-                else
-                if (string.IsNullOrEmpty(Address.NumberPhone))
-                {
-                    ToastService.ShowError("Vui lòng thêm địa chỉ nhận hàng.");
-                    return;
-                }
-
+               
+               
                 var checkOutDto = new CheckOutDto
                 {
                     UserId = CurrentUser.UserId,
@@ -166,16 +193,22 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 if (PhuongThucNhanHang == "Nhan-Tai-Quay")
                 {
                     checkOutDto.ReceivingType = ReceivingType.PickUpAtStore;
-                    checkOutDto.PaymentType = PaymentType.Cash;
+                    checkOutDto.PaymentType = SelectedPaymentMethod;
                     checkOutDto.ReceiverName = ReceiverName;
                     checkOutDto.ReceiverPhone = ReceiverPhone;
                 }
                 else
                 {
                     checkOutDto.ReceivingType = ReceivingType.HomeDelivery;
-                    checkOutDto.PaymentType = PaymentType.Momo;
-                    
+                    checkOutDto.PaymentType = SelectedPaymentMethod;
+                    checkOutDto.PhiGiaoHang = PhiVanChuyen;
+                    checkOutDto.KhoangCach = KhoangCach;
+
+
+
                 }
+                checkOutDto.DiscountCodeId = SelectedDiscountCode;
+                checkOutDto.DiscountCodeValue = DiscountCodeValue;
 
 
                 var request = new ApiRequestModel { Endpoint = "api/Cart/Checkout" };
@@ -197,46 +230,146 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 ToastService.ShowError($"Lỗi khi đặt hàng: {ex.Message}");
             }
         }
-        private async Task HandleMomoPayment()
-         {
+     
+        protected async Task OpenModalDiscountCode()
+        {
             try
             {
-                // Tạo dữ liệu đơn hàng
-                var orderData = new OrderInfoModel
+                var data = new DiscountParameter()
                 {
-                    FullName = CurrentUser.UserName ?? "SnapFood User",
-                    Amount = (double)(totalPrice - totalPriceEndown + 10000), // Tổng tiền bao gồm phí giao hàng
-                    OrderId = Guid.NewGuid().ToString(), // Mã đơn hàng duy nhất
-                    OrderInfo = "Thanh toán đơn hàng qua Momo tại SnapFood",
-                    RequestId = Guid.NewGuid().ToString() // Định danh yêu cầu duy nhất
+                    Price = totalPrice - totalPriceEndown,
+                    Id=DiscountCode.Id
                 };
 
-                // Gọi API backend để tạo thanh toán Momo
-                var request = new ApiRequestModel { Endpoint = "api/payment/create" }; // Sửa endpoint theo controller
-                var result = await CallApi.Post<MomoCreatePaymentResponseModel>(request, orderData);
 
-                // Kiểm tra kết quả từ backend
-                if (result.Status == StatusCode.OK && result.Data != null)
+                var dialog = await DialogService.ShowDialogAsync<View>(data,new DialogParameters
                 {
-                    var response = result.Data as MomoCreatePaymentResponseModel;
-                    if (response != null && !string.IsNullOrEmpty(response.PayUrl))
-                    {
-                        // Redirect người dùng đến PayUrl để thanh toán trên Momo
-                        Navigation.NavigateTo(response.PayUrl, forceLoad: true);
-                    }
-                    else
-                    {
-                        ToastService.ShowError("Không thể tạo PayUrl thanh toán.");
-                    }
-                }
-                else
+                    PreventDismissOnOverlayClick = true,
+                    Title = "Mã giảm giá",
+                    ShowDismiss = false,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "700px",
+                });
+                var result = await dialog.Result;
+                if (!result.Cancelled && result.Data is Guid selectedGuid)
                 {
-                    ToastService.ShowError("Không thể tạo yêu cầu thanh toán Momo. Lỗi: " + result.Message);
+                    SelectedDiscountCode = selectedGuid;
+                    if (SelectedDiscountCode != Guid.Empty)
+                    {
+                        DiscountCode = await GetDiscountCode();
+                        if (DiscountCode.DiscountCodeType == DiscountCodeType.Money)
+                        {
+                            var value = DiscountCode.DiscountValue;
+                            if (value > (totalPrice - totalPriceEndown))
+                            {
+                                DiscountCodeValue = totalPrice - totalPriceEndown;
+                            }
+                            else
+                            {
+                                DiscountCodeValue = value;
+                            }
+
+                        } else if (DiscountCode.DiscountCodeType == DiscountCodeType.Percent)
+                        {
+                            var value = (totalPrice - totalPriceEndown) * DiscountCode.DiscountValue / 100;
+                            if (value > DiscountCode.DiscountValueMax)
+                            {
+                                DiscountCodeValue = DiscountCode.DiscountValueMax;
+                            }
+                            else
+                            {
+                                DiscountCodeValue = value;
+                            }
+                        }
+
+                    }
                 }
             }
             catch (Exception ex)
             {
-                ToastService.ShowError($"Lỗi khi xử lý thanh toán Momo: {ex.Message}");
+                ToastService.ShowError($"Lỗi khi mở modal thêm combo: {ex.Message}");
+            }
+        }
+
+        protected async Task<DiscountCodeDto> GetDiscountCode()
+        {
+            var request = new ApiRequestModel { Endpoint = $"api/DiscountCode/DiscountHoatDong/{SelectedDiscountCode}" };
+            ResultAPI result = await CallApi.Get<DiscountCodeDto>(request);
+            if (result.Status == StatusCode.OK)
+            {
+                return result.Data as DiscountCodeDto ??new();
+            }
+            else
+            {
+                ToastService.ShowWarning("Mã giảm giá đã hết hạn!");
+                return new();
+
+            }
+        }
+        protected void SelectedPayment(PaymentType PhuongThuc)
+        {
+            SelectedPaymentMethod = PhuongThuc;
+        }
+
+        private async Task OpenModalQrCk()
+        {
+            try
+            {
+                var maCk = Guid.NewGuid().ToString("N").Substring(0, 5).ToUpper();
+                var parameters = new QRCKParameter
+                {
+                    GiaTriDonHang = totalPrice - totalPriceEndown + PhiVanChuyen - DiscountCodeValue,
+                    NoiDungChuyenKhoan = $"SnapFodd - Mã: {maCk}",
+                    MaCK = maCk
+
+                };
+                var dialog = await DialogService.ShowDialogAsync<ViewQRCK>(parameters, new DialogParameters
+                {
+                    Title = "QRCK",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true
+                });
+                var result = await dialog.Result;
+                if (!result.Cancelled)
+                {
+                    await HandleCheckOut();
+                }
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
+            }
+        }
+
+        protected async Task HandleCheckOut2()
+        {
+            if (string.IsNullOrEmpty(Address.NumberPhone))
+            {
+                ToastService.ShowError("Vui lòng thêm địa chỉ nhận hàng.");
+                return;
+            }
+
+            if ((totalPrice - totalPriceEndown + PhiVanChuyen - DiscountCodeValue) < ThongTinGiaoHang.DonHangToiThieu)
+            {
+                ToastService.ShowError($"Giá trị đơn hàng nhỏ hơn giá trị tối thiểu là: {ThongTinGiaoHang.DonHangToiThieu.ToString("N0")} đ");
+                return;
+            }
+
+            if (KhoangCach > ThongTinGiaoHang.BanKinhGiaoHang && PhuongThucNhanHang == "Giao-Tan-Noi")
+            {
+                ToastService.ShowError($"Khoảng cách giao hàng vượt quá bán kính giao hàng({ThongTinGiaoHang.BanKinhGiaoHang} km).");
+                return;
+            }
+
+            if (SelectedPaymentMethod == PaymentType.BankTransfer)
+            {
+                await OpenModalQrCk();
+            }
+            else if (SelectedPaymentMethod == PaymentType.Cash)
+            {
+                await HandleCheckOut();
             }
         }
     }

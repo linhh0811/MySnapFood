@@ -59,27 +59,27 @@
                         </span>
                     </TemplateColumn>
                     <TemplateColumn Title="Tổng tiền" Style="display: flex; flex-direction: column; justify-content: center;">
-                        @if (context.TotalAmountEndow > 0)
+                        @if ((context.TotalAmountEndow + context.DiscountAmount) > 0)
                         {
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <FluentLabel Style="text-decoration: line-through;font-size:12px;">
                                     @context.TotalAmount.ToString("N0") đ
                                 </FluentLabel>
 
-                                @if (context.TotalAmount > context.TotalAmountEndow)
+                                @if ((context.TotalAmount+context.DiscountAmount )> (context.TotalAmountEndow+context.PhiVanChuyen))
                                 {
-                                    var discountPercent = Math.Round((context.TotalAmountEndow / context.TotalAmount) * 100);
+                                    var discountPercent = Math.Round(((context.TotalAmountEndow + context.DiscountAmount )/( context.TotalAmount + context.PhiVanChuyen)) * 100);
                                     <FluentLabel Style="color: green;font-size:12px;">
                                         -@discountPercent %
                                     </FluentLabel>
                                 }
                             </div>
-                            <FluentLabel>@((context.TotalAmount - context.TotalAmountEndow).ToString("N0")) đ</FluentLabel>
+                            <FluentLabel>@((context.TotalAmount - context.TotalAmountEndow - context.DiscountAmount + context.PhiVanChuyen).ToString("N0")) đ</FluentLabel>
 
                         }
                         else
                         {
-                            <FluentLabel>@context.TotalAmount.ToString("N0") đ</FluentLabel>
+                            <FluentLabel>@((context.TotalAmount+context.PhiVanChuyen).ToString("N0")) đ</FluentLabel>
                         }
                     </TemplateColumn>
                     <TemplateColumn Title="Ngày đặt" Style="display:flex;align-items: center;">

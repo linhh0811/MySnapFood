@@ -1,0 +1,454 @@
+﻿@page "/Ban-Hang/Bill"
+
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.BillDto
+@using System.Text.Json
+@using Service.SnapFood.Manage.Enums
+@using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Manage.Query
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Enum
+
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+@using Service.SnapFood.Share.Query.Grid
+@using Microsoft.FluentUI.AspNetCore.Components
+
+
+@inject NavigationManager navigation
+@namespace Service.SnapFood.Manage.Components.Pages.Manage.Bill
+<h2>Danh sách đơn hàng đang xử lý</h2>
+<div class="dashboard-container">
+
+    <div class="stats-grid" style="margin-bottom:10px">
+
+
+        <FluentGrid Spacing="3" AdaptiveRendering="true" Justify="@JustifyContent.FlexStart">
+            <FluentGridItem xs="6" md="3">
+
+                <FluentCard Class="stat-card orange" @onclick="()=>SelectTrangThai(StatusOrder.None)">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.Clock())" Color="Color.Accent" />
+                    <FluentLabel>Đang xử lý</FluentLabel>
+                    <div class="stat-value">2</div>
+                </FluentCard>
+
+            </FluentGridItem>
+            <FluentGridItem xs="6" md="3">
+
+                <FluentCard Class="stat-card blue" @onclick="()=>SelectTrangThai(StatusOrder.Pending)">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.TaskListSquareAdd())" Color="Color.Accent" />
+                    <FluentLabel>Chờ xác nhận</FluentLabel>
+                    <div class="stat-value">1</div>
+                </FluentCard>
+
+
+            </FluentGridItem>
+
+            <FluentGridItem xs="6" md="3">
+
+                <FluentCard Class="stat-card pink" @onclick="()=>SelectTrangThai(StatusOrder.Confirmed)">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.CheckmarkCircle())" Color="Color.Accent" />
+                    <FluentLabel>Đã xác nhận</FluentLabel>
+                    <div class="stat-value">1</div>
+                </FluentCard>
+
+            </FluentGridItem>
+
+
+            <FluentGridItem xs="6" md="3">
+
+                <FluentCard Class="stat-card green" @onclick="()=>SelectTrangThai(StatusOrder.Shipping)">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.VehicleTruck())" Color="Color.Accent" />
+                    <FluentLabel>Đang giao hàng</FluentLabel>
+                    <div class="stat-value">1</div>
+                </FluentCard>
+
+            </FluentGridItem>
+
+
+        </FluentGrid>
+    </div>
+
+</div>
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="12" Style="width:100%;">
+
+
+
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+
+        <FluentSearch Style="min-width:200px;" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ khóa" />
+
+
+
+        <FluentSelect Items="_SelectTrangThai"
+        @bind-Value="SelectedTrangThai"
+        @bind-Value:after="RefreshDataAsync"
+        OptionText="@(x => x.Value)"
+        OptionValue="@(x => x.Key)"
+        Style="width:100%"
+        Position="SelectPosition.Below"
+        Width="150px;">
+        </FluentSelect>
+
+    </div>
+    <FluentDataGrid Style="width:100%;" @ref="BillGrid"
+    TGridItem="BillDto"
+    ItemsProvider="LoadBills"
+    Pagination="@pagination"
+    ResizableColumns="false"
+    RowSize="DataGridRowSize.Large"
+    ShowHover="true"
+    GenerateHeader="GenerateHeaderOption.Sticky"
+    GridTemplateColumns="1.5fr 1.5fr 1.5fr 1.5fr 1.5fr 1.5fr 1fr">
+
+        <TemplateColumn Title="Mã hóa đơn" Context="item">
+            @item.BillCode
+        </TemplateColumn>
+        <TemplateColumn Title="Khách hàng" Context="item">
+            @item.FullName
+        </TemplateColumn>
+
+
+        <TemplateColumn Title="Tổng tiền" Context="item">
+            @if ((item.TotalAmountEndow + item.DiscountAmount) > 0)
+            {
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <FluentLabel Style="text-decoration: line-through;font-size:12px;">
+                        @((item.TotalAmount + item.PhiVanChuyen).ToString("N0")) đ
+                    </FluentLabel>
+
+                    @if (item.TotalAmount > item.TotalAmountEndow)
+                    {
+                        var discountPercent = Math.Round(((item.TotalAmountEndow + item.DiscountAmount) / (item.TotalAmount + item.PhiVanChuyen)) * 100);
+                        <FluentLabel Style="color: green;font-size:12px;">
+                            -@discountPercent %
+                        </FluentLabel>
+                    }
+                </div>
+                <FluentLabel>@((item.TotalAmount + item.PhiVanChuyen - item.DiscountAmount - item.TotalAmountEndow).ToString("N0")) đ</FluentLabel>
+
+            }
+            else
+            {
+                <FluentLabel>@((item.TotalAmount + item.PhiVanChuyen).ToString("N0")) đ</FluentLabel>
+            }
+        </TemplateColumn>
+
+        <TemplateColumn Title="Thời gian" Context="item">
+            @item.Created.ToString("dd/MM/yyyy HH:mm")
+        </TemplateColumn>
+        <TemplateColumn Title="Phương thức đặt hàng" Context="item">
+            @EnumExtensions.GetDescription(item.PhuongThucDatHang)
+        </TemplateColumn>
+        <TemplateColumn Title="Phương thức nhận hàng" Context="item">
+            @EnumExtensions.GetDescription(item.ReceivingType)
+        </TemplateColumn>
+        <TemplateColumn Title="Trạng thái" Context="item">
+            <div class="@GetStyle(item.Status)"> @GetStatusText(item.Status)</div>
+
+        </TemplateColumn>
+        <TemplateColumn Title="" Context="item">
+            <FluentButton Appearance="Appearance.Neutral" OnClick="@(() => GoToDetail(item.Id))" Title="Xem chi tiết">
+                <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size20.Eye())" />
+            </FluentButton>
+        </TemplateColumn>
+
+
+
+
+    </FluentDataGrid>
+
+    <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefresData" />
+</FluentStack>
+<style>
+    .dashboard-container {
+    padding: var(--design-unit-4);
+    max-width: 100%;
+    margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+    .dashboard-container {
+    padding: var(--design-unit-2);
+    }
+
+    .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--design-unit-2);
+    }
+
+    .stat-card {
+    height: 100px;
+    padding: var(--design-unit-2);
+    }
+
+    .stat-value {
+    font-size: 1.5rem;
+    }
+    }
+
+    .stat-card {
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e1dfdd;
+    width: auto;
+    }
+
+    .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elevation-shadow-card-hover);
+    }
+
+    .stat-card.blue {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    }
+
+    .stat-card.pink {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    }
+
+    .stat-card.green {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    }
+
+    .stat-card.orange {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
+    }
+
+    .stat-card.purple {
+    background: linear-gradient(135deg, #ede7f6 0%, #d1c4e9 100%);
+    }
+
+    .stat-card h3 {
+    color: #323130;
+    font-size: 15px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    }
+
+    .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0078d4;
+    }
+
+
+
+    .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--design-unit-4);
+    margin-bottom: var(--design-unit-6);
+    }
+
+
+    @@media (max-width: 768px) {
+
+    .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--design-unit-2);
+    }
+
+    .stat-card {
+    height: 100px;
+    padding: var(--design-unit-2);
+    }
+
+    .stat-value {
+    font-size: 1.5rem;
+    }
+    }
+</style>
+@code {
+
+
+
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+
+    private ApiRequestModel requestRestAPI = new ApiRequestModel();
+    protected FluentDataGrid<BillDto> BillGrid { get; set; } = default!;
+    protected string SearchKeyword { get; set; } = string.Empty;
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private Dictionary<String, String> _SelectTrangThai = new Dictionary<string, string>();
+    private string SelectedTrangThai = "None";
+
+    private async ValueTask<GridItemsProviderResult<BillDto>> LoadBills(GridItemsProviderRequest<BillDto> request)
+    {
+        try
+        {
+            // if (!Enum.TryParse<StatusOrder>(SelectedTrangThai, out var selectedTrangThai))
+            // {
+            //     selectedTrangThai = StatusOrder.None; // Mặc định nếu không parse được
+            // }
+            bool Convert = Enum.TryParse<StatusOrder>(SelectedTrangThai, out var parsedStatus);
+            if (Convert)
+            {
+                var baseQuery = new BillQuery
+                    {
+                        SearchIn = new List<string> { "BillCode" },
+                        Keyword = SearchKeyword,
+                        Status = parsedStatus,
+                        IsBanHang = true,
+                        gridRequest = new GridRequest
+                        {
+                            page = (request.StartIndex / pagination.ItemsPerPage) + 1,
+                            pageSize = pagination.ItemsPerPage,
+                            skip = request.StartIndex,
+                            take = pagination.ItemsPerPage,
+                            sort = request.GetSortByProperties()
+                                        .Select(s => new Sort
+                                        {
+                                            field = s.PropertyName,
+                                            dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
+                                        }).ToList()
+                        }
+                    };
+
+                requestRestAPI.Endpoint = "api/Bill/GetPaged";
+
+                ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
+                if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+                {
+                    var items = JsonSerializer.Deserialize<List<BillDto>>(dataTable.Data.GetRawText(),
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<BillDto>();
+                    var totalRecords = dataTable.RecordsTotal ?? items.Count;
+                    return GridItemsProviderResult.From(items, totalRecords);
+
+                }
+                StateHasChanged();
+                return GridItemsProviderResult.From(new List<BillDto>(), 0);
+            }else
+            {
+                ToastService.ShowError($"Lỗi khi convert trạng thái");
+                return GridItemsProviderResult.From(new List<BillDto>(), 0);
+            }
+            
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách hóa đơn: {ex.Message}");
+            return GridItemsProviderResult.From(new List<BillDto>(), 0);
+        }
+    }
+
+    private async Task RefresData(int value)
+    {
+        try
+        {
+            pagination.ItemsPerPage = value;
+            await pagination.SetCurrentPageIndexAsync(0);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách: {ex.Message}");
+        }
+    }
+    private async Task RefreshDataAsync()
+    {
+        await BillGrid.RefreshDataAsync();
+    }
+
+    private Task GoToDetail(Guid billId)
+    {
+        navigation.NavigateTo($"/bills/user/{billId}");
+
+
+        return Task.CompletedTask;
+    }
+    private string GetStatusText(StatusOrder status)
+    {
+        return status switch
+        {
+            StatusOrder.Pending => "Chờ xác nhận",
+            StatusOrder.Confirmed => "Đã xác nhận",
+            StatusOrder.Shipping => "Đang giao hàng",
+            StatusOrder.Completed => "Đã giao thành công",
+            StatusOrder.Cancelled => "Đã hủy",
+
+            _ => "Không xác định"
+        };
+    }
+    private string GetStyle(StatusOrder status)
+    {
+        return status switch
+        {
+            StatusOrder.Pending => "text-warning",    // Màu vàng
+            StatusOrder.Confirmed => "text-primary", // Màu xanh
+            StatusOrder.Shipping => "text-info",     // Màu xanh nhạt
+            StatusOrder.Completed => "text-success", // Màu xanh lá
+            StatusOrder.Cancelled => "text-danger",  // Màu đỏ
+            _ => "text-dark"                         // Mặc định
+        };
+    }
+
+    private List<KeyValuePair<StatusOrder?, string>> StatusOptions = new()
+{
+    new(null, "Tất cả trạng thái"),
+    new(StatusOrder.Pending, "Chờ xác nhận"),
+    new(StatusOrder.Confirmed, "Đã xác nhận"),
+    new(StatusOrder.Shipping, "Đang giao hàng"),
+    new(StatusOrder.Completed, "Đã giao thành công"),
+    new(StatusOrder.Cancelled, "Đã hủy"),
+
+};
+
+    private void GetSelectTrangThai()
+    {
+        _SelectTrangThai = Enum.GetValues(typeof(StatusOrder))
+            .Cast<StatusOrder>()
+            .Where(x => x != StatusOrder.Cancelled && x != StatusOrder.Completed)
+            .OrderBy(e => e == StatusOrder.None ? 0 : 1)
+            .ThenBy(e => e)
+            .ToDictionary(
+                e => e.ToString(),
+                e => CapitalizeFirstLetter(e.GetDescription())
+            );
+    }
+
+
+    private string CapitalizeFirstLetter(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return input;
+
+        return char.ToUpper(input[0]) + input[1..];
+    }
+
+    protected override void OnInitialized()
+    {
+        GetSelectTrangThai();
+
+    }
+    private bool isFirstRender = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            GetSelectTrangThai();           // Load dropdown trạng thái
+            await RefreshDataAsync();       // Gọi load dữ liệu cho FluentDataGrid
+            isFirstRender = false;
+        }
+    }
+
+    private async Task SelectTrangThai(StatusOrder TrangThai)
+    {
+        SelectedTrangThai = TrangThai.ToString();
+        await RefreshDataAsync();
+
+    }
+
+}
+
+
+
+
+
+
+
+
+

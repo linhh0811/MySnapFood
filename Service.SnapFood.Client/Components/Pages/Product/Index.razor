@@ -154,12 +154,7 @@ else
         {
             var parameters = new ViewParameters
                 {
-                    Id = id,
-
-                    OnRefresh = EventCallback.Factory.Create(this, async () =>
-                     {
-                         await NavMenu.RefreshCartItemCount(); // Gọi cập nhật số lượng
-                     })
+                    Id = id,               
 
                 };
             var dialog = await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
