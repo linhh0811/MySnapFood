@@ -43,24 +43,13 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         [HttpGet("ByUser/{userId}")]
-        public async Task<IActionResult> GetByUser(Guid userId)
+        public IActionResult GetByUser(Guid userId)
         {
             try
             {
-                var bills = await _billService.GetAllAsync();
-                var userBills = bills.Where(b => b.UserId == userId)
-                    .Select(b => new BillDto
-                    {
-                        Id = b.Id,
-                        BillCode = b.BillCode,
-                        UserId = b.UserId,
-                        StoreId = b.StoreId,
-                        Status = b.Status,
-                        TotalAmount = b.TotalAmount,
-                        TotalAmountEndow = b.TotalAmountEndow,
-                        Created = b.Created
-                    }).OrderByDescending(x => x.Created).ToList();
-                return Ok(userBills);
+                var bills =  _billService.GetByUser(userId);
+              
+                return Ok(bills);
             }
             catch (Exception ex)
             {

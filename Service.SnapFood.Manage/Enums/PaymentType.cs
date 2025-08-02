@@ -9,5 +9,7 @@ namespace Service.SnapFood.Manage.Enums
         [Description("Tiền mặt")]
 
         Cash = 1,//tiền mặt
+        [Description("Chuyển khoản ngân hàng")]
+        BankTransfer = 2,
     }
 }

@@ -41,18 +41,18 @@
         }
 
         .loading-center2 {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            font-weight: bold;
-            background-color: rgba(255, 255, 255, 0.7);
-            z-index: -1;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: -1;
         }
 
         *, *::before, *::after {
@@ -93,7 +93,7 @@
                                                         <FluentNavMenu>
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.History())" OnClick="()=>OpenMenuThongTin(true)" Href="/Lich-Su-Don-Hang">Lịch sử đơn hàng</FluentNavLink>
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.Location())" Href="/Dia-Chi" OnClick="()=>OpenMenuThongTin(true)">Địa chỉ giao hàng</FluentNavLink>
-                                                            <FluentNavLink Icon="@(new Icons.Regular.Size20.Tag())" Href="/" OnClick="()=>OpenMenuThongTin(true)">Mã giảm giá</FluentNavLink>
+                                                            <FluentNavLink Icon="@(new Icons.Regular.Size20.Tag())" Href="/Ma-Giam-Gia" OnClick="()=>OpenMenuThongTin(true)">Mã giảm giá</FluentNavLink>
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.Person())" Href="/Thong-Tin-Tai-Khoan" OnClick="()=>OpenMenuThongTin(true)">Thông tin tài khoản</FluentNavLink>
                                                             <hr style="margin:8px" />
                                                             <FluentNavLink Icon="@(new Icons.Regular.Size20.SignOut())" OnClick="Logout">Đăng xuất</FluentNavLink>
@@ -130,7 +130,11 @@
 
                                             <div class="col col-12">
                                                 @Body
-                                                <IconCart />
+                                                @if (_loadedIconCart)
+                                                {
+                                                    <IconCart />
+
+                                                }
                                             </div>
                                         </div>
                                     </div>
@@ -141,7 +145,7 @@
 
                         </div>
                     </FluentBodyContent>
-                    <FluentToastProvider MaxToastCount="3" Position="ToastPosition.TopRight" />
+                    <FluentToastProvider MaxToastCount="3" Position="ToastPosition.TopRight" RemoveToastsOnNavigation=false />
                     <FluentDialogProvider />
                     <FluentTooltipProvider />
                     <FluentKeyCodeProvider />
@@ -165,6 +169,8 @@
     private CurrentUser CurrentUser = new();
     private bool OpenMenu = false;
     private bool _loaded = false;
+    private bool _loadedIconCart = false;
+
     private bool _justOpenedMenu = false;
 
     // Danh sách các địa chỉ URL cần hiển thị menu
@@ -179,10 +185,13 @@
     protected override async Task OnInitializedAsync()
     {
         _loaded = false;
+        _loadedIconCart = false;
+
         Navigation.LocationChanged += OnLocationChanged;
 
         // Kiểm tra URL ngay khi khởi tạo
         CheckAndSetMenuState();
+        _loaded = true;
 
         await Task.CompletedTask;
     }
@@ -191,10 +200,13 @@
     {
         if (firstRender)
         {
+            _loaded = false;
+
             CurrentUser = await UserService.GetCurrentUserAsync();
 
             // Kiểm tra lại URL sau khi render lần đầu
             CheckAndSetMenuState();
+            _loadedIconCart = true;
 
             _loaded = true;
             StateHasChanged();

@@ -13,7 +13,7 @@ namespace Service.SnapFood.Domain.Enums
         None = -1,
         [Description("Giảm số tiền")]
         Money = 0,
-        [Description("Giảm theo phần trăm")]
+        [Description("Giảm theo phần trăm")]    
         Percent = 1
     }
 }

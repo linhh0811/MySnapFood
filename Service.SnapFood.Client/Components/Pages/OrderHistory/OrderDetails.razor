@@ -5,6 +5,7 @@
 @using Service.SnapFood.Client.Dto.Bill
 @using Service.SnapFood.Client.Dto.BillDetails
 @using Service.SnapFood.Client.Enums
+@using Service.SnapFood.Client.Infrastructure.Service
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 
@@ -67,7 +68,7 @@ else
             <div class="col-md-6 right">
                 <p><span class="label">Mã đơn hàng:</span> <span class="order-id">@Item.BillCode</span></p>
                 <p><span class="label">Thời gian đặt:</span>@Item.Created</p>
-                <p><span class="label">Hình thức thanh toán:</span>@Item.BillPaymentDto.PaymentType</p>
+                <p><span class="label">Hình thức thanh toán:</span>@Item.BillPaymentDto.PaymentType.GetDescription()</p>
             </div>
         </div>
     </div>
@@ -186,9 +187,17 @@ else
                     <p style="min-width: 120px; text-align: left;">Khuyến mãi:</p>
                     <p style="width:100px">@Item.TotalAmountEndow.ToString("N0") đ</p>
                 </div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <p style="min-width: 120px; text-align: left;">Mã giảm giá:</p>
+                    <p style="width:100px">@Item.DiscountAmount.ToString("N0") đ</p>
+                </div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <p style="min-width: 120px; text-align: left;">Phí vận chuyển:</p>
+                    <p style="width:100px">@Item.BillDeliveryDto.DeliveryFee.ToString("N0") đ</p>
+                </div>
                 <div style="display: flex;font-size: 18px; justify-content: flex-end;">
                     <p style="min-width: 120px; text-align: left;">Tổng cộng:</p>
-                    <p style="width:100px">@((Item.TotalAmount - Item.TotalAmountEndow).ToString("N0")) đ</p>
+                    <p style="width:100px">@((Item.TotalAmount - Item.TotalAmountEndow - Item.DiscountAmount + Item.BillDeliveryDto.DeliveryFee).ToString("N0")) đ</p>
                 </div>
             </div>
         </div>

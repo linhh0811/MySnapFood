@@ -3,6 +3,7 @@
 @using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @inject SharedStateService SharedService
+
 <FluentNavLink Href="/Gio-Hang">
     <div style="position: fixed; bottom: 20px; right: 100px; background: #facc15;
                                                     padding: 15px 25px; border-radius: 20px; display: flex;
@@ -15,12 +16,12 @@
         {
             <FluentCounterBadge Count="@Quantity" Appearance="Appearance.Accent">
                 <FluentIcon Value="@(new Icons.Regular.Size24.Cart())"
-                            Style="font-size: 28px; margin-right: 10px;" />
+                Style="font-size: 28px; margin-right: 10px;" />
             </FluentCounterBadge>
 
-           @*  <span style="padding-left:10px;">100,000 đ</span> *@
+            @*  <span style="padding-left:10px;">100,000 đ</span> *@
         }
-        
+
     </div>
 </FluentNavLink>
 
@@ -39,6 +40,18 @@
         isLoading = false;
 
     }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = true;
+            await GetQuantity();
+            isLoading = false;
+            StateHasChanged();
+
+        }
+    }
+
     public async Task GetQuantity()
     {
         try

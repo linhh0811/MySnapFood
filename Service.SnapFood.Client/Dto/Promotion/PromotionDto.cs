@@ -22,6 +22,8 @@ namespace Service.SnapFood.Client.Dto.Promotion
 
         public Guid LastModifiedBy { get; set; }
         public List<PromotionItemDto> PromotionItems { get; set; } = new List<PromotionItemDto>();
+        public bool IsDangKM { get; set; }
+
 
 
     }

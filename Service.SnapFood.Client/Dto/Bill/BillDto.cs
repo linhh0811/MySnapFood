@@ -14,6 +14,10 @@ namespace Service.SnapFood.Client.Dto.Bill
         public StatusOrder Status { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal TotalAmountEndow { get; set; }
+        public decimal DiscountAmount { get; set; }
+
+        public decimal PhiVanChuyen { get; set; }
+
         public DateTime Created { get; set; }
     }
 }

@@ -23,8 +23,12 @@
                 <FluentNavLink Href="/"  Style="@(IsActive("/") ? "color:red; font-weight:600;" : "")">Trang chủ</FluentNavLink>
                 <FluentSpacer Width="25" />
                 <FluentNavLink Href="/Dat-Hang" Style="@(IsActive("/Dat-Hang") ? "color:red; font-weight:600;" : "")">Đặt hàng</FluentNavLink>
-                <FluentSpacer Width="25" />
-                <FluentNavLink Href="/Khuyen-Mai" Style="@(IsActive("/Khuyen-Mai") ? "color:red; font-weight:600;" : "")">Khuyến mãi</FluentNavLink>
+                @if (PromotionCount > 0)
+                {
+                    <FluentSpacer Width="25" />
+                    <FluentNavLink Href="/Khuyen-Mai" Style="@(IsActive("/Khuyen-Mai") ? "color:red; font-weight:600;" : "")">Khuyến mãi</FluentNavLink>
+                }
+                
             </ul>
             @if (CurrentUser.UserId != Guid.Empty)
             {
@@ -41,7 +45,7 @@
                         </FluentMenuItem>
 
                         <FluentMenuItem OnClick="@(() => OpenMenu("/Dia-Chi"))"><FluentIcon Value="@(new Icons.Regular.Size20.Location())" /> Địa chỉ giao hàng</FluentMenuItem>
-                        <FluentMenuItem OnClick="@(() => OpenMenu("/Lich-Su-Don-Hang"))"><FluentIcon Value="@(new Icons.Regular.Size20.Tag())" /> Mã giảm giá</FluentMenuItem>
+                        <FluentMenuItem OnClick="@(() => OpenMenu("/Ma-Giam-Gia"))"><FluentIcon Value="@(new Icons.Regular.Size20.Tag())" /> Mã giảm giá</FluentMenuItem>
                         <FluentMenuItem OnClick="@(() => OpenMenu("/Thong-Tin-Tai-Khoan"))"><FluentIcon Value="@(new Icons.Regular.Size20.Person())" /> Thông tin tài khoản</FluentMenuItem>
                         <hr style="margin:8px" />
                         <FluentMenuItem OnClick="Logout"><FluentIcon Value="@(new Icons.Regular.Size20.SignOut())" /> Đăng xuất</FluentMenuItem>
@@ -83,43 +87,28 @@
     private bool openMenu = false;
     [Parameter]
     public EventCallback<bool> OpenMenuThongTin { get; set; }
+    int PromotionCount = 0;
 
-    public int CartItemCount { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        if (CurrentUser.UserId != Guid.Empty)
-        {
-            await LoadCartItemCount();
-        }
         await OpenMenuThongTin.InvokeAsync(false);
-
+        await GetDiscountHoatDong();
         StateHasChanged();
 
     }
 
-    private async Task LoadCartItemCount()
+    private async Task GetDiscountHoatDong()
     {
-        try
-        {
-            var request = new ApiRequestModel { Endpoint = $"api/cart/quantity/{CurrentUser.UserId}" };
-            var result = await CallApi.Get<int>(request); // Gọi API mới và nhận số nguyên
-            if (result.Status == StatusCode.OK && result.Data != null)
-            {
-                CartItemCount = (int)result.Data;
-                StateHasChanged(); // Cập nhật UI
-            }
-            else
-            {
-                CartItemCount = 0;
-            }
-        }
-        catch (Exception ex)
-        {
-            CartItemCount = 0;
-            ToastService.ShowError($"Lỗi khi tải số lượng giỏ hàng: {ex.Message}");
-        }
+        ApiRequestModel requestRestAPI = new ApiRequestModel() { };
 
+        requestRestAPI.Endpoint = $"api/Promotion/GetPromotionActivateCount";
+        ResultAPI result = await CallApi.Get<int>(requestRestAPI);
+        if (result.Status == StatusCode.OK)
+        {
+            PromotionCount = result.Data is not null ? (int)result.Data :  0;
+        }
+       
     }
 
     private async Task OpenModalAuth()
@@ -157,34 +146,7 @@
 
     }
 
-    // Thêm phương thức công khai để các component khác gọi
-    public async Task RefreshCartItemCount()
-    {
-        try
-        {
-            if (CurrentUser == null || CurrentUser.UserId == Guid.Empty)
-            {
-                CartItemCount = 0;
-                return;
-            }
-
-            var request = new ApiRequestModel { Endpoint = $"api/cart/quantity/{CurrentUser.UserId}" };
-            var result = await CallApi.Get<int>(request);
-
-            CartItemCount = result.Status == StatusCode.OK && result.Data is int count ? count : 0;
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            CartItemCount = 0;
-            Console.WriteLine($"Lỗi khi tải số lượng giỏ hàng: {ex.Message}");
-        }
-
-
-
-
-
-    }
+   
     private bool IsActive(string href)
     {
         var currentPath = new Uri(Navigation.Uri).AbsolutePath.ToLower();

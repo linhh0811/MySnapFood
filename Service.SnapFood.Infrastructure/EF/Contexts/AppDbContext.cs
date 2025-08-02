@@ -36,7 +36,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"),
                 SizeName = "M",
                 AdditionalPrice = 0,
                 ParentId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
@@ -44,7 +44,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 DisplayOrder=1
             }, new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e"),
                 SizeName = "L",
                 AdditionalPrice = 4000,
                 ParentId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
@@ -53,7 +53,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
 
             }, new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("c3d4e5f6-7a8b-9c0d-1e2f-3a4b5c6d7e8f"),
                 SizeName = "XL",
                 AdditionalPrice = 7000,
                 ParentId = Guid.Parse("1c3d519b-04e4-42c3-a86d-7a7db6e9a7a4"),
@@ -71,7 +71,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("d4e5f6a7-8b9c-0d1e-2f3a-4b5c6d7e8f9a"),
                 SizeName = "Nhỏ",
                 AdditionalPrice = 0,
                 ParentId = Guid.Parse("0d41a8fd-f372-4c77-b5a3-63368e3994bb"),
@@ -79,7 +79,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 DisplayOrder=1
             }, new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("e5f6a7b8-9c0d-1e2f-3a4b-5c6d7e8f9a0b"),
                 SizeName = "Vừa",
                 AdditionalPrice = 7000,
                 ParentId = Guid.Parse("0d41a8fd-f372-4c77-b5a3-63368e3994bb"),
@@ -87,7 +87,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 DisplayOrder=2
             }, new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("f6a7b8c9-0d1e-2f3a-4b5c-6d7e8f9a0b1c"),
                 SizeName = "Lớn",
                 AdditionalPrice = 15000,
                 ParentId = Guid.Parse("0d41a8fd-f372-4c77-b5a3-63368e3994bb"),
@@ -105,7 +105,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("a7b8c9d0-1e2f-3a4b-5c6d-7e8f9a0b1c2d"),
                 SizeName = "Tiêu chuẩn",
                 AdditionalPrice = 0,
                 ParentId = Guid.Parse("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"),
@@ -114,7 +114,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("b8c9d0e1-2f3a-4b5c-6d7e-8f9a0b1c2d3e"),
                 SizeName = "Big",
                 AdditionalPrice = 10000,
                 ParentId = Guid.Parse("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"),
@@ -123,7 +123,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("c9d0e1f2-3a4b-5c6d-7e8f-9a0b1c2d3e4f"),
                 SizeName = "Mega",
                 AdditionalPrice = 25000,
                 ParentId = Guid.Parse("607f96c3-b3dc-4db3-8f5e-19b6e07cbcad"),
@@ -141,7 +141,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("d0e1f2a3-4b5c-6d7e-8f9a-0b1c2d3e4f5a"),
                 SizeName = "Phần thường",
                 AdditionalPrice = 0,
                 ParentId = Guid.Parse("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"),
@@ -150,7 +150,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("e1f2a3b4-5c6d-7e8f-9a0b-1c2d3e4f5a6b"),
                 SizeName = "Phần lớn",
                 AdditionalPrice = 12000,
                 ParentId = Guid.Parse("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"),
@@ -159,7 +159,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             },
             new Sizes
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("f2a3b4c5-6d7e-8f9a-0b1c-2d3e4f5a6b7c"),
                 SizeName = "Phần đại",
                 AdditionalPrice = 25000,
                 ParentId = Guid.Parse("8e1e9e3c-82e5-4142-b987-c39c8de69c0e"),
@@ -698,26 +698,26 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             builder.Entity<UserRole>().HasData(
                 new UserRole
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.Parse("a3b4c5d6-7e8f-9a0b-1c2d-3e4f5a6b7c8d"),
                     UserId = Guid.Parse("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e"),
                     RoleId = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"),
                 },
                 new UserRole
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.Parse("b4c5d6e7-8f9a-0b1c-2d3e-4f5a6b7c8d9e"),
                     UserId = Guid.Parse("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e"),
                     RoleId = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
                 },
                  new UserRole
                  {
-                     Id = Guid.NewGuid(),
+                     Id = Guid.Parse("c5d6e7f8-9a0b-1c2d-3e4f-5a6b7c8d9e0f"),
                      UserId = Guid.Parse("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d4e"),
                      RoleId = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
                  });
             builder.Entity<ThongTinGiaoHang>().HasData(
               new ThongTinGiaoHang
               {
-                  Id=Guid.NewGuid(),
+                  Id= Guid.Parse("d6e7f8a9-0b1c-2d3e-4f5a-6b7c8d9e0f1a"),
                   BanKinhGiaoHang =15,
                   PhiGiaoHang=5000,
                   DonHangToiThieu=50000

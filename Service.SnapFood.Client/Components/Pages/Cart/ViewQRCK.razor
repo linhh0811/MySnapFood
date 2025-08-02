@@ -1,0 +1,132 @@
+﻿@using Service.SnapFood.Client.Dto
+@using System.Text.Json.Serialization
+@using System.Net.Http.Json;
+@inherits ComponentBase
+@implements IDialogContentComponent<QRCKParameter>
+<FluentDialog @ref="Dialog" Modal="true" TrapFocus="true" Style="width: 500px;">
+    <FluentDialogHeader>
+        <h3>Qr Chuyển Khoản</h3>
+    </FluentDialogHeader>
+
+
+
+        <FluentStack Orientation="Orientation.Vertical" Gap="15">
+
+
+        @if (IsLoading)
+        {
+            <p>Đang tải...</p>
+        }
+        else
+        {
+
+            <img width="450" height="530" src="@QrUrl" />
+        }
+
+            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
+                <FluentButton Appearance="Appearance.Neutral" @onclick="HideDialog" Disabled="@isSaving">Hủy</FluentButton>
+            <FluentButton Appearance="Appearance.Accent" @onclick="()=>ConfirmPayment()" Type="ButtonType.Submit" Disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span style="margin-left: 8px;">Đang kiểm tra...</span>
+                    }
+                    else
+                    {
+                        <span>Xác nhận</span>
+                    }
+                </FluentButton>
+            </FluentStack>
+        </FluentStack>
+</FluentDialog>
+<FluentToastProvider MaxToastCount="3" Position="ToastPosition.TopRight" RemoveToastsOnNavigation =false/>
+@code {
+    [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public QRCKParameter Content { get; set; } = new();
+    private string QrUrl { get; set; } = string.Empty;
+    private bool IsLoading { get; set; } = true;    
+    private bool isSaving { get; set; } = false;
+
+    private Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        IsLoading = true;
+        QrUrl = $"https://img.vietqr.io/image/BIDV-V3CASSSNAPFOOD-compact2.png?amount={Content.GiaTriDonHang}&addInfo={Content.NoiDungChuyenKhoan}";
+        IsLoading = false;
+
+        // Khởi tạo timer gọi kiểm tra mỗi 10 giây
+        _timer = new Timer(async _ => await ConfirmPayment(autoCheck: true), null, 10000, 10000);
+    }
+    private async Task HideDialog()
+    {
+        _timer?.Dispose(); // dừng timer khi đóng
+        await Dialog.CancelAsync();
+    }
+    private async Task ConfirmPayment(bool autoCheck = false)
+    {
+        try
+        {
+            if (!autoCheck) isSaving = true;
+
+            var url = "https://script.google.com/macros/s/AKfycbwUF6St5RfPCqxl856vPC_7QbqxGhbUK-xtZKZphMht11H735nfu5RliAyiduP4sWP4/exec";
+            var response = await Http.GetFromJsonAsync<PaymentResponse>(url);
+
+            if (response is { error: false } && response.data != null)
+            {
+                var transaction = response.data
+                    .FirstOrDefault(x =>
+                        x.MoTa.Contains(Content.MaCK, StringComparison.OrdinalIgnoreCase) &&
+                        x.GiaTri >= Content.GiaTriDonHang
+                    );
+
+                if (transaction != null)
+                {
+                    // Thành công
+                    ToastService.ShowSuccess($"Đã xác nhận giao dịch: {transaction.MaGD}");
+                    _timer?.Dispose(); // dừng auto check
+                    await Dialog.CloseAsync(DialogResult.Ok(true));
+                    return;
+                }
+            }
+
+            if (!autoCheck)
+                ToastService.ShowError("Không tìm thấy giao dịch hợp lệ. Vui lòng kiểm tra lại!");
+        }
+        catch (Exception ex)
+        {
+            if (!autoCheck)
+                ToastService.ShowError($"Lỗi khi kiểm tra giao dịch: {ex.Message}");
+        }
+        finally
+        {
+            if (!autoCheck)
+                isSaving = false;
+        }
+    }
+
+    // Class để map dữ liệu trả về
+    public class PaymentResponse
+    {
+        public bool error { get; set; }
+        public List<PaymentData>? data { get; set; }
+    }
+
+    public class PaymentData
+    {
+        [JsonPropertyName("MaGD")]
+        public int MaGD { get; set; } 
+
+        [JsonPropertyName("MoTa")]
+        public string MoTa { get; set; } = string.Empty;
+
+        [JsonPropertyName("GiaTri")]
+        public int GiaTri { get; set; }
+
+        [JsonPropertyName("NgayDienRa")]
+        public string NgayDienRa { get; set; } = string.Empty;
+
+    }
+
+}

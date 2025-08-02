@@ -25,5 +25,7 @@ namespace Service.SnapFood.Domain.Entitys
 
         public virtual List<Bill> Orderes { get; set; } = null!;
         public virtual List<Address> Addresses { get; set; } = null!;
+        public virtual List<DiscountCodeUsage> DiscountCodeUsage { get; set; } = null!;
+
     }
 }

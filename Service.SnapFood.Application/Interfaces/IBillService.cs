@@ -14,6 +14,7 @@ namespace Service.SnapFood.Application.Interfaces
     {
         DataTableJson GetPage(BillQuery query);
         Task<List<Bill>> GetAllAsync();
+        List<BillDto> GetByUser(Guid id);
         Task<Bill> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(BillDto item);
         Task<bool> UpdateAsync(Guid id, BillDto item);

@@ -1,0 +1,242 @@
+﻿@page "/Ma-Giam-Gia"
+@using Service.SnapFood.Client.Dto
+@using Service.SnapFood.Client.Dto.DiscountCode
+@using Service.SnapFood.Client.Enums
+@using Service.SnapFood.Client.Query
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using System.Timers
+@using Service.SnapFood.Share.Query.Grid
+@using System.Text.Json
+
+
+<div class="container" style="padding:16px">
+    @if (isLoading)
+    {
+        <span>Đang tải...</span>
+    }
+    else
+    {
+        <h4 class="fw-bold mb-3" style="color:#ff5961">DANH SÁCH MÃ GIẢM GIÁ HỆ THỐNG</h4>
+        <div class="row">
+            @foreach (var item in DiscountCodeDtos)
+            {
+                var timeRemainingStart = item.StartDate - DateTime.Now;
+                var timeRemainingEnd = item.EndDate - DateTime.Now;
+
+
+
+                if (item.DiscountCodeType == DiscountCodeType.Money)
+                {
+                    <div class="col-xl-6 col-12 mb-4">
+                        <div class="d-flex" style="border: 2px dashed #ddd; border-radius: 12px; overflow: hidden; position: relative; transition: transform 0.2s ease; background: white;">
+                            <div style="position: absolute; top: -5px; right: -5px; background: #ff6b35; color: white; padding: 8px 15px; font-size: 12px; font-weight: bold; clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); z-index: 10;">
+                                @if (timeRemainingStart < TimeSpan.Zero)
+                                {
+                                    <span>@item.UsedCount / @item.UsageLimit Mới</span>
+                                }
+                                else
+                                {
+                                    <span>@item.UsedCount / @item.UsageLimit Sắp diễn ra</span>
+
+                                }
+                            </div>
+
+                            <div class="col-4" style="background: #ee4d2d; color: white; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                                <div style="background: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; color: #ee4d2d; font-size: 10px; font-weight: bold;">
+                                    <div style="text-align: center;">
+                                        <div>Snap</div>
+                                        <div>Food</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 14px; font-weight: bold; line-height: 1.2;">
+                                    @item.Code
+                                </div>
+                            </div>
+
+                            <div class="col-8" style="padding:35px 20px 20px 20px;">
+                                <div style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 5px;">Giảm tối đa @item.DiscountValue.ToString("N0")đ </div>
+                                <div style="color: #666; font-size: 14px; margin-bottom: 15px;">Đơn tối thiểu @item.MinOrderAmount.ToString("N0")đ</div>
+                                <div style="display: flex; align-items: center; color: #666; font-size: 13px; margin-bottom: 15px;">
+                                    @if (timeRemainingStart > TimeSpan.Zero)
+                                    {
+                                        <p>
+                                            Sắp diễn ra:
+                                            @(timeRemainingStart.Days > 0 ? $"{timeRemainingStart.Days} ngày " : "")
+                                            @(timeRemainingStart.Hours > 0 ? $"{timeRemainingStart.Hours} giờ " : "")
+                                            @(timeRemainingStart.Minutes > 0 ? $"{timeRemainingStart.Minutes} phút " : "")
+                                            @(timeRemainingStart.Seconds > 0 ? $"{timeRemainingStart.Seconds} giây" : "")
+                                        </p>
+                                    }
+                                    else if (timeRemainingEnd > TimeSpan.Zero)
+                                    {
+                                        <p>
+                                            Kết thúc sau:
+                                            @(timeRemainingEnd.Days > 0 ? $"{timeRemainingEnd.Days} ngày " : "")
+                                            @(timeRemainingEnd.Hours > 0 ? $"{timeRemainingEnd.Hours} giờ " : "")
+                                            @(timeRemainingEnd.Minutes > 0 ? $"{timeRemainingEnd.Minutes} phút " : "")
+                                            @(timeRemainingEnd.Seconds > 0 ? $"{timeRemainingEnd.Seconds} giây" : "")
+                                        </p>
+                                    }
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-xl-6 col-12 mb-4">
+                        <div class="d-flex" style="border: 2px dashed #ddd; border-radius: 12px; overflow: hidden; position: relative; transition: transform 0.2s ease; background: white;">
+                            <div style="position: absolute; top: -5px; right: -5px; background: #ff6b35; color: white; padding: 8px 15px; font-size: 12px; font-weight: bold; clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); z-index: 10;">
+                                @if (timeRemainingStart < TimeSpan.Zero)
+                                {
+                                    <span>@item.UsedCount / @item.UsageLimit Mới</span>
+                                }
+                                else
+                                {
+                                    <span>@item.UsedCount / @item.UsageLimit Sắp diễn ra</span>
+
+                                }
+                            </div>
+
+                            <div class="col-4" style="background: #ee4d2d; color: white; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                                <div style="background: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; color: #ee4d2d; font-size: 10px; font-weight: bold;">
+                                    <div style="text-align: center;">
+                                        <div>Snap</div>
+                                        <div>Food</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 14px; font-weight: bold; line-height: 1.2;">
+                                    @item.Code
+                                </div>
+                            </div>
+
+                            <div class="col-8" style="padding:35px 20px 20px 20px;">
+                                <div style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 5px;">Giảm @item.DiscountValue.ToString("N0")% tối đa @item.DiscountValueMax.ToString("N0") đ</div>
+                                <div style="color: #666; font-size: 14px; margin-bottom: 15px;">Đơn tối thiểu @item.MinOrderAmount.ToString("N0")đ</div>
+                                <div style="display: flex; align-items: center; color: #666; font-size: 13px; margin-bottom: 15px;">
+                                    @if (timeRemainingStart > TimeSpan.Zero)
+                                    {
+                                        <p>
+                                            Sắp diễn ra:
+                                            @(timeRemainingStart.Days > 0 ? $"{timeRemainingStart.Days} ngày " : "")
+                                            @(timeRemainingStart.Hours > 0 ? $"{timeRemainingStart.Hours} giờ " : "")
+                                            @(timeRemainingStart.Minutes > 0 ? $"{timeRemainingStart.Minutes} phút " : "")
+                                            @(timeRemainingStart.Seconds > 0 ? $"{timeRemainingStart.Seconds} giây" : "")
+                                        </p>
+                                    }
+                                    else if (timeRemainingEnd > TimeSpan.Zero)
+                                    {
+                                        <p>
+                                            Kết thúc sau:
+                                            @(timeRemainingEnd.Days > 0 ? $"{timeRemainingEnd.Days} ngày " : "")
+                                            @(timeRemainingEnd.Hours > 0 ? $"{timeRemainingEnd.Hours} giờ " : "")
+                                            @(timeRemainingEnd.Minutes > 0 ? $"{timeRemainingEnd.Minutes} phút " : "")
+                                            @(timeRemainingEnd.Seconds > 0 ? $"{timeRemainingEnd.Seconds} giây" : "")
+                                        </p>
+                                    }
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            }
+
+
+
+
+        </div>
+    }
+</div>
+
+
+@code {
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    private List<DiscountCodeDto> DiscountCodeDtos { get; set; } = new();
+    private Timer? Timer;
+    private bool isLoading = true;
+
+
+    override protected async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            DiscountCodeDtos = await LoadDiscountCodes();
+            isLoading = false;
+            Timer = new Timer(1000);
+            Timer.Elapsed += UpdateTimer;
+            Timer.AutoReset = true; // Lặp lại mỗi giây
+            Timer.Start();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi lấy dữ liệu: {ex.Message}");
+        }
+    }
+
+    private async Task<List<DiscountCodeDto>> LoadDiscountCodes()
+    {
+        try
+        {
+
+
+            var baseQuery = new DiscountCodeQuery
+                {
+                    IsActive = true,
+                    gridRequest = new GridRequest
+                    {
+                        page = 1,
+                        pageSize = int.MaxValue,
+
+                    }
+                };
+            ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+            requestRestAPI.Endpoint = "api/DiscountCode/GetPaged";
+            ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
+
+            if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+            {
+                var items = JsonSerializer.Deserialize<List<DiscountCodeDto>>(dataTable.Data.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+
+                return items;
+            }
+            else
+            {
+                ToastService.ShowError($"Lỗi khi tải danh sách mã giảm giá");
+                return new List<DiscountCodeDto>();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách mã giảm giá: {ex.Message}");
+            return new List<DiscountCodeDto>();
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private void UpdateTimer(object? sender, ElapsedEventArgs? e)
+    {
+
+        // Cập nhật giao diện
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        // Hủy Timer khi component bị hủy
+        Timer?.Dispose();
+    }
+   
+
+}

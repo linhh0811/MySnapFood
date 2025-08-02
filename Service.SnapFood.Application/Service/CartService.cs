@@ -398,6 +398,7 @@ namespace Service.SnapFood.Application.Service
                             BillCode = BillCodeGen(item.ReceivingType),
                             StoreId = store.Id,
                             TotalAmount = 0,
+                            DiscountAmount=item.DiscountCodeValue,
                             BillDetails = new List<BillDetails>(),
                             Status = StatusOrder.Pending,
                             ReceivingType = item.ReceivingType,
@@ -490,14 +491,7 @@ namespace Service.SnapFood.Application.Service
 
                             }
                         }
-                        BillPayment BillPayment = new BillPayment()
-                        {
-                            BillId = bill.Id,
-                            PaymentType = item.PaymentType,
-                            Amount = 0,
-                        };
-                        _unitOfWork.BillPaymentRepo.Add(BillPayment);
-                        await _unitOfWork.CompleteAsync();
+                       
                         
 
                         if (item.ReceivingType == ReceivingType.HomeDelivery)
@@ -513,8 +507,8 @@ namespace Service.SnapFood.Application.Service
                                     ReceiverName = address.FullName,
                                     ReceiverPhone = address.NumberPhone,
                                     ReceiverAddress = address.FullAddress,
-                                    Distance = 0,
-                                    DeliveryFee = 0,
+                                    Distance = item.KhoangCach,
+                                    DeliveryFee = item.PhiGiaoHang,
                                 };
                                 _unitOfWork.BillDeliveryRepo.Add(billDelivery);
                                 await _unitOfWork.CompleteAsync();
@@ -561,9 +555,45 @@ namespace Service.SnapFood.Application.Service
                             _unitOfWork.BillNotesRepo.Add(billNotes2);
                             await _unitOfWork.CompleteAsync();
                         }
+
+                        if (item.DiscountCodeId!=Guid.Empty)
+                        {
+                            var discoutCode = await _unitOfWork.DiscountCodeRepo.GetByIdAsync(item.DiscountCodeId);
+
+                            if (discoutCode is not null&&discoutCode.ModerationStatus==ModerationStatus.Approved&&discoutCode.StartDate<=DateTime.Now&&DateTime.Now<=discoutCode.EndDate)
+                            {
+                                if (discoutCode.UsedCount<discoutCode.UsageLimit)
+                                {
+                                    discoutCode.UsedCount += 1;
+                                    _unitOfWork.DiscountCodeRepo.Update(discoutCode);
+                                    await _unitOfWork.CompleteAsync();
+                                    var discoutCodeUse = new DiscountCodeUsage()
+                                    {
+                                        DiscountCodeId = discoutCode.Id,
+                                        UserId = item.UserId,
+                                        BillId = bill.Id
+                                    };
+                                    _unitOfWork.DiscountCodeUsageRepo.Add(discoutCodeUse);
+                                    await _unitOfWork.CompleteAsync();
+                                }
+                                else
+                                {
+                                    throw new Exception("Mã giảm giá đã hết lượt sử dụng");
+                                }
+                            }
+                        }
                         
 
                         var billDetails = _unitOfWork.BillDetailsRepo.FindWhere(x => x.BillId == bill.Id).ToList();
+
+                        BillPayment BillPayment = new BillPayment()
+                        {
+                            BillId = bill.Id,
+                            PaymentType = item.PaymentType,
+                            Amount = billDetails.Where(x => x.PriceEndow > 0).Sum(p => p.Price * p.Quantity - p.PriceEndow * p.Quantity),
+                        };
+                        _unitOfWork.BillPaymentRepo.Add(BillPayment);
+                        await _unitOfWork.CompleteAsync();
 
                         var billUpdate = await _unitOfWork.BillRepo.GetByIdAsync(bill.Id);
                         if (billUpdate is not null)

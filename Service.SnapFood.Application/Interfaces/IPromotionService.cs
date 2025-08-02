@@ -7,6 +7,8 @@ namespace Service.SnapFood.Application.Interfaces
     public interface IPromotionService
     {
         DataTableJson GetPaged(PromotionQuery query);
+        int GetPromotionActivateCount();
+
         List<PromotionDto> GetPromotionActivate();
         Task<PromotionDto?> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(PromotionDto item);

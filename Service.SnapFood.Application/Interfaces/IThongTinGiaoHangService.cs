@@ -9,6 +9,7 @@ namespace Service.SnapFood.Application.Interfaces
 {
     public interface IThongTinGiaoHangService
     {
+        ThongTinGiaoHangDto GetDuLieu();
         Task<bool> UpdateAsync(Guid id, ThongTinGiaoHangDto item);
     }
 }

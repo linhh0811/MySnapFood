@@ -16,6 +16,9 @@ namespace Service.SnapFood.Application.Dtos
         public StatusOrder Status { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal TotalAmountEndow { get; set; }
+        public decimal DiscountAmount { get; set; }
+
+        public decimal PhiVanChuyen { get; set; }
         public DateTime Created { get; set; }
         public ReceivingType ReceivingType { get; set; }
         public PhuongThucDatHangEnum PhuongThucDatHang { get; set; }

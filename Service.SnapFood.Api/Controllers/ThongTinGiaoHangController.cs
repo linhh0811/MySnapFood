@@ -14,6 +14,15 @@ namespace Service.SnapFood.Api.Controllers
         {
             _thongTinGiaoHangService = thongTinGiaoHangService;
         }
+        [HttpGet]
+        public IActionResult GetDuLieu()
+        {
+         
+            var result =  _thongTinGiaoHangService.GetDuLieu();           
+            return Ok(result);
+
+
+        }
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] ThongTinGiaoHangDto item)
         {

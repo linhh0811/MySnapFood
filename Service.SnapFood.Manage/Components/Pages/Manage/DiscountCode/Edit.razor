@@ -2,222 +2,102 @@
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Service.SnapFood.Manage.Dto
 @using Service.SnapFood.Manage.Dto.DiscountCode
+@using Service.SnapFood.Manage.Enums
+@using Service.SnapFood.Manage.Infrastructure.Services
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @implements IDialogContentComponent<EditOrUpdateParameters>
-
-<FluentDialogHeader Style="padding:8px">
-    <h3>@(Content.IsEditMode ? "Sửa mã giảm giá" : "Thêm mã giảm giá")</h3>
-</FluentDialogHeader>
-<FluentDialogBody>
 <EditForm Model="DiscountCodeModel" OnValidSubmit="HandleSubmit">
-    <DataAnnotationsValidator />
-    
-
-   
-    <FluentStack Orientation="Orientation.Vertical" Gap="12" Style="padding: 16px">
-
+    <FluentDialogHeader Style="padding:8px">
+        <h3>@(Content.IsEditMode ? "Sửa mã giảm giá" : "Thêm mã giảm giá")</h3>
+    </FluentDialogHeader>
+    <FluentDialogBody>
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
             <FluentMessageBar Title="Lỗi" Intent="MessageIntent.Error">@ErrorMessage</FluentMessageBar>
         }
+        <DataAnnotationsValidator />
 
-        <FluentTextField Label="Mã giảm giá" @bind-Value="DiscountCodeModel.Code" Style="width:100%;" />
-        <ValidationMessage For="@(() => DiscountCodeModel.Code)" />
+        <FluentGrid Spacing="2" Style="padding: 4px">
+            <FluentGridItem md="6">
+                 <FluentStack Orientation="Orientation.Vertical" Gap="12" Style="padding: 16px">
 
-        <FluentTextArea Label="Mô tả" @bind-Value="DiscountCodeModel.Description" Rows="4" Resize="TextAreaResize.Both" Style="width:100%;" />
+           
 
-        <FluentNumberField Label="Số tiền giảm" @bind-Value="DiscountCodeModel.DiscountAmount" Style="width:100%;" />
-        <ValidationMessage For="@(() => DiscountCodeModel.DiscountAmount)" />
+            <FluentTextField Label="Mã giảm giá" @bind-Value="DiscountCodeModel.Code" Style="width:100%;" />
+            <ValidationMessage For="@(() => DiscountCodeModel.Code)" />
 
-        <FluentNumberField Label="Số đơn tối thiểu" @bind-Value="DiscountCodeModel.MinOrderAmount" Style="width:100%;" />
-        <ValidationMessage For="@(() => DiscountCodeModel.MinOrderAmount)" />
+            <FluentTextArea Label="Mô tả" @bind-Value="DiscountCodeModel.Description" Rows="4" Resize="TextAreaResize.Both" Style="width:100%;" />
 
-        <FluentNumberField Label="Giới hạn sử dụng" @bind-Value="DiscountCodeModel.UsageLimit" Style="width:100%;" />
-        <ValidationMessage For="@(() => DiscountCodeModel.UsageLimit)" />
-        
+            <FluentSelect Items="DiscountTypeOptions"
+            Label="Phương thức"
+            @bind-Value="SelectedDiscountType"
+            OptionText="@(x => x.Value)"
+            OptionValue="@(x => x.Key)"
+            Style="width:100%"
+                          Position="SelectPosition.Below" @onclick="ChonPhanLoai">
+            </FluentSelect>
 
-        <FluentLabel>Thời gian bắt đầu</FluentLabel>
-        <FluentStack Orientation="Orientation.Horizontal" Gap="8px">
-            <FluentDatePicker @bind-Value="StartDate" Style="width:50%" />
-            <FluentTimePicker @bind-Value="StartDateTime" Style="width:50%" />
-        </FluentStack>
-
-        <FluentLabel>Thời gian kết thúc</FluentLabel>
-        <FluentStack Orientation="Orientation.Horizontal" Gap="8px">
-            <FluentDatePicker @bind-Value="EndDate" Style="width:50%" />
-            <FluentTimePicker @bind-Value="EndDateTime" Style="width:50%" />
-        </FluentStack>
-
-        
-    </FluentStack>
-</EditForm>
-</FluentDialogBody>
-
-<FluentDialogFooter>
-    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
-        <FluentButton Appearance="Appearance.Neutral" OnClick="@HideDialog" Disabled="@isSaving">Hủy</FluentButton>
-        <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
-            @if (isSaving)
+            @if(SelectedDiscountType == (DiscountCodeType.Percent).ToString())
             {
-                <span>Đang lưu...</span>
-            }
-            else
+                <FluentNumberField Label="Giá trị" @bind-Value="DiscountCodeModel.DiscountValue" Style="width:100%;" />
+                <ValidationMessage For="@(() => DiscountCodeModel.DiscountValue)" />
+
+                @if (!string.IsNullOrEmpty(ErrorValueMessage))
+                {
+                    <div class="validation-message">@ErrorValueMessage</div>
+                }
+                <FluentNumberField Label="Giá trị tối đa" @bind-Value="DiscountCodeModel.DiscountValueMax" Style="width:100%;" />
+                @if (!string.IsNullOrEmpty(ErrorValueMaxMessage) )
+                {
+                    <div class="validation-message">@ErrorValueMaxMessage</div>
+                }
+            }else
             {
-                <span>Lưu</span>
+
+                <FluentNumberField Label="Giá trị" @bind-Value="DiscountCodeModel.DiscountValue" Style="width:100%;" />
+                <ValidationMessage For="@(() => DiscountCodeModel.DiscountValue)" />
+
+
             }
-        </FluentButton>
-    </FluentStack>
-</FluentDialogFooter>
-@code {
-    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
-    [Inject] private IToastService ToastService { get; set; } = default!;
-    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
-    [Parameter] public EditOrUpdateParameters Content { get; set; } = new();
-
-    private DiscountCodeDto DiscountCodeModel { get; set; } = new();
-    private string? ErrorMessage;
-    private bool isSaving = false;
-
-    private DateTime? StartDate { get; set; } = DateTime.Today;
-    private DateTime? StartDateTime { get; set; } = DateTime.Now;
-    private DateTime? EndDate { get; set; } = DateTime.Today.AddDays(1);
-    private DateTime? EndDateTime { get; set; } = DateTime.Now.AddHours(1);
-
-    private DateTime CombinedStartDateTime => StartDate?.Date.Add(StartDateTime?.TimeOfDay ?? TimeSpan.Zero) ?? DateTime.Now;
-    private DateTime CombinedEndDateTime => EndDate?.Date.Add(EndDateTime?.TimeOfDay ?? TimeSpan.Zero) ?? DateTime.Now.AddDays(1);
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (Content.IsEditMode && Content.Id != Guid.Empty)
-        {
-            await GetDiscountCode();
-        }
-    }
-
-    private async Task GetDiscountCode()
-    {
-        var request = new ApiRequestModel { Endpoint = $"api/DiscountCode/{Content.Id}" };
-        var result = await CallApi.Get<DiscountCodeDto>(request);
-        if (result.Status == StatusCode.OK && result.Data is DiscountCodeDto dto)
-        {
-            DiscountCodeModel = dto;
-            StartDate = dto.StartDate.Date;
-            StartDateTime = dto.StartDate;
-            EndDate = dto.EndDate.Date;
-            EndDateTime = dto.EndDate;
-        }
-        else
-        {
-            ErrorMessage = "Không thể tải dữ liệu mã giảm giá.";
-        }
-    }
-
-    private async Task HandleSubmit()
-    {
-        ErrorMessage = null;
-        isSaving = true;
-
-        if (CombinedStartDateTime > CombinedEndDateTime)
-        {
-            ErrorMessage = "Thời gian kết thúc phải sau thời gian bắt đầu.";
-            isSaving = false;
-            return;
-        }
-
-        DiscountCodeModel.StartDate = CombinedStartDateTime;
-        DiscountCodeModel.EndDate = CombinedEndDateTime;
-
-        var request = new ApiRequestModel();
-        ResultAPI result;
-
-        if (Content.IsEditMode)
-        {
-            request.Endpoint = $"api/DiscountCode/{Content.Id}";
-            result = await CallApi.Put(request, DiscountCodeModel);
-        }
-        else
-        {
-            request.Endpoint = "api/DiscountCode";
-            result = await CallApi.Post<DiscountCodeDto>(request, DiscountCodeModel);
-        }
-
-        if (result.Status == StatusCode.OK)
-        {
-            ToastService.ShowSuccess(Content.IsEditMode ? "Sửa thành công" : "Thêm thành công");
-            await Dialog.CloseAsync();
-            await Content.OnRefresh.InvokeAsync();
-        }
-        else
-        {
-            ErrorMessage = "Thất bại: " + result.Message;
-        }
-
-        isSaving = false;
-    }
-
-    private async Task HideDialog()
-    {
-        await Dialog.CloseAsync();
-    }
-}
-
-
-
-
-@* 
-@namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
-@using Microsoft.FluentUI.AspNetCore.Components
-@using Service.SnapFood.Manage.Dto
-@using Service.SnapFood.Manage.Dto.DiscountCode
-@using Service.SnapFood.Share.Interface.Extentions
-@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
-@implements IDialogContentComponent<EditOrUpdateParameters>
-
-<FluentDialogHeader Style="padding:8px">
-    <h3>@(Content.IsEditMode ? "Sửa mã giảm giá" : "Thêm mã giảm giá")</h3>
-</FluentDialogHeader>
-
-<EditForm Model="DiscountCodeModel" OnValidSubmit="HandleSubmit">
-    <DataAnnotationsValidator />
-    <FluentGrid Orientation="Orientation.Vertical" Gap="12" Style="padding: 16px">
-
-        @if (!string.IsNullOrEmpty(ErrorMessage))
-        {
-            <FluentMessageBar Title="Lỗi" Intent="MessageIntent.Error">@ErrorMessage</FluentMessageBar>
-        }
-
-        <FluentTextField Label="Mã giảm giá" @bind-Value="DiscountCodeModel.Code" Style="width:100%;" />
-        <ValidationMessage For="@(() => DiscountCodeModel.Code)" />
-
-        <FluentTextArea Label="Mô tả" @bind-Value="DiscountCodeModel.Description" Rows="4" Resize="TextAreaResize.Both" Style="width:100%;" />
-
-        <FluentNumberField Label="Số tiền giảm" @bind-Value="DiscountCodeModel.DiscountAmount" Style="width:100%;" />
-        <ValidationMessage For="@(() => DiscountCodeModel.DiscountAmount)" />
-
-        <FluentNumberField Label="Số đơn tối thiểu" @bind-Value="DiscountCodeModel.MinOrderAmount" Style="width:100%;" />
-        <ValidationMessage For="@(() => DiscountCodeModel.MinOrderAmount)" />
-
-        <FluentNumberField Label="Giới hạn sử dụng" @bind-Value="DiscountCodeModel.UsageLimit" Style="width:100%;" />
-        <ValidationMessage For="@(() => DiscountCodeModel.UsageLimit)" />
-        
-
-        <FluentLabel>Thời gian bắt đầu</FluentLabel>
-        <FluentStack Orientation="Orientation.Horizontal" Gap="8px">
-            <FluentDatePicker @bind-Value="StartDate" Style="width:50%" />
-            <FluentTimePicker @bind-Value="StartDateTime" Style="width:50%" />
         </FluentStack>
 
-        <FluentLabel>Thời gian kết thúc</FluentLabel>
-        <FluentStack Orientation="Orientation.Horizontal" Gap="8px">
-            <FluentDatePicker @bind-Value="EndDate" Style="width:50%" />
-            <FluentTimePicker @bind-Value="EndDateTime" Style="width:50%" />
-        </FluentStack>
-        <FluentDialogFooter>
-            <FluentButton Appearance="Appearance.Neutral" OnClick="@HideDialog">Hủy</FluentButton>
-            <FluentButton Appearance="Appearance.Accent"
-                          Type="ButtonType.Submit"
-                          Disabled="@isSaving">
+            </FluentGridItem>
+             <FluentGridItem md="6">
+                <FluentStack Orientation="Orientation.Vertical" Gap="12" Style="padding: 16px">                
+
+                    <FluentNumberField Label="Giá trị đơn tối thiểu" @bind-Value="DiscountCodeModel.MinOrderAmount" Style="width:100%;" />
+                    <ValidationMessage For="@(() => DiscountCodeModel.MinOrderAmount)" />
+
+                    <FluentNumberField Label="Giới hạn sử dụng" @bind-Value="DiscountCodeModel.UsageLimit" Style="width:100%;" />
+                    <ValidationMessage For="@(() => DiscountCodeModel.UsageLimit)" />
+
+
+                    <FluentLabel>Thời gian bắt đầu</FluentLabel>
+                    <FluentStack Orientation="Orientation.Horizontal" Gap="8px">
+                        <FluentDatePicker @bind-Value="StartDate" Style="width:50%" />
+                        <FluentTimePicker @bind-Value="StartDateTime" Style="width:50%" />
+                    </FluentStack>
+
+                    <FluentLabel>Thời gian kết thúc</FluentLabel>
+                    <FluentStack Orientation="Orientation.Horizontal" Gap="8px">
+                        <FluentDatePicker @bind-Value="EndDate" Style="width:50%" />
+                        <FluentTimePicker @bind-Value="EndDateTime" Style="width:50%" />
+                    </FluentStack>
+
+
+                </FluentStack>
+
+            </FluentGridItem>
+        </FluentGrid>
+
+       
+    </FluentDialogBody>
+
+    <FluentDialogFooter>
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Gap="10">
+            <FluentButton Appearance="Appearance.Neutral" OnClick="@HideDialog" Disabled="@isSaving">Hủy</FluentButton>
+            <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isSaving">
                 @if (isSaving)
                 {
                     <span>Đang lưu...</span>
@@ -227,10 +107,9 @@
                     <span>Lưu</span>
                 }
             </FluentButton>
-        </FluentDialogFooter>
-    </FluentGrid>
+        </FluentStack>
+    </FluentDialogFooter>
 </EditForm>
-
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
@@ -239,6 +118,10 @@
 
     private DiscountCodeDto DiscountCodeModel { get; set; } = new();
     private string? ErrorMessage;
+    private string? ErrorValueMessage;
+    private string? ErrorValueMaxMessage;
+
+
     private bool isSaving = false;
 
     private DateTime? StartDate { get; set; } = DateTime.Today;
@@ -249,6 +132,9 @@
     private DateTime CombinedStartDateTime => StartDate?.Date.Add(StartDateTime?.TimeOfDay ?? TimeSpan.Zero) ?? DateTime.Now;
     private DateTime CombinedEndDateTime => EndDate?.Date.Add(EndDateTime?.TimeOfDay ?? TimeSpan.Zero) ?? DateTime.Now.AddDays(1);
 
+    private Dictionary<String, String> DiscountTypeOptions = new Dictionary<string, string>();
+    private string SelectedDiscountType = "0";
+
     protected override async Task OnInitializedAsync()
     {
         if (Content.IsEditMode && Content.Id != Guid.Empty)
@@ -257,13 +143,40 @@
         }
     }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            GetPromotionType();
+        }
+        StateHasChanged();
+    }
+    private void GetPromotionType()
+    {
+        DiscountTypeOptions = Enum.GetValues(typeof(DiscountCodeType))
+        .Cast<DiscountCodeType>()
+        .Where(e => e != DiscountCodeType.None)
+        .ToDictionary(
+            e => (e).ToString(),
+            e => e.GetDescription()
+        );
+
+    }
     private async Task GetDiscountCode()
     {
         var request = new ApiRequestModel { Endpoint = $"api/DiscountCode/{Content.Id}" };
         var result = await CallApi.Get<DiscountCodeDto>(request);
         if (result.Status == StatusCode.OK && result.Data is DiscountCodeDto dto)
         {
-            DiscountCodeModel = dto;
+            DiscountCodeModel.Id = dto.Id;
+            DiscountCodeModel.Code = dto.Code;
+            DiscountCodeModel.Description = dto.Description;
+            DiscountCodeModel.DiscountValue = dto.DiscountValue;
+            DiscountCodeModel.MinOrderAmount = dto.MinOrderAmount;
+            DiscountCodeModel.UsageLimit = dto.UsageLimit;
+            SelectedDiscountType = dto.DiscountCodeType.ToString();
+            DiscountCodeModel.DiscountCodeType = dto.DiscountCodeType;
+
             StartDate = dto.StartDate.Date;
             StartDateTime = dto.StartDate;
             EndDate = dto.EndDate.Date;
@@ -287,8 +200,41 @@
             return;
         }
 
+        if ( CombinedEndDateTime<=DateTime.Now)
+        {
+            ErrorMessage = "Thời gian kết thúc phải lớn hơn thời gian hiện tại.";
+            isSaving = false;
+            return;
+        }
+
         DiscountCodeModel.StartDate = CombinedStartDateTime;
         DiscountCodeModel.EndDate = CombinedEndDateTime;
+        if (!Enum.TryParse<DiscountCodeType>(SelectedDiscountType, out var discountType))
+        {
+            isSaving = false;
+            ErrorMessage = "Loại Giảm giá không hợp lệ";
+            return;
+
+        }
+        DiscountCodeModel.DiscountCodeType = discountType;
+
+        if (DiscountCodeModel.DiscountCodeType == DiscountCodeType.Percent && DiscountCodeModel.DiscountValue > 100)
+        {
+            isSaving = false;
+            ErrorValueMessage = "Giá trị hợp lệ từ 1 đến 100";
+            StateHasChanged();
+            return;
+
+
+        }
+
+        if (DiscountCodeModel.DiscountCodeType == DiscountCodeType.Percent && DiscountCodeModel.DiscountValueMax <= 0)
+        {
+            isSaving = false;
+            ErrorValueMaxMessage = "Giá trị hợp lệ từ 1";
+            StateHasChanged();
+            return;
+        }
 
         var request = new ApiRequestModel();
         ResultAPI result;
@@ -322,5 +268,12 @@
     {
         await Dialog.CloseAsync();
     }
+    private void ChonPhanLoai()
+    {
+        StateHasChanged();
+    }
 }
- *@
+
+
+
+

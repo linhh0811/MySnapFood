@@ -26,7 +26,8 @@ namespace Service.SnapFood.Application.Service
             int totalRecords = 0;
 
             var dataQuery = _unitOfWork.DiscountCodeRepo.FilterData(
-                q => q.Where(x => query.ModerationStatus == ModerationStatus.None ? true : x.ModerationStatus == query.ModerationStatus),
+                q => q.Where(x => query.ModerationStatus == ModerationStatus.None ? true : x.ModerationStatus == query.ModerationStatus)
+                .Where(x=>query.IsActive? x.ModerationStatus == ModerationStatus.Approved && x.EndDate >= DateTime.Now:true),
                 query.gridRequest,
                 ref totalRecords
             );
@@ -37,14 +38,14 @@ namespace Service.SnapFood.Application.Service
                 Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
                 Code = m.Code,
                 Description = m.Description,
-                DiscountAmount = m.DiscountAmount,
+                DiscountValue = m.DiscountValue,
+                DiscountValueMax = m.DiscountValueMax,
+
                 StartDate = m.StartDate,
                 EndDate = m.EndDate,
                 UsageLimit = m.UsageLimit,
                 UsedCount = m.UsedCount,
                 MinOrderAmount = m.MinOrderAmount,
-                IsActive = m.IsActive,
-                ApplyToOrderTypes = m.ApplyToOrderTypes,
                 ModerationStatus = m.ModerationStatus,
                 Created = m.Created,
                 LastModified = m.LastModified,
@@ -52,7 +53,8 @@ namespace Service.SnapFood.Application.Service
                 LastModifiedBy = m.LastModifiedBy,
                 CreatedByName = _unitOfWork.UserRepo.GetById(m.CreatedBy)?.Email ?? "Không xác định",
                 LastModifiedByName = _unitOfWork.UserRepo.GetById(m.LastModifiedBy)?.Email ?? "Không xác định",
-                DiscountCodeType = m.DiscountCodeType
+                DiscountCodeType = m.DiscountCodeType,
+                
             });
 
             return new DataTableJson(data, query.draw, totalRecords);
@@ -68,14 +70,14 @@ namespace Service.SnapFood.Application.Service
                 Id = entity.Id,
                 Code = entity.Code,
                 Description = entity.Description,
-                DiscountAmount = entity.DiscountAmount,
+                DiscountValue = entity.DiscountValue,
+                DiscountValueMax = entity.DiscountValueMax,
+
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 UsageLimit = entity.UsageLimit,
                 UsedCount = entity.UsedCount,
                 MinOrderAmount = entity.MinOrderAmount,
-                IsActive = entity.IsActive,
-                ApplyToOrderTypes = entity.ApplyToOrderTypes,
                 ModerationStatus = entity.ModerationStatus,
                 Created = entity.Created,
                 LastModified = entity.LastModified,
@@ -95,19 +97,26 @@ namespace Service.SnapFood.Application.Service
                 if (string.IsNullOrWhiteSpace(item.Code))
                     throw new Exception("Mã giảm giá không được để trống");
 
+                var discountexsit = _unitOfWork.DiscountCodeRepo.FindWhere(x => x.Code.ToLower() == item.Code.ToLower()&&x.EndDate>DateTime.Now);
+                if (discountexsit.Any())
+                {
+                    throw new Exception("Mã giảm giá đã tồn tại");
+
+                }
+
                 var entity = new DiscountCode
                 {
                     Id = Guid.NewGuid(),
-                    Code = item.Code,
+                    Code = item.Code.ToUpper(),
                     Description = item.Description,
-                    DiscountAmount = item.DiscountAmount,
+                    DiscountValue = item.DiscountValue,
+                    DiscountValueMax = item.DiscountValueMax,
+
                     StartDate = item.StartDate,
                     EndDate = item.EndDate,
                     UsageLimit = item.UsageLimit,
                     UsedCount = item.UsedCount,
                     MinOrderAmount = item.MinOrderAmount,
-                    IsActive = item.IsActive,
-                    ApplyToOrderTypes = item.ApplyToOrderTypes,
                     ModerationStatus = ModerationStatus.Rejected,
                     DiscountCodeType = item.DiscountCodeType
                 };
@@ -133,16 +142,23 @@ namespace Service.SnapFood.Application.Service
                 if (entity == null)
                     throw new Exception("Không tìm thấy mã giảm giá");
 
-                entity.Code = item.Code;
+                var discountexsit = _unitOfWork.DiscountCodeRepo.FindWhere(x => x.Code.ToLower() == item.Code.ToLower() && x.EndDate > DateTime.Now&&x.Id!=id);
+                if (discountexsit.Any())
+                {
+                    throw new Exception("Mã giảm giá đã tồn tại");
+
+                }
+
+                entity.Code = item.Code.ToUpper();
                 entity.Description = item.Description;
-                entity.DiscountAmount = item.DiscountAmount;
+                entity.DiscountValue = item.DiscountValue;
+                entity.DiscountValueMax = item.DiscountValueMax;
+
                 entity.StartDate = item.StartDate;
                 entity.EndDate = item.EndDate;
                 entity.UsageLimit = item.UsageLimit;
                 entity.UsedCount = item.UsedCount;
                 entity.MinOrderAmount = item.MinOrderAmount;
-                entity.IsActive = item.IsActive;
-                entity.ApplyToOrderTypes = item.ApplyToOrderTypes;
                 entity.DiscountCodeType = item.DiscountCodeType;
 
                 _unitOfWork.DiscountCodeRepo.Update(entity);
@@ -189,85 +205,42 @@ namespace Service.SnapFood.Application.Service
             return true;
         }
 
-        public async Task<decimal> ApplyDiscountCodeToBillAsync(Guid discountCodeId, Guid billId, Guid userId)
+        
+
+       
+
+        public async Task<DiscountCodeDto> GetDiscountHoatDongById(Guid id)
         {
-            _unitOfWork.BeginTransaction();
-            try
+            var entity = await _unitOfWork.DiscountCodeRepo.GetByIdAsync(id);
+            if (entity == null) 
+                throw new ArgumentNullException("Không tìm thấy mã giảm giá");
+            if (entity.ModerationStatus== ModerationStatus.Approved &&entity.StartDate<=DateTime.Now && entity.EndDate>=DateTime.Now && entity.UsedCount <entity.UsageLimit)
             {
-                var discount = await _unitOfWork.DiscountCodeRepo.GetByIdAsync(discountCodeId);
-                if (discount == null)
-                    throw new Exception("Mã giảm giá không tồn tại");
-
-                if (!discount.IsActive || discount.ModerationStatus != ModerationStatus.Approved)
-                    throw new Exception("Mã giảm giá không hợp lệ hoặc chưa được duyệt");
-
-                var now = DateTime.Now;
-                if (now < discount.StartDate || now > discount.EndDate)
-                    throw new Exception("Mã giảm giá đã hết hạn hoặc chưa được kích hoạt");
-
-                if (discount.UsageLimit > 0 && discount.UsedCount >= discount.UsageLimit)
-                    throw new Exception("Mã giảm giá đã hết lượt sử dụng");
-
-                var bill = await _unitOfWork.BillRepo.GetByIdAsync(billId);
-                if (bill == null)
-                    throw new Exception("Hóa đơn không tồn tại");
-
-                if (bill.TotalAmount < discount.MinOrderAmount)
-                    throw new Exception($"Đơn hàng không đủ điều kiện áp dụng mã giảm giá (yêu cầu tối thiểu {discount.MinOrderAmount:N0}đ)");
-
-                decimal discountAmount = 0;
-
-                // ✅ Tính theo loại mã giảm giá
-                switch (discount.DiscountCodeType)
+                return new DiscountCodeDto
                 {
-                    case DiscountCodeType.Money:
-                        discountAmount = discount.DiscountAmount;
-                        break;
+                    Id = entity.Id,
+                    Code = entity.Code,
+                    Description = entity.Description,
+                    DiscountValue = entity.DiscountValue,
+                    DiscountValueMax = entity.DiscountValueMax,
 
-                    case DiscountCodeType.Percent:
-                        discountAmount = bill.TotalAmount * (discount.DiscountAmount / 100m);
-                        break;
+                    StartDate = entity.StartDate,
+                    EndDate = entity.EndDate,
+                    UsageLimit = entity.UsageLimit,
+                    UsedCount = entity.UsedCount,
+                    MinOrderAmount = entity.MinOrderAmount,
+                    ModerationStatus = entity.ModerationStatus,
 
-                    default:
-                        throw new Exception("Loại mã giảm giá không hợp lệ");
-                }
-
-                // Không để số âm
-                decimal finalAmount = bill.TotalAmount - discountAmount;
-                if (finalAmount < 0) finalAmount = 0;
-
-                // Cập nhật hóa đơn
-                bill.DiscountCodeId = discount.Id;
-                bill.DiscountAmount = discountAmount;
-                bill.TotalAfterDiscount = finalAmount;
-
-                _unitOfWork.BillRepo.Update(bill);
-
-                // Cập nhật UsedCount
-                discount.UsedCount += 1;
-                _unitOfWork.DiscountCodeRepo.Update(discount);
-
-                // Tạo log sử dụng
-                var usage = new DiscountCodeUsage
-                {
-                    Id = Guid.NewGuid(),
-                    DiscountCodeId = discount.Id,
-                    UserId = userId,
-                    BillId = bill.Id,
-                    UsedAt = now
+                    DiscountCodeType = entity.DiscountCodeType
                 };
-                _unitOfWork.DiscountCodeUsageRepo.Add(usage);
 
-                await _unitOfWork.CompleteAsync();
-                await _unitOfWork.CommitAsync();
-
-                return finalAmount;
             }
-            catch (Exception ex)
+            else
             {
-                await _unitOfWork.RollbackAsync();
-                throw new Exception("Lỗi khi áp dụng mã giảm giá: " + ex.Message);
+                throw new ArgumentNullException("Mã giảm giá hết hạn");
             }
+
+            
         }
     }
 }

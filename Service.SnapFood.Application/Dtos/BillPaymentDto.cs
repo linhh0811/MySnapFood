@@ -12,7 +12,7 @@ namespace Service.SnapFood.Application.Dtos
         public Guid Id { get; set; }
         public Guid BillId { get; set; }
         public PaymentType PaymentType { get; set; }
-        public float Amount { get; set; }
+        public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
         public StatusPayment PaymentStatus { get; set; }
     }

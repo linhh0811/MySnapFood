@@ -95,6 +95,7 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             ComboProductItemRepository = new ComboProductItemRepository(_context);
             ThongTinGiaoHangRepository = new ThongTinGiaoHangRepository(_context);
             DiscountCodeRepo = new DiscountCodeRepository(_context);
+            DiscountCodeUsageRepo = new DiscountCodeUsageRepository(_context);
 
         }
 
