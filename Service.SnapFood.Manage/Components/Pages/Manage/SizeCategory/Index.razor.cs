@@ -3,21 +3,23 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components.Extensions;
 using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
+using Service.SnapFood.Manage.Dto.Category;
+using Service.SnapFood.Manage.Dto.ProductDto;
 using Service.SnapFood.Manage.Dto.SizeDto;
 using Service.SnapFood.Manage.Dto.TreeView;
 using Service.SnapFood.Share.Interface.Extentions;
+using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
-using Service.SnapFood.Share.Query.Grid;
 using Service.SnapFood.Share.Query;
+using Service.SnapFood.Share.Query.Grid;
 using System.Reflection;
 using System.Text.Json;
-using Service.SnapFood.Manage.Dto.ProductDto;
-using Service.SnapFood.Manage.Dto.Category;
 
 namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
 {
     public partial class Index : ComponentBase
     {
+        [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
         [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
         [Inject] private IDialogService DialogService { get; set; } = default!;
         [Inject] private IToastService ToastService { get; set; } = default!;
@@ -324,8 +326,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory
                 };
                 requestRestAPI.Endpoint = "api/Category/GetPaged";
 
-                ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
-                if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+                ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
+                if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
                 {
                     var items = JsonSerializer.Deserialize<List<CategoryDto>>(dataTable.Data.GetRawText(),
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CategoryDto>();

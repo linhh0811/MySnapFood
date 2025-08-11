@@ -6,6 +6,7 @@ using Service.SnapFood.Manage.Dto.ThongTinGiaoHang;
 using Service.SnapFood.Manage.Enums;
 using Service.SnapFood.Manage.Infrastructure.Services;
 using Service.SnapFood.Share.Interface.Extentions;
+using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
 using System.Text.Json.Serialization;
 using static System.Net.WebRequestMethods;
@@ -14,6 +15,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.CuaHang
 {
     public partial class Index
     {
+        [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
         [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
         [Inject] private IToastService ToastService { get; set; } = default!;
         private StoreDto Store { get; set; } = new StoreDto();

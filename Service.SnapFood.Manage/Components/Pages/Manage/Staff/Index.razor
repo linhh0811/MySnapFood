@@ -2,8 +2,15 @@
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.FluentUI.AspNetCore.Components.Icons
 @using Service.SnapFood.Manage.Dto.StaffDto;
+@using Service.SnapFood.Share.Model.Enum
 @namespace Service.SnapFood.Manage.Components.Pages.Manage.Staff
 
+@if (CurrentUser.UserId == Guid.Empty)
+{
+	<p>Bạn chưa đăng nhập!</p>
+}
+else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+{
 <FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
 	<h2>Danh sách nhân viên</h2>
 
@@ -93,3 +100,8 @@
 		<Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefresData" />
 	</FluentGridItem>
 </FluentStack> 
+}
+else
+{
+<p>Bạn không có quyền sử dụng chức năng.</p>
+}

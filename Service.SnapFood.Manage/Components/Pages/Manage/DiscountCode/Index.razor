@@ -4,157 +4,169 @@
 @using Service.SnapFood.Manage.Dto.DiscountCode
 @using Service.SnapFood.Manage.Enums
 @using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Share.Model.Enum
 @using Service.SnapFood.Share.Model.SQL
 @namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
+@if (CurrentUser.UserId == Guid.Empty)
+{
+    <p>Bạn chưa đăng nhập!</p>
+}
+else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+{
+    <FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
+        <h2>Danh sách mã giảm giá</h2>
 
-<FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
-    <h2>Danh sách mã giảm giá</h2>
+        <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+            <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd">Thêm mới</FluentButton>
+            </FluentStack>
 
-    <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
-        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
-            <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAdd">Thêm mới</FluentButton>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <FluentSearch Style="min-width:200px;" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập mã hoặc mô tả" />
+            </div>
         </FluentStack>
 
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <FluentSearch Style="min-width:200px;" @bind-Value="SearchKeyword" @bind-Value:after=RefreshDataAsync Placeholder="Nhập mã hoặc mô tả" />
-        </div>
-    </FluentStack>
+        <FluentGridItem Style="width:100%;">
+            <FluentDataGrid @ref="DiscountCodeGrid"
+                            TGridItem="DiscountCodeDto"
+                            ItemsProvider="@LoadDiscountCodes"
+                            Pagination="@pagination"
+                            ResizableColumns="false"
+                            GridTemplateColumns="0.5fr 1.35fr 1.15fr 1fr 1fr 1fr 1.25fr 1.25fr 1fr 1fr 0.9fr"
+                            RowSize="DataGridRowSize.Large"
+                            ShowHover="true"
+                            GenerateHeader="GenerateHeaderOption.Sticky">
 
-    <FluentGridItem Style="width:100%;">
-        <FluentDataGrid @ref="DiscountCodeGrid"
-        TGridItem="DiscountCodeDto"
-        ItemsProvider="@LoadDiscountCodes"
-        Pagination="@pagination"
-        ResizableColumns="false"
-        GridTemplateColumns="0.5fr 1.35fr 1.15fr 1fr 1fr 1fr 1.25fr 1.25fr 1fr 1fr 0.9fr"
-        RowSize="DataGridRowSize.Large"
-        ShowHover="true"
-        GenerateHeader="GenerateHeaderOption.Sticky">
+                <TemplateColumn Title="#">
+                    @context.Index
+                </TemplateColumn>
 
-            <TemplateColumn Title="#">
-                @context.Index
-            </TemplateColumn>
+                <TemplateColumn Title="Mã">
+                    <span style="color:dodgerblue;cursor:pointer" @onclick="() => OpenDetailsModal(context.Id)">@context.Code</span>
+                </TemplateColumn>
 
-            <TemplateColumn Title="Mã">
-                <span style="color:dodgerblue;cursor:pointer" @onclick="() => OpenDetailsModal(context.Id)">@context.Code</span>
-            </TemplateColumn>
+                <TemplateColumn Title="Phương thức">
+                    @context.DiscountCodeType.GetDescription()
+                </TemplateColumn>
 
-            <TemplateColumn Title="Phương thức">
-                @context.DiscountCodeType.GetDescription()
-            </TemplateColumn>
-
-            <TemplateColumn Title="Giá trị"> 
-                @if (context.DiscountCodeType == DiscountCodeType.Money)
-                {
-                    @($"{context.DiscountValue:N0} đ")
-                }else
-                {
-                    @($"{context.DiscountValue:N0} %")
-                }
-
-            </TemplateColumn>
-            <TemplateColumn Title="Đơn tối thiểu">
-                @($"{context.MinOrderAmount:N0} đ")
-            </TemplateColumn>
-
-            <TemplateColumn Title="Lượt dùng">
-                @context.UsedCount / @context.UsageLimit
-            </TemplateColumn>
-
-            <TemplateColumn Title="Bắt đầu">
-                @context.StartDate.ToString("dd/MM/yyyy HH:mm:ss")
-            </TemplateColumn>
-
-            <TemplateColumn Title="Kết thúc">
-                @context.EndDate.ToString("dd/MM/yyyy HH:mm:ss")
-            </TemplateColumn>
-
-            <TemplateColumn Title="Trạng thái GG" Style="display: flex; align-items: center;">
-                <FluentBadge title="Trạng thái giảm giá" Appearance="@(context.StartDate<=DateTime.Now &&context.EndDate>=DateTime.Now&&context.ModerationStatus == 0 ? Appearance.Accent : Appearance.Neutral)">
-                    @if (context.ModerationStatus != 0)
+                <TemplateColumn Title="Giá trị">
+                    @if (context.DiscountCodeType == DiscountCodeType.Money)
                     {
-                        <span>Chưa phê duyệt</span>
-
+                        @($"{context.DiscountValue:N0} đ")
                     }
                     else
                     {
-                        @if (context.StartDate > DateTime.Now)
+                        @($"{context.DiscountValue:N0} %")
+                    }
+
+                </TemplateColumn>
+                <TemplateColumn Title="Đơn tối thiểu">
+                    @($"{context.MinOrderAmount:N0} đ")
+                </TemplateColumn>
+
+                <TemplateColumn Title="Lượt dùng">
+                    @context.UsedCount / @context.UsageLimit
+                </TemplateColumn>
+
+                <TemplateColumn Title="Bắt đầu">
+                    @context.StartDate.ToString("dd/MM/yyyy HH:mm:ss")
+                </TemplateColumn>
+
+                <TemplateColumn Title="Kết thúc">
+                    @context.EndDate.ToString("dd/MM/yyyy HH:mm:ss")
+                </TemplateColumn>
+
+                <TemplateColumn Title="Trạng thái GG" Style="display: flex; align-items: center;">
+                    <FluentBadge title="Trạng thái giảm giá" Appearance="@(context.StartDate <= DateTime.Now && context.EndDate >= DateTime.Now && context.ModerationStatus == 0 ? Appearance.Accent : Appearance.Neutral)">
+                        @if (context.ModerationStatus != 0)
                         {
-                            <span>Chưa bắt đầu</span>
-                        }
-                        else if (context.EndDate < DateTime.Now)
-                        {
-                            <span>Đã kết thúc</span>
+                            <span>Chưa phê duyệt</span>
+
                         }
                         else
                         {
-                            <span>Đang diễn ra</span>
-                        }
-                    }
-
-                </FluentBadge>
-            </TemplateColumn>
-            
-
-            <TemplateColumn Title="Trạng thái XN">
-                <FluentBadge title="Trạng thái xác nhận" Appearance="@(context.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
-                    @(context.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
-                </FluentBadge>
-            </TemplateColumn>
-
-
-            <TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:155px">
-                <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
-                    @if (context.EndDate > DateTime.Now)
-                    {
-                        @if (context.ModerationStatus != 0)
-                        {
-                            <FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="()=>OpenModalUpdate(context.Id)">
-                                <FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
-                            </FluentButton>
-                        }
-
-                        @if (context.ModerationStatus == 0)
-                        {
-                            <FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id))">
-                                <FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
-                            </FluentButton>
-                        }
-                        else
-                        {
-                            <FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id))">
-                                <FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
-                            </FluentButton>
-                        }
-                        @if (context.ModerationStatus != 0)
-                        {
-                            <FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteAsync(context.Id))">
-                                <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
-                            </FluentButton>
-
-
-                        }
-                    }
-                    else
-                    {
-                        <FluentBadge title="Trạng thái khuyến mãi" Appearance="@(context.ModerationStatus == 0 ? Appearance.Accent : Appearance.Neutral)">
-                            @if (context.ModerationStatus != 0)
+                            @if (context.StartDate > DateTime.Now)
                             {
-                                <span>Hết hạn</span>
-
+                                <span>Chưa bắt đầu</span>
+                            }
+                            else if (context.EndDate < DateTime.Now)
+                            {
+                                <span>Đã kết thúc</span>
                             }
                             else
                             {
-                                <span>Xong</span>
+                                <span>Đang diễn ra</span>
+                            }
+                        }
+
+                    </FluentBadge>
+                </TemplateColumn>
+
+
+                <TemplateColumn Title="Trạng thái XN">
+                    <FluentBadge title="Trạng thái xác nhận" Appearance="@(context.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
+                        @(context.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
+                    </FluentBadge>
+                </TemplateColumn>
+
+
+                <TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:155px">
+                    <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                        @if (context.EndDate > DateTime.Now)
+                        {
+                            @if (context.ModerationStatus != 0)
+                            {
+                                <FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="() => OpenModalUpdate(context.Id)">
+                                    <FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
+                                </FluentButton>
                             }
 
-                        </FluentBadge>
-                    }
+                            @if (context.ModerationStatus == 0)
+                            {
+                                <FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id))">
+                                    <FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
+                                </FluentButton>
+                            }
+                            else
+                            {
+                                <FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id))">
+                                    <FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
+                                </FluentButton>
+                            }
+                            @if (context.ModerationStatus != 0)
+                            {
+                                <FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteAsync(context.Id))">
+                                    <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+                                </FluentButton>
 
-                </FluentStack>
-            </TemplateColumn>
-        </FluentDataGrid>
 
-        <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefreshDataAsync" />
-    </FluentGridItem>
-</FluentStack>
+                            }
+                        }
+                        else
+                        {
+                            <FluentBadge title="Trạng thái khuyến mãi" Appearance="@(context.ModerationStatus == 0 ? Appearance.Accent : Appearance.Neutral)">
+                                @if (context.ModerationStatus != 0)
+                                {
+                                    <span>Hết hạn</span>
+
+                                }
+                                else
+                                {
+                                    <span>Xong</span>
+                                }
+
+                            </FluentBadge>
+                        }
+
+                    </FluentStack>
+                </TemplateColumn>
+            </FluentDataGrid>
+
+            <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefreshDataAsync" />
+        </FluentGridItem>
+    </FluentStack>
+}
+else
+{
+    <p>Bạn không có quyền sử dụng chức năng.</p>
+}

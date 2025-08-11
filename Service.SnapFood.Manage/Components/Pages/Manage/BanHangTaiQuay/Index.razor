@@ -1,217 +1,235 @@
 ﻿@page "/Ban-Hang/Ban-Tai-Quay"
-<div>
-    <!-- Top Bar -->
-    <div style="background: linear-gradient(135deg, #1a237e 0%, #3949ab 50%, #5c6bc0 100%); color: white; padding: 12px 20px; display: flex; align-items: center; gap: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+@using Service.SnapFood.Share.Model.Commons
+@using Service.SnapFood.Share.Model.Enum
+@if(CurrentUser.UserId == Guid.Empty)
+{
+    <p>Bạn chưa đăng nhập!</p>
+}else if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+{
+    <div>
+        <!-- Top Bar -->
+        <div style="background: linear-gradient(135deg, #1a237e 0%, #3949ab 50%, #5c6bc0 100%); color: white; padding: 12px 20px; display: flex; align-items: center; gap: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-bottom: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
 
-        <!-- Search Box -->
-        <div style="flex: 1; max-width: 450px; position: relative;">
-            <input type="text" placeholder="Thêm sản phẩm vào đơn (F3)" id="productSearch"
-                   style="width: 100%; padding: 12px 50px 12px 45px; border: none; border-radius: 12px; font-size: 14px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; font-weight: 400;"
-                   onfocus="this.style.background='white'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'; this.style.transform='translateY(-1px)'"
-                   onblur="this.style.background='rgba(255,255,255,0.95)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
-            
-        </div>
+            <!-- Search Box -->
+            <div style="flex: 1; max-width: 450px; position: relative;">
+                <input type="text" placeholder="Thêm sản phẩm vào đơn (F3)" id="productSearch"
+                       style="width: 100%; padding: 12px 50px 12px 45px; border: none; border-radius: 12px; font-size: 14px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; font-weight: 400;"
+                       onfocus="this.style.background='white'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'; this.style.transform='translateY(-1px)'"
+                       onblur="this.style.background='rgba(255,255,255,0.95)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
 
-        <!-- Order Tabs -->
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="background: white; color: #1a237e; padding: 10px 18px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                Đơn 1
-                <i class="fas fa-times" style="font-size: 12px;"></i>
             </div>
-            <button style="background: linear-gradient(135deg, #4caf50, #66bb6a); border: none; color: white; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(76,175,80,0.3);"
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(76,175,80,0.4)'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(76,175,80,0.3)'">
-                <i class="fas fa-plus"></i>
-            </button>
-        </div>
 
-        <!-- Top Actions -->
-        <div style="display: flex; align-items: center; gap: 15px; margin-left: auto;">
-            <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
-                    onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
-                    title="Chỉ nhắn mặc định">
-                <i class="fas fa-map-marker-alt"></i>
-            </button>
-            <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
-                    onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
-                    title="Mở rộng">
-                <i class="fas fa-expand"></i>
-            </button>
-            <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
-                    onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
-                    title="Thu nhỏ">
-                <i class="fas fa-compress"></i>
-            </button>
-            <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
-                    onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
-                    title="Làm mới">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-            <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
-                    onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
-                    title="Trang chủ">
-                <i class="fas fa-home"></i>
-            </button>
-            <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 16px; border-radius: 25px; font-size: 13px; transition: all 0.3s ease; backdrop-filter: blur(10px); font-weight: 500;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'">
-                <i class="fas fa-question-circle"></i> Trợ giúp
-            </button>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div style="height: calc(100vh - 76px); display: flex; background: rgba(255,255,255,0.05);">
-
-        <!-- Left Panel - Order Items -->
-        <div style="flex: 1; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.2); box-shadow: 0 0 30px rgba(0,0,0,0.1);">
-            <div id="orderItems">
-                <!-- Order Item 1 -->
-                <div style="display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 20px; transition: all 0.3s ease; background: white;"
-                     onmouseover="this.style.background='linear-gradient(135deg, #f8f9ff, #ffffff)'; this.style.transform='translateX(4px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'"
-                     onmouseout="this.style.background='white'; this.style.transform='translateX(0)'; this.style.boxShadow='none'">
-                    <div style="width: 35px; height: 35px; text-align: center; font-weight: 600; color: #5c6bc0; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">1</div>
-                    <i class="fas fa-trash" style="color: #f44336; cursor: pointer; font-size: 16px; padding: 8px; border-radius: 8px; transition: all 0.3s ease;"
-                       onmouseover="this.style.background='rgba(244,67,54,0.1)'; this.style.transform='scale(1.1)'"
-                       onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'"></i>
-                    <div style="width: 80px; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 6px 12px; border-radius: 8px; text-align: center; font-size: 12px;">PVN02</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; color: #1a1a1a; margin: 0 0 4px 0; font-size: 15px;">Bộ Sản Phẩm Làm Sáng Da 5...</div>
-                        <div style="font-size: 12px; color: #666; margin: 0; background: rgba(103,58,183,0.1); padding: 2px 8px; border-radius: 12px; display: inline-block;">travel size</div>
-                    </div>
-                    <div style="width: 70px; text-align: center; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 8px; border-radius: 8px;">2</div>
-                    <div style="width: 110px; text-align: right; color: #666; font-weight: 500;">277,000</div>
-                    <div style="width: 120px; text-align: right; font-weight: 700; color: #1a237e; font-size: 16px;">554,000</div>
+            <!-- Order Tabs -->
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: white; color: #1a237e; padding: 10px 18px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    Đơn 1
+                    <i class="fas fa-times" style="font-size: 12px;"></i>
                 </div>
-
-                <!-- Order Item 2 -->
-                <div style="display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 20px; transition: all 0.3s ease; background: white;"
-                     onmouseover="this.style.background='linear-gradient(135deg, #f8f9ff, #ffffff)'; this.style.transform='translateX(4px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'"
-                     onmouseout="this.style.background='white'; this.style.transform='translateX(0)'; this.style.boxShadow='none'">
-                    <div style="width: 35px; height: 35px; text-align: center; font-weight: 600; color: #5c6bc0; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">2</div>
-                    <i class="fas fa-trash" style="color: #f44336; cursor: pointer; font-size: 16px; padding: 8px; border-radius: 8px; transition: all 0.3s ease;"
-                       onmouseover="this.style.background='rgba(244,67,54,0.1)'; this.style.transform='scale(1.1)'"
-                       onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'"></i>
-                    <div style="width: 80px; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 6px 12px; border-radius: 8px; text-align: center; font-size: 12px;">BB01</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; color: #1a1a1a; margin: 0 0 4px 0; font-size: 15px;">Kem Dưỡng Ẩm Premium</div>
-                        <div style="font-size: 12px; color: #666; margin: 0; background: rgba(103,58,183,0.1); padding: 2px 8px; border-radius: 12px; display: inline-block;">full size</div>
-                    </div>
-                    <div style="width: 70px; text-align: center; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 8px; border-radius: 8px;">1</div>
-                    <div style="width: 110px; text-align: right; color: #666; font-weight: 500;">350,000</div>
-                    <div style="width: 120px; text-align: right; font-weight: 700; color: #1a237e; font-size: 16px;">350,000</div>
-                </div>
-
-                <!-- Order Item 3 -->
-                <div style="display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 20px; transition: all 0.3s ease; background: white;"
-                     onmouseover="this.style.background='linear-gradient(135deg, #f8f9ff, #ffffff)'; this.style.transform='translateX(4px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'"
-                     onmouseout="this.style.background='white'; this.style.transform='translateX(0)'; this.style.boxShadow='none'">
-                    <div style="width: 35px; height: 35px; text-align: center; font-weight: 600; color: #5c6bc0; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">3</div>
-                    <i class="fas fa-trash" style="color: #f44336; cursor: pointer; font-size: 16px; padding: 8px; border-radius: 8px; transition: all 0.3s ease;"
-                       onmouseover="this.style.background='rgba(244,67,54,0.1)'; this.style.transform='scale(1.1)'"
-                       onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'"></i>
-                    <div style="width: 80px; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 6px 12px; border-radius: 8px; text-align: center; font-size: 12px;">CC02</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; color: #1a1a1a; margin: 0 0 4px 0; font-size: 15px;">Serum Vitamin C Brightening</div>
-                        <div style="font-size: 12px; color: #666; margin: 0; background: rgba(103,58,183,0.1); padding: 2px 8px; border-radius: 12px; display: inline-block;">travel size</div>
-                    </div>
-                    <div style="width: 70px; text-align: center; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 8px; border-radius: 8px;">3</div>
-                    <div style="width: 110px; text-align: right; color: #666; font-weight: 500;">180,000</div>
-                    <div style="width: 120px; text-align: right; font-weight: 700; color: #1a237e; font-size: 16px;">540,000</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Panel - Order Summary -->
-        <div style="width: 380px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); padding: 25px; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.1);">
-
-            <!-- Customer Search -->
-            <div style="position: relative; margin-bottom: 25px;">
-                <input type="text" placeholder="Thêm khách hàng vào đơn (F4)"
-                       style="width: 100%; padding: 14px 50px 14px 45px; border: 2px solid rgba(103,58,183,0.2); border-radius: 12px; font-size: 14px; background: white; transition: all 0.3s ease; font-weight: 400;"
-                       onfocus="this.style.borderColor='#673ab7'; this.style.boxShadow='0 8px 25px rgba(103,58,183,0.15)'; this.style.transform='translateY(-1px)'"
-                       onblur="this.style.borderColor='rgba(103,58,183,0.2)'; this.style.boxShadow='none'; this.style.transform='translateY(0)'">
-                <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-size: 16px;"></i>
-                <button style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: linear-gradient(135deg, #4caf50, #66bb6a); border: none; color: white; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;"
-                        onmouseover="this.style.transform='translateY(-50%) scale(1.05)'"
-                        onmouseout="this.style.transform='translateY(-50%) scale(1)'">
+                <button style="background: linear-gradient(135deg, #4caf50, #66bb6a); border: none; color: white; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(76,175,80,0.3);"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(76,175,80,0.4)'"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(76,175,80,0.3)'">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
 
-            <!-- Order Summary -->
-            <div style="flex: 1; display: flex; flex-direction: column; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid rgba(103,58,183,0.1);">
-
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
-                     onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
-                     onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
-                    <span style="color: #666; font-weight: 500;">Số lượng sản phẩm</span>
-                    <span style="font-weight: 600; color: #1a1a1a;">6</span>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
-                     onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
-                     onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
-                    <span style="color: #666; font-weight: 500;">Tổng tiền</span>
-                    <span style="font-weight: 600; color: #1a1a1a;">1,444,000</span>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
-                     onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
-                     onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
-                    <span style="color: #666; font-weight: 500;">VAT</span>
-                    <span style="font-weight: 600; color: #1a1a1a;">0</span>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
-                     onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
-                     onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
-                    <span style="color: #666; font-weight: 500;">Chiết khấu</span>
-                    <span style="font-weight: 600; color: #1a1a1a;">0</span>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; color: #1a237e; margin-top: 15px; padding: 20px 10px 12px 10px; border-top: 2px solid rgba(103,58,183,0.2); background: linear-gradient(135deg, rgba(103,58,183,0.05), rgba(26,35,126,0.05)); margin-left: -10px; margin-right: -10px; border-radius: 12px;">
-                    <span>Khách phải trả</span>
-                    <span>1,444,000</span>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
-                     onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
-                     onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
-                    <span style="color: #666; font-weight: 500;">Tiền khách đưa</span>
-                    <span style="font-weight: 600; color: #1a1a1a;">1,444,000</span>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
-                     onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
-                     onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
-                    <span style="color: #666; font-weight: 500;">Tiền mặt</span>
-                    <button class="btn btn-sm btn-outline-secondary">▼</button>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; transition: all 0.3s ease;"
-                     onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
-                     onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
-                    <span style="color: #666; font-weight: 500;">Tiền thừa</span>
-                    <span style="font-weight: 600; color: #1a1a1a;">0</span>
-                </div>
-            </div>
-
-            <!-- Payment Section -->
-            <div style="margin-top: auto; padding-top: 25px;">
-                <button style="background: linear-gradient(135deg, #4caf50, #66bb6a); color: white; border: none; border-radius: 16px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(76,175,80,0.3); text-transform: uppercase; letter-spacing: 0.5px;"
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 35px rgba(76,175,80,0.4)'"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(76,175,80,0.3)'">
-                    <i class="fas fa-credit-card me-2"></i>Thanh toán (F1)
+            <!-- Top Actions -->
+            <div style="display: flex; align-items: center; gap: 15px; margin-left: auto;">
+                <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
+                        onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
+                        title="Chỉ nhắn mặc định">
+                    <i class="fas fa-map-marker-alt"></i>
+                </button>
+                <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
+                        onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
+                        title="Mở rộng">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
+                        onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
+                        title="Thu nhỏ">
+                    <i class="fas fa-compress"></i>
+                </button>
+                <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
+                        onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
+                        title="Làm mới">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(10px);"
+                        onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'"
+                        title="Trang chủ">
+                    <i class="fas fa-home"></i>
+                </button>
+                <button class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 16px; border-radius: 25px; font-size: 13px; transition: all 0.3s ease; backdrop-filter: blur(10px); font-weight: 500;"
+                        onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'">
+                    <i class="fas fa-question-circle"></i> Trợ giúp
                 </button>
             </div>
         </div>
+
+        <!-- Main Content -->
+        <div style="height: calc(100vh - 76px); display: flex; background: rgba(255,255,255,0.05);">
+
+            <!-- Left Panel - Order Items -->
+            <div style="flex: 1; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.2); box-shadow: 0 0 30px rgba(0,0,0,0.1);">
+                <div id="orderItems">
+                    <!-- Order Item 1 -->
+                    <div style="display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 20px; transition: all 0.3s ease; background: white;"
+                         onmouseover="this.style.background='linear-gradient(135deg, #f8f9ff, #ffffff)'; this.style.transform='translateX(4px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'"
+                         onmouseout="this.style.background='white'; this.style.transform='translateX(0)'; this.style.boxShadow='none'">
+                        <div style="width: 35px; height: 35px; text-align: center; font-weight: 600; color: #5c6bc0; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">1</div>
+                        <i class="fas fa-trash" style="color: #f44336; cursor: pointer; font-size: 16px; padding: 8px; border-radius: 8px; transition: all 0.3s ease;"
+                           onmouseover="this.style.background='rgba(244,67,54,0.1)'; this.style.transform='scale(1.1)'"
+                           onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'"></i>
+                        <div style="width: 80px; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 6px 12px; border-radius: 8px; text-align: center; font-size: 12px;">PVN02</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #1a1a1a; margin: 0 0 4px 0; font-size: 15px;">Bộ Sản Phẩm Làm Sáng Da 5...</div>
+                            <div style="font-size: 12px; color: #666; margin: 0; background: rgba(103,58,183,0.1); padding: 2px 8px; border-radius: 12px; display: inline-block;">travel size</div>
+                        </div>
+                        <div style="width: 70px; text-align: center; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 8px; border-radius: 8px;">2</div>
+                        <div style="width: 110px; text-align: right; color: #666; font-weight: 500;">277,000</div>
+                        <div style="width: 120px; text-align: right; font-weight: 700; color: #1a237e; font-size: 16px;">554,000</div>
+                    </div>
+
+                    <!-- Order Item 2 -->
+                    <div style="display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 20px; transition: all 0.3s ease; background: white;"
+                         onmouseover="this.style.background='linear-gradient(135deg, #f8f9ff, #ffffff)'; this.style.transform='translateX(4px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'"
+                         onmouseout="this.style.background='white'; this.style.transform='translateX(0)'; this.style.boxShadow='none'">
+                        <div style="width: 35px; height: 35px; text-align: center; font-weight: 600; color: #5c6bc0; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">2</div>
+                        <i class="fas fa-trash" style="color: #f44336; cursor: pointer; font-size: 16px; padding: 8px; border-radius: 8px; transition: all 0.3s ease;"
+                           onmouseover="this.style.background='rgba(244,67,54,0.1)'; this.style.transform='scale(1.1)'"
+                           onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'"></i>
+                        <div style="width: 80px; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 6px 12px; border-radius: 8px; text-align: center; font-size: 12px;">BB01</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #1a1a1a; margin: 0 0 4px 0; font-size: 15px;">Kem Dưỡng Ẩm Premium</div>
+                            <div style="font-size: 12px; color: #666; margin: 0; background: rgba(103,58,183,0.1); padding: 2px 8px; border-radius: 12px; display: inline-block;">full size</div>
+                        </div>
+                        <div style="width: 70px; text-align: center; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 8px; border-radius: 8px;">1</div>
+                        <div style="width: 110px; text-align: right; color: #666; font-weight: 500;">350,000</div>
+                        <div style="width: 120px; text-align: right; font-weight: 700; color: #1a237e; font-size: 16px;">350,000</div>
+                    </div>
+
+                    <!-- Order Item 3 -->
+                    <div style="display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 20px; transition: all 0.3s ease; background: white;"
+                         onmouseover="this.style.background='linear-gradient(135deg, #f8f9ff, #ffffff)'; this.style.transform='translateX(4px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'"
+                         onmouseout="this.style.background='white'; this.style.transform='translateX(0)'; this.style.boxShadow='none'">
+                        <div style="width: 35px; height: 35px; text-align: center; font-weight: 600; color: #5c6bc0; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">3</div>
+                        <i class="fas fa-trash" style="color: #f44336; cursor: pointer; font-size: 16px; padding: 8px; border-radius: 8px; transition: all 0.3s ease;"
+                           onmouseover="this.style.background='rgba(244,67,54,0.1)'; this.style.transform='scale(1.1)'"
+                           onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'"></i>
+                        <div style="width: 80px; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 6px 12px; border-radius: 8px; text-align: center; font-size: 12px;">CC02</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #1a1a1a; margin: 0 0 4px 0; font-size: 15px;">Serum Vitamin C Brightening</div>
+                            <div style="font-size: 12px; color: #666; margin: 0; background: rgba(103,58,183,0.1); padding: 2px 8px; border-radius: 12px; display: inline-block;">travel size</div>
+                        </div>
+                        <div style="width: 70px; text-align: center; font-weight: 600; color: #1a237e; background: linear-gradient(135deg, #e8eaf6, #f3e5f5); padding: 8px; border-radius: 8px;">3</div>
+                        <div style="width: 110px; text-align: right; color: #666; font-weight: 500;">180,000</div>
+                        <div style="width: 120px; text-align: right; font-weight: 700; color: #1a237e; font-size: 16px;">540,000</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Order Summary -->
+            <div style="width: 380px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); padding: 25px; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.1);">
+
+                <!-- Customer Search -->
+                <div style="position: relative; margin-bottom: 25px;">
+                    <input type="text" placeholder="Thêm khách hàng vào đơn (F4)"
+                           style="width: 100%; padding: 14px 50px 14px 45px; border: 2px solid rgba(103,58,183,0.2); border-radius: 12px; font-size: 14px; background: white; transition: all 0.3s ease; font-weight: 400;"
+                           onfocus="this.style.borderColor='#673ab7'; this.style.boxShadow='0 8px 25px rgba(103,58,183,0.15)'; this.style.transform='translateY(-1px)'"
+                           onblur="this.style.borderColor='rgba(103,58,183,0.2)'; this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+                    <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-size: 16px;"></i>
+                    <button style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: linear-gradient(135deg, #4caf50, #66bb6a); border: none; color: white; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;"
+                            onmouseover="this.style.transform='translateY(-50%) scale(1.05)'"
+                            onmouseout="this.style.transform='translateY(-50%) scale(1)'">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <!-- Order Summary -->
+                <div style="flex: 1; display: flex; flex-direction: column; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid rgba(103,58,183,0.1);">
+
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
+                         onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
+                         onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
+                        <span style="color: #666; font-weight: 500;">Số lượng sản phẩm</span>
+                        <span style="font-weight: 600; color: #1a1a1a;">6</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
+                         onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
+                         onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
+                        <span style="color: #666; font-weight: 500;">Tổng tiền</span>
+                        <span style="font-weight: 600; color: #1a1a1a;">1,444,000</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
+                         onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
+                         onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
+                        <span style="color: #666; font-weight: 500;">VAT</span>
+                        <span style="font-weight: 600; color: #1a1a1a;">0</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
+                         onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
+                         onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
+                        <span style="color: #666; font-weight: 500;">Chiết khấu</span>
+                        <span style="font-weight: 600; color: #1a1a1a;">0</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; color: #1a237e; margin-top: 15px; padding: 20px 10px 12px 10px; border-top: 2px solid rgba(103,58,183,0.2); background: linear-gradient(135deg, rgba(103,58,183,0.05), rgba(26,35,126,0.05)); margin-left: -10px; margin-right: -10px; border-radius: 12px;">
+                        <span>Khách phải trả</span>
+                        <span>1,444,000</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
+                         onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
+                         onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
+                        <span style="color: #666; font-weight: 500;">Tiền khách đưa</span>
+                        <span style="font-weight: 600; color: #1a1a1a;">1,444,000</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;"
+                         onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
+                         onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
+                        <span style="color: #666; font-weight: 500;">Tiền mặt</span>
+                        <button class="btn btn-sm btn-outline-secondary">▼</button>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; transition: all 0.3s ease;"
+                         onmouseover="this.style.background='rgba(103,58,183,0.02)'; this.style.margin='0 -10px'; this.style.padding='12px 10px'; this.style.borderRadius='8px'"
+                         onmouseout="this.style.background='transparent'; this.style.margin='0'; this.style.padding='12px 0'; this.style.borderRadius='0'">
+                        <span style="color: #666; font-weight: 500;">Tiền thừa</span>
+                        <span style="font-weight: 600; color: #1a1a1a;">0</span>
+                    </div>
+                </div>
+
+                <!-- Payment Section -->
+                <div style="margin-top: auto; padding-top: 25px;">
+                    <button style="background: linear-gradient(135deg, #4caf50, #66bb6a); color: white; border: none; border-radius: 16px; padding: 18px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(76,175,80,0.3); text-transform: uppercase; letter-spacing: 0.5px;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 35px rgba(76,175,80,0.4)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(76,175,80,0.3)'">
+                        <i class="fas fa-credit-card me-2"></i>Thanh toán (F1)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
     </div>
+}
+else
+{
+    <p>Bạn không có quyền sử dụng chức năng.</p>
+}
 
-
-</div>
+@code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
+  
+}

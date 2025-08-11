@@ -1,11 +1,22 @@
 ﻿@page "/Quan-Ly/Thong-Ke"
-
-<div class="dashboard-container">  
-    <ViewTTSoLieu />
-    <hr/>
-    <ViewZoneChart/>
-</div>
-
+@using Service.SnapFood.Share.Model.Commons
+@using Service.SnapFood.Share.Model.Enum
+@if (CurrentUser.UserId == Guid.Empty)
+{
+    <p>Bạn chưa đăng nhập!</p>
+}
+else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+{
+    <div class="dashboard-container">
+        <ViewTTSoLieu />
+        <hr />
+        <ViewZoneChart />
+    </div>
+}
+else
+{
+    <p>Bạn không có quyền sử dụng chức năng.</p>
+}
 <style>
     .dashboard-container {
         padding: var(--design-unit-4);
@@ -36,5 +47,5 @@
 
 
 @code {
-
+    [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
 }

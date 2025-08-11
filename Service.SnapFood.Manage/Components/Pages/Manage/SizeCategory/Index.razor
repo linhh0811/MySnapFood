@@ -3,160 +3,171 @@
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.FluentUI.AspNetCore.Components.Icons
 @using Service.SnapFood.Manage.Dto.TreeView
+@using Service.SnapFood.Share.Model.Enum
 @using Service.SnapFood.Share.Model.SQL
 @using Service.SnapFood.Manage.Dto.Category;
+@if (CurrentUser.UserId == Guid.Empty)
+{
+    <p>Bạn chưa đăng nhập!</p>
+}
+else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+{
+    <FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
+        <h3>Quản lý chung</h3>
 
-<FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
-    <h3>Quản lý chung</h3>
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Stretch" Style="width:100%; gap: 20px;">
+            <!-- Cột bên trái 40% -->
+            <FluentStack Orientation="Orientation.Vertical" Style="width:35%; gap: 12px;">
+                <FluentCard Style="height: calc(100vh - 200px); overflow-y: auto;">
+                    <!-- Phần tìm kiếm và nút thêm mới -->
+                    <h4>Quản lý size</h4>
+                    <hr />
+                    <FluentStack Horizontal Gap="10px" Style="width: 100%;">
 
-    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Stretch" Style="width:100%; gap: 20px;">
-        <!-- Cột bên trái 40% -->
-        <FluentStack Orientation="Orientation.Vertical" Style="width:35%; gap: 12px;">
-			<FluentCard Style="height: calc(100vh - 200px); overflow-y: auto;">
-                <!-- Phần tìm kiếm và nút thêm mới -->
-                <h4>Quản lý size</h4>
-                <hr/>
-                <FluentStack Horizontal Gap="10px" Style="width: 100%;">
-                    
 
-					<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.AddCircle())" OnClick="OpenModalAddSize" Disabled="isLoading">
-                        Thêm mới
-                    </FluentButton>
+                        <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.AddCircle())" OnClick="OpenModalAddSize" Disabled="isLoading">
+                            Thêm mới
+                        </FluentButton>
 
-					<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.FolderOpen())" OnClick="ExpandAll" Disabled="isLoading">
-                        Mở tất cả
-                    </FluentButton>
+                        <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.FolderOpen())" OnClick="ExpandAll" Disabled="isLoading">
+                            Mở tất cả
+                        </FluentButton>
 
-					<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.Folder())" OnClick="CollapseAll" Disabled="isLoading">
-                        Đóng tất cả
-                    </FluentButton>
-					<FluentSearch Placeholder="Nhập vào từ ..." Style="flex:1"/>
-                </FluentStack>
+                        <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.Folder())" OnClick="CollapseAll" Disabled="isLoading">
+                            Đóng tất cả
+                        </FluentButton>
+                        <FluentSearch Placeholder="Nhập vào từ ..." Style="flex:1" />
+                    </FluentStack>
 
-                <!-- Tree View -->
-                <div class="tree-container" style="width:100%; overflow-y: auto;">
-                    <FluentTreeView @bind-SelectedItem="selectedItem" Items="@Items" LazyLoadItems="false" OnExpand="HandleExpand" OnCollapse="HandleCollapse">
-                        <ItemTemplate>
-                            @{
-                                var treeView = context as TreeViewItemDto ?? new TreeViewItemDto();
-                                <div @onclick="() => SelectTreeItem(context)" style="display: flex; align-items: center; gap: 10px;width:100%;">
-                                    <span style="@GetTextStyle(treeView.ModerationStatus)">
-                                        @context.Text
-                                    </span>
-                                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-left: auto;">
-                                        @if (context == selectedItem)
-                                        {
-											<FluentButton Title="Sửa" Style="display: inline-block;" OnClick="@(()=>OpenModalUpdateSize(context.Id))">
-												<FluentIcon Value="@(new Icons.Regular.Size20.Edit())" />
-											</FluentButton>
-                                            @if (treeView.ModerationStatus == (int)ModerationStatus.Approved)
+                    <!-- Tree View -->
+                    <div class="tree-container" style="width:100%; overflow-y: auto;">
+                        <FluentTreeView @bind-SelectedItem="selectedItem" Items="@Items" LazyLoadItems="false" OnExpand="HandleExpand" OnCollapse="HandleCollapse">
+                            <ItemTemplate>
+                                @{
+                                    var treeView = context as TreeViewItemDto ?? new TreeViewItemDto();
+                                    <div @onclick="() => SelectTreeItem(context)" style="display: flex; align-items: center; gap: 10px;width:100%;">
+                                        <span style="@GetTextStyle(treeView.ModerationStatus)">
+                                            @context.Text
+                                        </span>
+                                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-left: auto;">
+                                            @if (context == selectedItem)
                                             {
-												<FluentButton Title="Hủy duyệt" Style="display: inline-block;" OnClick="@(() => RejectSizeAsync(context.Id))">
-                                                    <FluentIcon Value="@(new Icons.Regular.Size20.Dismiss())" />
+                                                <FluentButton Title="Sửa" Style="display: inline-block;" OnClick="@(() => OpenModalUpdateSize(context.Id))">
+                                                    <FluentIcon Value="@(new Icons.Regular.Size20.Edit())" />
                                                 </FluentButton>
+                                                @if (treeView.ModerationStatus == (int)ModerationStatus.Approved)
+                                                {
+                                                    <FluentButton Title="Hủy duyệt" Style="display: inline-block;" OnClick="@(() => RejectSizeAsync(context.Id))">
+                                                        <FluentIcon Value="@(new Icons.Regular.Size20.Dismiss())" />
+                                                    </FluentButton>
+                                                }
+                                                else if (treeView.ModerationStatus == (int)ModerationStatus.Rejected)
+                                                {
+                                                    <FluentButton Title="Duyệt" Style="display: inline-block;" OnClick="@(() => ApproveSizeAsync(context.Id))">
+                                                        <FluentIcon Value="@(new Icons.Regular.Size20.Checkmark())" />
+                                                    </FluentButton>
+                                                    <FluentButton Title="Xóa" Style="display: inline-block;" OnClick="@(() => DeleteSizeAsync(context.Id))">
+                                                        <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" />
+                                                    </FluentButton>
+                                                }
                                             }
-                                            else if (treeView.ModerationStatus == (int)ModerationStatus.Rejected)
-                                            {
-												<FluentButton Title="Duyệt" Style="display: inline-block;" OnClick="@(() => ApproveSizeAsync(context.Id))">
-                                                    <FluentIcon Value="@(new Icons.Regular.Size20.Checkmark())" />
-                                                </FluentButton>                                  
-												<FluentButton Title="Xóa" Style="display: inline-block;" OnClick="@(() => DeleteSizeAsync(context.Id))">
-                                                    <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" />
-                                                </FluentButton>
-                                            }
-                                        }
+                                        </div>
                                     </div>
-                                </div>
-                            }
-                        </ItemTemplate>
-                    </FluentTreeView>
-                </div>
-            </FluentCard>
-           
-        </FluentStack>
+                                }
+                            </ItemTemplate>
+                        </FluentTreeView>
+                    </div>
+                </FluentCard>
 
-        <FluentStack Style="width:65%;">
-			<FluentCard Style="height: calc(100vh - 200px); overflow-y: auto;">
-                <h4>Quản lý phân loại</h4>
-                <hr />
-				<FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
-					<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
-						<FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAddCategory" Disabled="isLoading">Thêm mới</FluentButton>
+            </FluentStack>
 
-					</FluentStack>
-					<FluentSearch @bind-Value="KeySearchCategory" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ ..." />
-				</FluentStack>
-				<FluentGridItem Style="width:100%;">
-					<FluentDataGrid @ref="CategoryGrid"
-									TGridItem="CategoryDto"
-									ItemsProvider="@LoadCategory"
-									Pagination="@pagination"
-									ResizableColumns="false"
-									GridTemplateColumns="0.5fr 1.5fr 1.5fr 1.5fr 1.0fr "
-									RowSize="DataGridRowSize.Large"
-									ShowHover="true">
+            <FluentStack Style="width:65%;">
+                <FluentCard Style="height: calc(100vh - 200px); overflow-y: auto;">
+                    <h4>Quản lý phân loại</h4>
+                    <hr />
+                    <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+                        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                            <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAddCategory" Disabled="isLoading">Thêm mới</FluentButton>
 
-
-						<TemplateColumn Title="#" Style="display:flex;align-items: center;">
-							<span style="cursor: pointer;">
-								@context.Index
-							</span>
-						</TemplateColumn>
-						<TemplateColumn Title="Tên" Style="display: flex;align-items: center;">
-							<span style="cursor: pointer; color: dodgerblue; " @onclick="()=>OpenDetailsModal(context.Id??string.Empty)">
-								@context.CategoryName
-							</span>
-						</TemplateColumn>
-						<TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;">
-							<img src="@context.ImageUrl" alt="Ảnh" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
-						</TemplateColumn>
-
-						<TemplateColumn Title="Vị trí" Style="display: flex;align-items: center;">
-							<span style="cursor: pointer;">
-								@context.DisplayOrder
-							</span>
-						</TemplateColumn>
-
-						<TemplateColumn Title="Trạng thái" Style="display: flex; align-items: center;">
-							<FluentBadge Appearance="@(context.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
-								@(context.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
-							</FluentBadge>
-						</TemplateColumn>
-						<TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:155px">
-							<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">						
-								<FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(()=> OpenModalUpdateCategory(context.Id??string.Empty))">
-									<FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
-								</FluentButton>							
-
-								@if (context.ModerationStatus == 0)
-								{
-									<FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectCategoryAsync(context.Id??string.Empty))">
-										<FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
-									</FluentButton>
-								}
-								else
-								{
-									<FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveCategoryAsync(context.Id??string.Empty))">
-										<FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())"  />
-									</FluentButton>
-								}
-								@if (context.ModerationStatus != 0)
-								{
-									<FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteCategoryAsync(context.Id??string.Empty))">
-										<FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
-									</FluentButton>
+                        </FluentStack>
+                        <FluentSearch @bind-Value="KeySearchCategory" @bind-Value:after=RefreshDataAsync Placeholder="Nhập vào từ ..." />
+                    </FluentStack>
+                    <FluentGridItem Style="width:100%;">
+                        <FluentDataGrid @ref="CategoryGrid"
+                                        TGridItem="CategoryDto"
+                                        ItemsProvider="@LoadCategory"
+                                        Pagination="@pagination"
+                                        ResizableColumns="false"
+                                        GridTemplateColumns="0.5fr 1.5fr 1.5fr 1.5fr 1.0fr "
+                                        RowSize="DataGridRowSize.Large"
+                                        ShowHover="true">
 
 
-								}
-							</FluentStack>
-						</TemplateColumn>
-					</FluentDataGrid>
+                            <TemplateColumn Title="#" Style="display:flex;align-items: center;">
+                                <span style="cursor: pointer;">
+                                    @context.Index
+                                </span>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Tên" Style="display: flex;align-items: center;">
+                                <span style="cursor: pointer; color: dodgerblue; " @onclick="() => OpenDetailsModal(context.Id ?? string.Empty)">
+                                    @context.CategoryName
+                                </span>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Hình ảnh" Style="display: flex; align-items: center;">
+                                <img src="@context.ImageUrl" alt="Ảnh" style="max-height: 40px; max-width: 60px; object-fit: contain;" />
+                            </TemplateColumn>
 
-					<Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefresData" />
-				</FluentGridItem>
-            </FluentCard>
-            <!-- Nội dung bên phải sẽ được thêm sau -->
-            
+                            <TemplateColumn Title="Vị trí" Style="display: flex;align-items: center;">
+                                <span style="cursor: pointer;">
+                                    @context.DisplayOrder
+                                </span>
+                            </TemplateColumn>
+
+                            <TemplateColumn Title="Trạng thái" Style="display: flex; align-items: center;">
+                                <FluentBadge Appearance="@(context.ModerationStatus != 0 ? Appearance.Neutral : Appearance.Accent)">
+                                    @(context.ModerationStatus != 0 ? "Chưa phê duyệt" : "Đã duyệt")
+                                </FluentBadge>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:155px">
+                                <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
+                                    <FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(() => OpenModalUpdateCategory(context.Id ?? string.Empty))">
+                                        <FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
+                                    </FluentButton>
+
+                                    @if (context.ModerationStatus == 0)
+                                    {
+                                        <FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectCategoryAsync(context.Id ?? string.Empty))">
+                                            <FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
+                                        </FluentButton>
+                                    }
+                                    else
+                                    {
+                                        <FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveCategoryAsync(context.Id ?? string.Empty))">
+                                            <FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
+                                        </FluentButton>
+                                    }
+                                    @if (context.ModerationStatus != 0)
+                                    {
+                                        <FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteCategoryAsync(context.Id ?? string.Empty))">
+                                            <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+                                        </FluentButton>
+
+
+                                    }
+                                </FluentStack>
+                            </TemplateColumn>
+                        </FluentDataGrid>
+
+                        <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefresData" />
+                    </FluentGridItem>
+                </FluentCard>
+                <!-- Nội dung bên phải sẽ được thêm sau -->
+
+            </FluentStack>
         </FluentStack>
     </FluentStack>
-</FluentStack>
+}
+else
+{
+    <p>Bạn không có quyền sử dụng chức năng.</p>
+}

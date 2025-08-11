@@ -4,6 +4,7 @@ using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Dto.User;
 using Service.SnapFood.Share.Interface.Extentions;
+using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
 using Service.SnapFood.Share.Query;
 using Service.SnapFood.Share.Query.Grid;
@@ -13,6 +14,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.User
 {
     public partial class Index : ComponentBase
     {
+        [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
         [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
         [Inject] private IToastService ToastService { get; set; } = default!;
         [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -49,8 +51,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.User
                 };
                 requestRestAPI.Endpoint = "api/User/GetPaged";
 
-                ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
-                if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+                ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
+                if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
                 {
                     var items = JsonSerializer.Deserialize<List<UserDto>>(dataTable.Data.GetRawText(),
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<UserDto>();

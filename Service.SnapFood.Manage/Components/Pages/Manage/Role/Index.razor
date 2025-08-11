@@ -3,73 +3,85 @@
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.FluentUI.AspNetCore.Components.Icons
 @using Service.SnapFood.Manage.Dto.User
+@using Service.SnapFood.Share.Model.Enum
 @using Service.SnapFood.Share.Model.SQL
 
-<FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
-    <h3>Danh sách quyền</h3>
+@if (CurrentUser.UserId == Guid.Empty)
+{
+    <p>Bạn chưa đăng nhập!</p>
+}
+else if (CurrentUser.Roles.Contains(EnumRole.Admin))
+{
+    <FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
+        <h3>Danh sách quyền</h3>
 
-    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Stretch" Style="width:100%; gap: 20px;">
-        <!-- Cột bên trái 35% -->
-        <FluentStack Orientation="Orientation.Vertical" Style="width:35%; gap: 12px;">
-            <FluentCard Style="height: calc(100vh - 200px); overflow-y: auto;">
-                <h4>Danh sách quyền</h4>
-                <hr />
-                <div class="tree-container" style="width:100%; overflow-y: auto;">
-                    <FluentTreeView @bind-SelectedItem="selectedRole" Items="@Roles" LazyLoadItems="false">
-                        <ItemTemplate>
-                            <div @onclick="() => SelectRole(context)" style="display: flex; align-items: center; gap: 10px;width:100%;">
-                                <span>@context.Text</span>
-                            </div>
-                        </ItemTemplate>
-                    </FluentTreeView>
-                </div>
-            </FluentCard>
-        </FluentStack>
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Stretch" Style="width:100%; gap: 20px;">
+            <!-- Cột bên trái 35% -->
+            <FluentStack Orientation="Orientation.Vertical" Style="width:35%; gap: 12px;">
+                <FluentCard Style="height: calc(100vh - 200px); overflow-y: auto;">
+                    <h4>Danh sách quyền</h4>
+                    <hr />
+                    <div class="tree-container" style="width:100%; overflow-y: auto;">
+                        <FluentTreeView @bind-SelectedItem="selectedRole" Items="@Roles" LazyLoadItems="false">
+                            <ItemTemplate>
+                                <div @onclick="() => SelectRole(context)" style="display: flex; align-items: center; gap: 10px;width:100%;">
+                                    <span>@context.Text</span>
+                                </div>
+                            </ItemTemplate>
+                        </FluentTreeView>
+                    </div>
+                </FluentCard>
+            </FluentStack>
 
-        <!-- Cột bên phải 65% -->
-        <FluentStack Style="width:65%;">
-            <FluentCard Style="height: calc(100vh - 200px); overflow-y: auto;">
-                <h4>Danh sách tài khoản theo quyền</h4>
-                <hr />
-                <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
-                    <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
-                        <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAddUserToRole" Disabled="isLoading">Thêm người dùng vào quyền</FluentButton>
+            <!-- Cột bên phải 65% -->
+            <FluentStack Style="width:65%;">
+                <FluentCard Style="height: calc(100vh - 200px); overflow-y: auto;">
+                    <h4>Danh sách tài khoản theo quyền</h4>
+                    <hr />
+                    <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
+                        <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+                            <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAddUserToRole" Disabled="isLoading">Thêm người dùng vào quyền</FluentButton>
+                        </FluentStack>
+                        <FluentSearch @bind-Value="KeySearchUser" @bind-Value:after="RefreshDataAsync" Placeholder="Nhập vào từ ..." />
                     </FluentStack>
-                    <FluentSearch @bind-Value="KeySearchUser" @bind-Value:after="RefreshDataAsync" Placeholder="Nhập vào từ ..." />
-                </FluentStack>
-                <FluentGridItem Style="width:100%;">
-                    <FluentDataGrid @ref="UserGrid"
-                                    TGridItem="UserDto"
-                                    ItemsProvider="@LoadUsers"
-                                    Pagination="@pagination"
-                                    ResizableColumns="false"
-                                    GridTemplateColumns="0.5fr 1.5fr 1.5fr 0.6fr"
-                                    RowSize="DataGridRowSize.Large"
-                                    ShowHover="true">
-                        <TemplateColumn Title="#" Style="display:flex;align-items: center;">
-                            <span style="cursor: pointer;">
-                                @context.Index
-                            </span>
-                        </TemplateColumn>
-                        <TemplateColumn Title="Tên" Style="display: flex;align-items: center;">
-                            <span style="cursor: pointer; color: dodgerblue;">
-                                @context.FullName
-                            </span>
-                        </TemplateColumn>
-                        <TemplateColumn Title="Email" Style="display: flex;align-items: center;">
-                            <span style="cursor: pointer;">
-                                @context.Email
-                            </span>
-                        </TemplateColumn>
-                        <TemplateColumn Title="Hành động" Style="display: flex; align-items: center;">
-                            <FluentButton Title="Xóa khỏi quyền" Appearance="Appearance.Outline" OnClick="@(() => DeleteUserFromRole(context.Id))">
-                                <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
-                            </FluentButton>
-                        </TemplateColumn>
-                    </FluentDataGrid>
-                    <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefreshData" />
-                </FluentGridItem>
-            </FluentCard>
+                    <FluentGridItem Style="width:100%;">
+                        <FluentDataGrid @ref="UserGrid"
+                                        TGridItem="UserDto"
+                                        ItemsProvider="@LoadUsers"
+                                        Pagination="@pagination"
+                                        ResizableColumns="false"
+                                        GridTemplateColumns="0.5fr 1.5fr 1.5fr 0.6fr"
+                                        RowSize="DataGridRowSize.Large"
+                                        ShowHover="true">
+                            <TemplateColumn Title="#" Style="display:flex;align-items: center;">
+                                <span style="cursor: pointer;">
+                                    @context.Index
+                                </span>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Tên" Style="display: flex;align-items: center;">
+                                <span style="cursor: pointer; color: dodgerblue;">
+                                    @context.FullName
+                                </span>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Email" Style="display: flex;align-items: center;">
+                                <span style="cursor: pointer;">
+                                    @context.Email
+                                </span>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Hành động" Style="display: flex; align-items: center;">
+                                <FluentButton Title="Xóa khỏi quyền" Appearance="Appearance.Outline" OnClick="@(() => DeleteUserFromRole(context.Id))">
+                                    <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+                                </FluentButton>
+                            </TemplateColumn>
+                        </FluentDataGrid>
+                        <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefreshData" />
+                    </FluentGridItem>
+                </FluentCard>
+            </FluentStack>
         </FluentStack>
     </FluentStack>
-</FluentStack>
+}
+else
+{
+    <p>Bạn không có quyền sử dụng chức năng.</p>
+}

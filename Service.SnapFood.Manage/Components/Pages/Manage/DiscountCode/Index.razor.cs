@@ -6,6 +6,7 @@ using Service.SnapFood.Manage.Dto.DiscountCode;
 using Service.SnapFood.Manage.Infrastructure.Services;
 using Service.SnapFood.Manage.Query;
 using Service.SnapFood.Share.Interface.Extentions;
+using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
 using Service.SnapFood.Share.Model.SQL;
 using Service.SnapFood.Share.Query.Grid;
@@ -15,6 +16,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
 {
     public partial class Index : ComponentBase
     {
+        [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
         [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
         [Inject] private IToastService ToastService { get; set; } = default!;
         [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -57,9 +59,9 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
                 };
 
                 requestRestAPI.Endpoint = "api/DiscountCode/GetPaged";
-                ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
+                ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
 
-                if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+                if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
                 {
                     var items = JsonSerializer.Deserialize<List<DiscountCodeDto>>(dataTable.Data.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
                     var totalRecords = dataTable.RecordsTotal ?? items.Count;
