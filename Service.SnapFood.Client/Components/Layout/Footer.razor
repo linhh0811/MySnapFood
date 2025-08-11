@@ -1,0 +1,82 @@
+﻿@using Service.SnapFood.Client.Dto.Footer
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+<FluentFooter Style="background-color: #ffeae3; color: black; padding: 40px 20px; margin-top: 40px;">
+    <div class="container">
+        @if (!IsLoading)
+        {
+            <FluentGrid AdaptiveRendering="true" Justify="@JustifyContent.SpaceBetween" Spacing="4">
+                <FluentGridItem xs="12" sm="6" md="4">
+                    <h4 style="margin-bottom: 20px;">SnapFood</h4>
+                    <p style="font-size:16px;">
+                        SnapFood - @FooterDto.TenCuaHang: Cung cấp đồ ăn nhanh ngon miệng, tiện lợi và chất lượng. Chúng tôi cam kết mang đến trải nghiệm ẩm thực tuyệt vời với dịch vụ nhanh chóng!
+                    </p>
+                </FluentGridItem>
+                <FluentGridItem xs="0" sm="0" md="1">
+
+                </FluentGridItem>
+
+
+                <FluentGridItem xs="12" sm="6" md="4">
+                    <h4 style="margin-bottom: 20px;">Thông tin liên hệ</h4>
+                    <p style="font-size:16px;">
+                        <FluentIcon Value="@(new Icons.Regular.Size16.Location())" />  @FooterDto.DiaChi<br /><br />
+                        <FluentIcon Value="@(new Icons.Regular.Size16.Call())" />  Điện thoại: @FooterDto.DienThoai<br /><br />
+                        <FluentIcon Value="@(new Icons.Regular.Size16.Clock())" />  Thời gian hoạt động: @FooterDto.ThoiGianHoatDong
+                    </p>
+                </FluentGridItem>
+
+                <FluentGridItem xs="12" sm="6" md="3">
+                    <h4 style=" margin-bottom: 20px;">Giao hàng tận nơi</h4>
+                    <p style="font-size:16px;">
+                        <FluentIcon Value="@(new Icons.Regular.Size16.VehicleTruck())" />  Chỉ từ @FooterDto.PhiGiaoHangKm.ToString("N0") đ /km<br /><br />
+                        <FluentIcon Value="@(new Icons.Regular.Size16.ArrowCircleRight())" />  Giao hàng lên tới @FooterDto.GiaoHangToiDa km<br /><br />
+                        <FluentIcon Value="@(new Icons.Regular.Size16.Money())" />  Với đơn hàng từ @FooterDto.GiaTriDonHang.ToString("N0") đ
+                    </p>
+                </FluentGridItem>
+            </FluentGrid>
+        }
+
+
+    </div>
+
+</FluentFooter>
+
+@code{
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    private FooterDto FooterDto = new FooterDto();
+    private bool IsLoading { get; set; } = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            IsLoading = true;
+            await LoadStores();
+            IsLoading = false;
+            StateHasChanged();
+
+        }
+           
+    }
+
+    protected async Task LoadStores()
+    {
+        try
+        {
+            var request = new ApiRequestModel { Endpoint = "api/Store/GetFooter" };
+            var result = await CallApi.Get<FooterDto>(request);
+            if (result.Status == StatusCode.OK && result.Data != null)
+            {
+                FooterDto = result.Data as FooterDto ?? new FooterDto();
+                
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách cửa hàng: {ex.Message}");
+        }
+    }
+}

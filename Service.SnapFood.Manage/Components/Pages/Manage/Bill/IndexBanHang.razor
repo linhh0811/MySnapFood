@@ -1,6 +1,7 @@
 ﻿@page "/Ban-Hang/Bill"
 
 @using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Bill
 @using Service.SnapFood.Manage.Dto.BillDto
 @using System.Text.Json
 @using Service.SnapFood.Manage.Enums
@@ -29,7 +30,7 @@
                 <FluentCard Class="stat-card orange" @onclick="()=>SelectTrangThai(StatusOrder.None)">
                     <FluentIcon Value="@(new Icons.Regular.Size24.Clock())" Color="Color.Accent" />
                     <FluentLabel>Đang xử lý</FluentLabel>
-                    <div class="stat-value">2</div>
+                    <div class="stat-value">@billDangXuLyDto.Tong</div>
                 </FluentCard>
 
             </FluentGridItem>
@@ -38,7 +39,7 @@
                 <FluentCard Class="stat-card blue" @onclick="()=>SelectTrangThai(StatusOrder.Pending)">
                     <FluentIcon Value="@(new Icons.Regular.Size24.TaskListSquareAdd())" Color="Color.Accent" />
                     <FluentLabel>Chờ xác nhận</FluentLabel>
-                    <div class="stat-value">1</div>
+                    <div class="stat-value">@billDangXuLyDto.ChoXacNhan</div>
                 </FluentCard>
 
 
@@ -49,7 +50,7 @@
                 <FluentCard Class="stat-card pink" @onclick="()=>SelectTrangThai(StatusOrder.Confirmed)">
                     <FluentIcon Value="@(new Icons.Regular.Size24.CheckmarkCircle())" Color="Color.Accent" />
                     <FluentLabel>Đã xác nhận</FluentLabel>
-                    <div class="stat-value">1</div>
+                    <div class="stat-value">@billDangXuLyDto.DaXacNhan</div>
                 </FluentCard>
 
             </FluentGridItem>
@@ -60,7 +61,7 @@
                 <FluentCard Class="stat-card green" @onclick="()=>SelectTrangThai(StatusOrder.Shipping)">
                     <FluentIcon Value="@(new Icons.Regular.Size24.VehicleTruck())" Color="Color.Accent" />
                     <FluentLabel>Đang giao hàng</FluentLabel>
-                    <div class="stat-value">1</div>
+                    <div class="stat-value">@billDangXuLyDto.DangGiaoHang</div>
                 </FluentCard>
 
             </FluentGridItem>
@@ -270,12 +271,18 @@
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
-    private ApiRequestModel requestRestAPI = new ApiRequestModel();
+
     protected FluentDataGrid<BillDto> BillGrid { get; set; } = default!;
     protected string SearchKeyword { get; set; } = string.Empty;
     private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
     private Dictionary<String, String> _SelectTrangThai = new Dictionary<string, string>();
     private string SelectedTrangThai = "None";
+    private BillDangXuLyDto billDangXuLyDto { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await  GetBillDangXuLy();
+    }
 
     private async ValueTask<GridItemsProviderResult<BillDto>> LoadBills(GridItemsProviderRequest<BillDto> request)
     {
@@ -309,6 +316,7 @@
                         }
                     };
 
+                ApiRequestModel requestRestAPI = new ApiRequestModel();
                 requestRestAPI.Endpoint = "api/Bill/GetPaged";
 
                 ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
@@ -327,7 +335,7 @@
                 ToastService.ShowError($"Lỗi khi convert trạng thái");
                 return GridItemsProviderResult.From(new List<BillDto>(), 0);
             }
-            
+
         }
         catch (Exception ex)
         {
@@ -423,7 +431,7 @@
         GetSelectTrangThai();
 
     }
-    private bool isFirstRender = true;
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -431,7 +439,7 @@
         {
             GetSelectTrangThai();           // Load dropdown trạng thái
             await RefreshDataAsync();       // Gọi load dữ liệu cho FluentDataGrid
-            isFirstRender = false;
+
         }
     }
 
@@ -441,7 +449,20 @@
         await RefreshDataAsync();
 
     }
-
+    private async Task GetBillDangXuLy()
+    {
+        ApiRequestModel requestRestAPI = new ApiRequestModel();
+        requestRestAPI.Endpoint = $"api/Bill/GetBillDangXuLy";
+        ResultAPI result = await CallApi.Get<BillDangXuLyDto>(requestRestAPI);
+        if (result.Status == StatusCode.OK)
+        {
+            billDangXuLyDto = result.Data as BillDangXuLyDto ?? new();
+        }
+        else
+        {
+            ToastService.ShowError(result.Message ?? "Không thể lấy thông tin.");
+        }
+    }
 }
 
 

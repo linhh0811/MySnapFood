@@ -10,6 +10,7 @@ namespace Service.SnapFood.Application.Interfaces
         int GetPromotionActivateCount();
 
         List<PromotionDto> GetPromotionActivate();
+        List<PromotionDto> GetPromotionActivateHD();
         Task<PromotionDto?> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(PromotionDto item);
         Task<bool> UpdateAsync(Guid id, PromotionDto item);

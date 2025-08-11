@@ -1,0 +1,129 @@
+﻿@using ApexCharts
+@using Service.SnapFood.Manage.Dto.ThongKe
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+
+<FluentGrid Spacing="4" Style="margin-top: 30px; row-gap: 24px; column-gap: 24px;">
+    <FluentGridItem xs="12" sm="12" md="12" Style="padding: 12px;">
+        <div class="dashboard-card">
+            <div class="dashboard-title">Biểu đồ lượt bán sản phẩm, combo</div>
+            @if (isLoading)
+            {
+                <svg xmlns="http://www.w3.org/2000/svg" style="margin: auto; display: block; max-height: 250px;" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+                    <g transform="rotate(180 50 50)">
+                        <rect x="15" y="15" width="10" height="40" fill="#ebebeb">
+                            <animate attributeName="height" values="50;70;30;50" keyTimes="0;0.33;0.66;1" dur="1s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1;0.5 0 0.5 1;0.5 0 0.5 1" begin="-0.4s"></animate>
+                        </rect>
+                        <rect x="35" y="15" width="10" height="40" fill="#f0f0f0">
+                            <animate attributeName="height" values="50;70;30;50" keyTimes="0;0.33;0.66;1" dur="1s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1;0.5 0 0.5 1;0.5 0 0.5 1" begin="-0.2s"></animate>
+                        </rect>
+                        <rect x="55" y="15" width="10" height="40" fill="#ebebeb">
+                            <animate attributeName="height" values="50;70;30;50" keyTimes="0;0.33;0.66;1" dur="1s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1;0.5 0 0.5 1;0.5 0 0.5 1" begin="-0.6s"></animate>
+                        </rect>
+                        <rect x="75" y="15" width="10" height="40" fill="#f0f0f0">
+                            <animate attributeName="height" values="50;70;30;50" keyTimes="0;0.33;0.66;1" dur="1s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1;0.5 0 0.5 1;0.5 0 0.5 1" begin="-1s"></animate>
+                        </rect>
+                    </g>
+                </svg>
+            }
+            else
+            {
+                <ApexChart @ref="chartDoanhThuDtoRef" TItem="DoanhThuDto" Height="450" Options="doanhThuConfig">
+                    <ApexPointSeries TItem="DoanhThuDto"
+                    Items="DuLieuDoanhThuDto"
+                    Name="Doanh thu"
+                    XValue="@(d => d.Ngay.ToString("dd/MM"))"
+                    YValue="@(d => d.TongDoanhThu)"
+                    SeriesType="SeriesType.Area" ShowDataLabels />
+
+
+                </ApexChart>
+            }
+        </div>
+    </FluentGridItem>
+
+</FluentGrid>
+
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+
+    private ApexChart<DoanhThuDto> chartDoanhThuDtoRef { get; set; } = default!;
+    private bool isLoading = false;
+    private List<DoanhThuDto> DuLieuDoanhThuDto { get; set; } = new List<DoanhThuDto>();
+
+    [Parameter]
+    public DateTime? TuNgay { get; set; }
+    [Parameter]
+    public DateTime? DenNgay { get; set; }
+    [Parameter]
+    public EventCallback OnDateChanged { get; set; }
+
+    ApexChartOptions<DoanhThuDto> doanhThuConfig = new()
+    {
+        Chart = new Chart
+        {
+            Toolbar = new Toolbar
+            {
+                Show = false
+            }
+        },
+        DataLabels = new DataLabels
+        {
+            Enabled = true,
+            OffsetY = -15,
+            Style = new DataLabelsStyle { FontSize = "14px", Colors = new List<string> { "#333" } }
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;   
+        DuLieuDoanhThuDto = await LoadDoanhThu();
+        isLoading = false;
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        DuLieuDoanhThuDto = await LoadDoanhThu();
+        isLoading = false;
+    }
+
+    private async Task<List<DoanhThuDto>> LoadDoanhThu()
+    {
+        try
+        {
+            var baseQuery = new BaseQuery
+            {
+                TuNgay = (TuNgay ?? DateTime.Now.Date.AddDays(-7)).ToString(),
+                DenNgay = ((DenNgay ?? DateTime.Now.Date).AddDays(1)).ToString()
+            };
+            ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+            requestRestAPI.Endpoint = "api/ThongKe/GetDoanhThu";
+            ResultAPI result = await CallApi.Post<List<DoanhThuDto>>(requestRestAPI, baseQuery);
+
+            if (result.Status == StatusCode.OK && result.Data is List<DoanhThuDto> dataTable)
+            {
+                var items = dataTable;
+
+                return items;
+            }
+            else
+            {
+                ToastService.ShowError($"Lỗi khi tải dữ liệu");
+                return new List<DoanhThuDto>();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách mã giảm giá: {ex.Message}");
+            return new List<DoanhThuDto>();
+        }
+
+    }
+
+}

@@ -36,5 +36,7 @@ namespace Service.SnapFood.Share.Interface.SQL
 
         IQueryable<T> FilterData(Func<IQueryable<T>, IQueryable<T>> filterFunc, GridRequest gridRequest, ref int totalRecords);
         IQueryable<T> Query();
+        Task<int> CountAsync(Expression<Func<T, bool>> criteria);
+        Task<int> CountAsync();
     }
 }

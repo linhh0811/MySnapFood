@@ -108,6 +108,17 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             return _context.Set<T>().Where(criteria).ToList();
         }
 
+        public async Task<int> CountAsync(Expression<Func<T, bool>> criteria)
+        {
+            return await _context.Set<T>().CountAsync(criteria);
+        }
+
+        public async Task<int> CountAsync()
+        {
+            return await _context.Set<T>().CountAsync();
+        }
+
+
         public IQueryable<T> FilterData(Func<IQueryable<T>, IQueryable<T>> filterFunc, GridRequest gridRequest, ref int totalRecords)
         {
             var query = _context.Set<T>().AsQueryable();

@@ -615,6 +615,21 @@ namespace Service.SnapFood.Application.Service
         .CountAsync();
         }
 
-       
+        public BillDangXuLyDto GetBillDangXuLy()
+        {
+            var bill = _unitOfWork.BillRepo.FindWhere(x => x.Status != StatusOrder.Completed && x.Status != StatusOrder.Cancelled);
+            var Tong = bill.Count();
+            var ChoXacNhan = bill.Where(x => x.Status == StatusOrder.Pending).Count();
+            var DaXacNhan = bill.Where(x => x.Status == StatusOrder.Confirmed).Count();
+            var DangGiaoHang = bill.Where(x => x.Status == StatusOrder.Shipping).Count();
+            BillDangXuLyDto BillDangXuLyDto = new BillDangXuLyDto()
+            {
+                Tong = Tong,
+                ChoXacNhan = ChoXacNhan,
+                DangGiaoHang = DangGiaoHang,
+                DaXacNhan = DaXacNhan
+            };
+            return BillDangXuLyDto;
+        }
     }
 }

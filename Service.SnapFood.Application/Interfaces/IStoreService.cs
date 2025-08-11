@@ -1,4 +1,5 @@
 ﻿using Service.SnapFood.Application.Dtos;
+using Service.SnapFood.Application.Dtos.Footer;
 using Service.SnapFood.Domain.Entitys;
 using System;
 using System.Collections.Generic;
@@ -15,5 +16,6 @@ namespace Service.SnapFood.Application.Interfaces
         Task<bool> UpdateAsync(Guid id, StoreDto item);
         Task<bool> DeleteAsync(Guid id);
         Task<StoreDto> GetStore();
+        Task<FooterDto> GetFooter();
     }
 }
