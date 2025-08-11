@@ -1,29 +1,45 @@
 ﻿@using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Authorization;
+@using Service.SnapFood.Share.Model.Commons
+@using Service.SnapFood.Share.Model.Enum
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 <FluentStack Orientation="Orientation.Horizontal" Style="width:250px;padding-top:15px">
     <FluentNavMenu Title="Databound">
         <!-- Nhóm Bán hàng -->
-        <FluentNavGroup Id="Group1" Title="Bán hàng" Icon="@(new Icons.Regular.Size24.ShoppingBag())" Expanded="true">
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.ShoppingBag())" Href="/Ban-Hang/Ban-Tai-Quay">Đặt hàng</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.DocumentCheckmark())" Href="/Ban-Hang/Bill/">Đơn hàng</FluentNavLink>
-        </FluentNavGroup>
+        @if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+        {
+            <FluentNavGroup Id="Group1" Title="Bán hàng" Icon="@(new Icons.Regular.Size24.ShoppingBag())" Expanded="true">
+                <FluentNavLink Icon="@(new Icons.Regular.Size24.ShoppingBag())" Href="/Ban-Hang/Ban-Tai-Quay">Đặt hàng</FluentNavLink>
+                <FluentNavLink Icon="@(new Icons.Regular.Size24.DocumentCheckmark())" Href="/Ban-Hang/Bill/">Đơn hàng</FluentNavLink>
+            </FluentNavGroup>
+        }
 
-        <!-- Nhóm Quản lý -->
-        <FluentNavGroup Id="Group2" Title="Quản lý" Icon="@(new Icons.Regular.Size24.Settings())">
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.Box())" Href="/Quan-Ly/San-Pham">Sản phẩm</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.AppsList())" Href="/Quan-Ly/Combo">Combo</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.DocumentCheckmark())" Href="/Quan-Ly/Bill">Đơn hàng</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.PersonStar())" Href="/Quan-Ly/Nhan-Vien">Nhân viên</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.People())" Href="/Quan-Ly/Nguoi-Dung">Khách hàng</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.Tag())" Href="/Quan-Ly/Khuyen-Mai">Khuyến mại</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.TicketDiagonal())" Href="/Quan-Ly/Ma-Giam-Gia">Mã giảm giá</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.PersonLock())" Href="/Quan-Ly/Quyen">QL quyền</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.Settings())" Href="/Quan-Ly/Size-PhanLoai">QL chung</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.DataBarVertical())" Href="/Quan-Ly/ThongKe">Thống kê</FluentNavLink>
-            <FluentNavLink Icon="@(new Icons.Regular.Size24.StoreMicrosoft())" Href="/Quan-Ly/Cua-Hang">QL cửa hàng</FluentNavLink>
-        </FluentNavGroup>
+        @if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+        {
+            <!-- Nhóm Quản lý -->
+            <FluentNavGroup Id="Group2" Title="Quản lý" Icon="@(new Icons.Regular.Size24.Settings())">
+                @if ( CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+                {
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.Box())" Href="/Quan-Ly/San-Pham">Sản phẩm</FluentNavLink>
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.AppsList())" Href="/Quan-Ly/Combo">Combo</FluentNavLink>
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.DocumentCheckmark())" Href="/Quan-Ly/Bill">Đơn hàng</FluentNavLink>
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.PersonStar())" Href="/Quan-Ly/Nhan-Vien">Nhân viên</FluentNavLink>
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.People())" Href="/Quan-Ly/Nguoi-Dung">Khách hàng</FluentNavLink>
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.Tag())" Href="/Quan-Ly/Khuyen-Mai">Khuyến mãi</FluentNavLink>
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.TicketDiagonal())" Href="/Quan-Ly/Ma-Giam-Gia">Mã giảm giá</FluentNavLink>            
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.Settings())" Href="/Quan-Ly/Size-PhanLoai">QL chung</FluentNavLink>
+                    <FluentNavLink Icon="@(new Icons.Regular.Size24.DataBarVertical())" Href="/Quan-Ly/Thong-Ke">Thống kê</FluentNavLink>
+                }
+            @if (CurrentUser.Roles.Contains(EnumRole.Admin))
+            {
+                <FluentNavLink Icon="@(new Icons.Regular.Size24.PersonLock())" Href="/Quan-Ly/Quyen">QL quyền</FluentNavLink>
+                <FluentNavLink Icon="@(new Icons.Regular.Size24.StoreMicrosoft())" Href="/Quan-Ly/Cua-Hang">QL cửa hàng</FluentNavLink>
+            }
+            </FluentNavGroup>
+        }
+
+      
         
         <div style="padding-top:20px;">
             <hr />
@@ -37,6 +53,8 @@
 </FluentStack>
 
 @code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
     private async Task Logout()

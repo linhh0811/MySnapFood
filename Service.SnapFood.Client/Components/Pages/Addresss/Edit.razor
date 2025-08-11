@@ -30,13 +30,16 @@
             <div class="row" style="width:100%; margin:0;">
                 <div class="mb-3 col-md-6" style="padding-right:10px;padding-left:0;">
                     <FluentTextField Placeholder="Họ và tên" @bind-Value="AddressModel.FullName" Style="width:100%;" />
-                    <br />
-                    <span asp-validation-for="FullName" class="text-danger"></span>
+                    <br/>
+                    <ValidationMessage style="color:red" For="@(() => AddressModel.FullName)" />
+
                 </div>
                 <div class="mb-3  col-md-6" style="padding-left:10px;padding-right:0;">
                     <FluentTextField Placeholder="Số điện thoại" @bind-Value="AddressModel.NumberPhone" Style="width:100%;" />
                     <br />
-                    <span asp-validation-for="NumberPhone" class="text-danger"></span>
+
+                    <ValidationMessage style="color:red" For="@(() => AddressModel.NumberPhone)" />
+
                 </div>
             </div>
             <div class="row" style="width:100%;margin:0;">
@@ -51,6 +54,9 @@
                             <FluentOption Value="@province.Code.ToString()">@province.Name</FluentOption>
                         }
                     </FluentSelect>
+                    <br />
+
+                    <ValidationMessage style="color:red" For="@(() => AddressModel.Province)" />
 
                 </div>
                 <div class="mb-3 col-md-6" style="padding-left:10px;padding-right:0;">
@@ -63,20 +69,32 @@
                             <FluentOption Value="@district.Code.ToString()">@district.Name</FluentOption>
                         }
                     </FluentSelect>
+                    <br />
+
+                    <ValidationMessage style="color:red" For="@(() => AddressModel.District)" />
+
                 </div>
             </div>
             <div class="mb-3" style="width:100%">
-                <FluentSelect @bind-Value="AddressModel.Ward"
+                <FluentSelect @bind-Value="SelectedWard" @bind-Value:after="OnWardChangedAsync"
                 TOption="string" Width="100%" Height="250px">
                     <FluentOption Value="">Phường/Xã</FluentOption>
                     @foreach (var ward in wards)
                     {
-                        <FluentOption Value="@ward.Name">@ward.Name</FluentOption>
+                        <FluentOption Value="@ward.Code.ToString()">@ward.Name</FluentOption>
                     }
                 </FluentSelect>
+                <br />
+
+                <ValidationMessage style="color:red" For="@(() => AddressModel.Ward)" />
+
             </div>
             <div class="mb-3" style="width:100%">
                 <FluentTextField @bind-Value="AddressModel.SpecificAddress" Placeholder="Địa chỉ cụ thể" Style="width:100%;" />
+                <br />
+
+                <ValidationMessage style="color:red" For="@(() => AddressModel.SpecificAddress)" />
+
             </div>
 
 
@@ -143,6 +161,8 @@
                 var District = districts.FirstOrDefault(p => p.Name.ToString() == AddressModel.District);
                 SelectedDistrict = District?.Code.ToString() ?? string.Empty;
                 await OnDistrictChangedAsync();
+                var Ward = wards.FirstOrDefault(p => p.Name.ToString() == AddressModel.Ward);
+                SelectedWard = Ward?.Code.ToString() ?? string.Empty;
             }
             
         }
@@ -284,6 +304,13 @@
                 var selectedProvince = provinces.FirstOrDefault(p => p.Code.ToString() == SelectedProvince);
                 AddressModel.Province = selectedProvince?.Name ?? string.Empty;
             }
+            else
+            {
+                AddressModel.Province = string.Empty;
+                AddressModel.District = string.Empty;
+                AddressModel.Ward = string.Empty;
+            }
+        
         }
         catch (Exception ex)
         {
@@ -313,6 +340,24 @@
         else
         {
             wards = new List<Ward>();
+            AddressModel.District = string.Empty;
+            AddressModel.Ward = string.Empty;
+        }
+
+        StateHasChanged();
+    }
+
+    private void OnWardChangedAsync()
+    {
+
+        if (!string.IsNullOrEmpty(SelectedWard))
+        {
+            var selectedWard = wards.FirstOrDefault(p => p.Code.ToString() == SelectedWard);
+            AddressModel.Ward = selectedWard?.Name ?? string.Empty;
+        }
+        else
+        {
+            AddressModel.Ward = string.Empty;
         }
 
         StateHasChanged();

@@ -16,8 +16,6 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.CuaHang
     {
         [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
         [Inject] private IToastService ToastService { get; set; } = default!;
-        private decimal a;
-        private bool TrangThai;
         private StoreDto Store { get; set; } = new StoreDto();
         private ThongTinGiaoHangDto ThongTinGiaoHang { get; set; } = new ThongTinGiaoHangDto();
         private bool isLoading=false;
@@ -209,6 +207,12 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.CuaHang
                     var selectedProvince = provinces.FirstOrDefault(p => p.Code.ToString() == SelectedProvince);
                     AddressModel.Province = selectedProvince?.Name ?? string.Empty;
                 }
+                else
+                {
+                    AddressModel.Province = string.Empty;
+                    AddressModel.District = string.Empty;
+                    AddressModel.Ward = string.Empty;
+                }
             }
             catch (Exception ex)
             {
@@ -238,6 +242,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.CuaHang
             else
             {
                 wards = new List<Ward>();
+                AddressModel.District = string.Empty;
+                AddressModel.Ward = string.Empty;
             }
 
             StateHasChanged();
@@ -250,7 +256,11 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.CuaHang
                 var selectedWard = wards.FirstOrDefault(p => p.Code.ToString() == SelectedWard);
                 AddressModel.Ward = selectedWard?.Name ?? string.Empty;
             }
-           
+            else
+            {
+                AddressModel.Ward = string.Empty;
+            }
+
 
             StateHasChanged();
         }

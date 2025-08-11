@@ -87,6 +87,75 @@ namespace Service.SnapFood.Application.Service
             return promotions;
         }
 
+        public List<PromotionDto> GetPromotionActivateHD()
+        {
+            var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.EndDate > DateTime.Now && x.StartDate<=DateTime.Now && x.ModerationStatus == ModerationStatus.Approved).ToList()
+               .Select(p => new PromotionDto
+               {
+                   Id = p.Id,
+                   PromotionName = p.PromotionName,
+                   PromotionType = p.PromotionType,
+                   PromotionValue = p.PromotionValue,
+                   StartDate = p.StartDate,
+                   EndDate = p.EndDate,
+                   ModerationStatus = p.ModerationStatus,
+                   Created = p.Created,
+                   LastModified = p.LastModified,
+                   CreatedBy = p.CreatedBy,
+                   LastModifiedBy = p.LastModifiedBy,
+                   Description = p.Description,
+                   IsDangKM = (p.StartDate < DateTime.Now && p.EndDate > DateTime.Now),
+                   PromotionItems = _unitOfWork.PromotionItemsRepository.FindWhere(x => x.PromotionId == p.Id).Select(x => new PromotionItemDto()
+                   {
+                       Id = x.Id,
+                       PromotionId = x.PromotionId,
+                       ItemId = x.ItemId,
+                       ItemType = x.ItemType
+                   }).ToList()
+
+               }).ToList();
+            foreach (var promotion in promotions)
+            {
+                var filteredItems = new List<PromotionItemDto>();
+                foreach (var item in promotion.PromotionItems)
+                {
+                    if (item.ItemType == Domain.Enums.ItemType.Product)
+                    {
+                        var product = _unitOfWork.ProductRepo.GetById(item.ItemId);
+                        if (product is not null && product.ModerationStatus == ModerationStatus.Approved)
+                        {
+                            item.ItemName = product.ProductName;
+                            item.ImageUrl = product.ImageUrl;
+                            item.BasePrice = product.BasePrice;
+                            item.SizeName = GetSizeNameById(product.SizeId ?? Guid.Empty);
+                            item.CategoryName = GetCategoryNameById(product.CategoryId);
+                            filteredItems.Add(item);
+                        }
+                    }
+                    else if (item.ItemType == Domain.Enums.ItemType.Combo)
+                    {
+                        var combo = _unitOfWork.ComboRepo.GetById(item.ItemId);
+                        if (combo is not null && combo.ModerationStatus == ModerationStatus.Approved)
+                        {
+                            item.ItemName = combo.ComboName;
+                            item.ImageUrl = combo.ImageUrl;
+                            item.BasePrice = combo.BasePrice;
+                            item.ComboItems = _unitOfWork.ProductComboRepo
+                                .FindWhere(x => x.ComboId == item.ItemId)
+                                .Select(x => new ComboProductDto
+                                {
+                                    ProductId = x.ProductId,
+                                    Quantity = x.Quantity,
+                                    ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName
+                                }).ToList();
+                            filteredItems.Add(item);
+                        }
+                    }
+                }
+                promotion.PromotionItems = filteredItems;
+            }
+            return promotions;
+        }
         public async Task<PromotionDto?> GetByIdAsync(Guid id)
         {
             var promotion = await _unitOfWork.PromotionRepository.GetByIdAsync(id);
@@ -486,5 +555,7 @@ namespace Service.SnapFood.Application.Service
             var promotions = _unitOfWork.PromotionRepository.FindWhere(x => x.EndDate > DateTime.Now && x.ModerationStatus == ModerationStatus.Approved).Count();
             return promotions;
         }
+
+       
     }
 }

@@ -269,7 +269,7 @@
         GetSelectTrangThai();
        
     }
-    private bool isFirstRender = true;
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -277,7 +277,6 @@
         {
             GetSelectTrangThai();           // Load dropdown trạng thái
             await RefreshDataAsync();       // Gọi load dữ liệu cho FluentDataGrid
-            isFirstRender = false;
         }
     }
 

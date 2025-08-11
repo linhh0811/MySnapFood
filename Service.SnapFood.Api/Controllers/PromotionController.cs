@@ -21,6 +21,13 @@ namespace Service.SnapFood.Api.Controllers
             var item = _promotionService.GetPromotionActivate();
             return Ok(item);
         }
+
+        [HttpGet("Hd")]
+        public IActionResult GetPromotionActivateHD()
+        {
+            var item = _promotionService.GetPromotionActivateHD();
+            return Ok(item);
+        }
         [HttpGet("GetPromotionActivateCount")]
         public IActionResult GetPromotionActivateCount()
         {

@@ -1,0 +1,308 @@
+﻿@using ApexCharts
+@using Service.SnapFood.Manage.Dto.Combo
+@using Service.SnapFood.Manage.Dto.ProductDto
+@using Service.SnapFood.Manage.Dto.ThongKe
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+
+<FluentGrid Spacing="4" Style="margin-top: 30px; row-gap: 24px; column-gap: 24px;">
+    <FluentGridItem xs="12" sm="12" md="12" Style="padding: 12px;">
+        <div class="dashboard-card">
+            <div class="dashboard-title">Biểu đồ lượt bán sản phẩm, combo</div>
+            @if (isLoading)
+            {
+                <svg xmlns="http://www.w3.org/2000/svg" style="margin: auto; display: block; max-height: 250px;" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+                    <g transform="rotate(180 50 50)">
+                        <rect x="15" y="15" width="10" height="40" fill="#ebebeb">
+                            <animate attributeName="height" values="50;70;30;50" keyTimes="0;0.33;0.66;1" dur="1s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1;0.5 0 0.5 1;0.5 0 0.5 1" begin="-0.4s"></animate>
+                        </rect>
+                        <rect x="35" y="15" width="10" height="40" fill="#f0f0f0">
+                            <animate attributeName="height" values="50;70;30;50" keyTimes="0;0.33;0.66;1" dur="1s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1;0.5 0 0.5 1;0.5 0 0.5 1" begin="-0.2s"></animate>
+                        </rect>
+                        <rect x="55" y="15" width="10" height="40" fill="#ebebeb">
+                            <animate attributeName="height" values="50;70;30;50" keyTimes="0;0.33;0.66;1" dur="1s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1;0.5 0 0.5 1;0.5 0 0.5 1" begin="-0.6s"></animate>
+                        </rect>
+                        <rect x="75" y="15" width="10" height="40" fill="#f0f0f0">
+                            <animate attributeName="height" values="50;70;30;50" keyTimes="0;0.33;0.66;1" dur="1s" repeatCount="indefinite" calcMode="spline" keySplines="0.5 0 0.5 1;0.5 0 0.5 1;0.5 0 0.5 1" begin="-1s"></animate>
+                        </rect>
+                    </g>
+                </svg>
+            }
+            else
+            {
+                <ApexChart @ref="chartSanPhamComboDtoRef" TItem="SanPhamComboDto" Height="450" Options="productConfig">
+                    <ApexPointSeries TItem="SanPhamComboDto"
+                    Items="DuLieuSanPhamComboDto"
+                    Name="Sản phẩm"
+                    XValue="@(d => d.Ngay.ToString("dd/MM"))"
+                    YValue="@(d => d.Product)"
+                                     SeriesType="SeriesType.Bar" ShowDataLabels />
+
+                    <ApexPointSeries TItem="SanPhamComboDto"
+                    Items="DuLieuSanPhamComboDto"
+                    Name="Combo"
+                    XValue="@(d => d.Ngay.ToString("dd/MM"))"
+                    YValue="@(d => d.Combo)"
+                                     SeriesType="SeriesType.Bar" ShowDataLabels />
+                </ApexChart>
+            }
+        </div>
+    </FluentGridItem>
+
+</FluentGrid>
+<div class="top-container">
+    <div class="top5-products">
+        <h4 class="text-center">Top 5 sản phẩm bán chạy nhất</h4>
+        <ul>
+            @foreach (var item in SanPhamThongKeDto)
+            {
+                <li class="product-item">
+                    <img src="@item.ImageUrl" alt="@item.ProductName" />
+                    <div class="product-info">
+                        <p class="label">@item.ProductName</p>
+                        <p class="value">Đã bán: @((int)item.Quantity)</p>
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <div class="top5-products">
+        <h4 class="text-center">Top 5 combo bán chạy nhất</h4>
+        <ul>
+            @foreach (var item in ComboThongKeDto)
+            {
+                <li class="product-item">
+                    <img src="@item.ImageUrl" alt="@item.ComboName" />
+                    <div class="product-info">
+                        <p class="label">@item.ComboName</p>
+                        <p class="value">Đã bán: @((int)item.Quantity)</p>
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+<style>
+    .top-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+    }
+
+    .top-container .top5-products {
+    flex: 1;
+    }
+
+    .stats-container {
+    margin-bottom: 30px;
+    }
+
+    .stat-box {
+    width: 250px;
+    padding: 20px 15px;
+    border-radius: 8px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 4px 8px rgb(0 0 0 / 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .stat-box h3 {
+    margin: 0;
+    font-weight: 400;
+    font-size: 1.1rem;
+    }
+
+    .stat-box p {
+    margin: 10px 0 0;
+    font-weight: 700;
+    font-size: 2rem;
+    }
+
+
+
+    .top5-products h4 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: 600;
+    }
+
+    .top5-products ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    }
+
+    .top5-products ul li {
+    background: #fff;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-left: 5px solid #3498db;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+    cursor: default;
+    }
+
+    .top5-products ul li:hover {
+    background-color: #e6f2ff;
+    }
+
+
+    .top5-products ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    }
+
+    .product-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    }
+
+    .product-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    }
+
+    .product-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    }
+
+    .product-info .label {
+    font-weight: bold;
+    margin: 0;
+    }
+
+    .product-info .value {
+    margin: 0;
+    color: #666;
+    }
+
+</style>
+
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    private ApexChart<SanPhamComboDto> chartSanPhamComboDtoRef { get; set; } = default!;
+    private bool isLoading = true;
+
+    private BieuDoSanPhamComboDto BieuDoSanPhamComboDto { get; set; } = new BieuDoSanPhamComboDto();
+
+    private List<SanPhamComboDto> DuLieuSanPhamComboDto { get; set; } = new List<SanPhamComboDto>();
+    private List<SanPhamThongKeDto> SanPhamThongKeDto { get; set; } = new List<SanPhamThongKeDto>();
+    private List<ComboThongKeDto> ComboThongKeDto { get; set; } = new List<ComboThongKeDto>();
+
+    [Parameter]
+    public DateTime? TuNgay { get; set; }
+    [Parameter]
+    public DateTime? DenNgay { get; set; }
+    [Parameter]
+    public EventCallback OnDateChanged { get; set; }
+
+
+    ApexChartOptions<SanPhamComboDto> productConfig = new()
+    {
+        Chart = new Chart
+        {
+            Toolbar = new Toolbar
+            {
+                Show = false
+            }
+        },
+        DataLabels = new DataLabels
+        {
+            Enabled = true,
+            OffsetY = 15,
+            Style = new DataLabelsStyle
+            {
+                FontSize = "14px",
+                Colors = new List<string> { "#fff" } // Màu trắng
+            }
+        },
+        PlotOptions = new PlotOptions
+        {
+            Bar = new PlotOptionsBar
+            {
+                DataLabels = new PlotOptionsBarDataLabels
+                {
+                    Position = BarDataLabelPosition.Top // Đưa nhãn lên trên đầu cột
+                }
+            }
+        }
+
+
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        BieuDoSanPhamComboDto = await LoadSanPhamComboCount();
+        DuLieuSanPhamComboDto = BieuDoSanPhamComboDto.SanPhamComboCount;
+        SanPhamThongKeDto = BieuDoSanPhamComboDto.SanPhamThongKe;
+        ComboThongKeDto = BieuDoSanPhamComboDto.ComboThongKeDto;
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = true;
+            BieuDoSanPhamComboDto = await LoadSanPhamComboCount();
+            DuLieuSanPhamComboDto = BieuDoSanPhamComboDto.SanPhamComboCount;
+            SanPhamThongKeDto = BieuDoSanPhamComboDto.SanPhamThongKe;
+            ComboThongKeDto = BieuDoSanPhamComboDto.ComboThongKeDto;
+
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<BieuDoSanPhamComboDto> LoadSanPhamComboCount()
+    {
+        try
+        {
+            var baseQuery = new BaseQuery
+            {
+                TuNgay = (TuNgay ?? DateTime.Now.Date.AddDays(-7)).ToString(),
+                DenNgay = ((DenNgay ?? DateTime.Now.Date).AddDays(1)).ToString()
+            };
+            ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+            requestRestAPI.Endpoint = "api/ThongKe/GetSanPhamComboCount";
+            ResultAPI result = await CallApi.Post<BieuDoSanPhamComboDto>(requestRestAPI, baseQuery);
+
+            if (result.Status == StatusCode.OK && result.Data is BieuDoSanPhamComboDto dataTable)
+            {
+                var items = dataTable;
+
+                return items;
+            }
+            else
+            {
+                ToastService.ShowError($"Lỗi khi tải danh sách mã giảm giá");
+                return new BieuDoSanPhamComboDto();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách mã giảm giá: {ex.Message}");
+            return new BieuDoSanPhamComboDto();
+        }
+
+    }
+  
+}

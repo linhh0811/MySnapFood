@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Service.SnapFood.Share.Model.Enum;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +13,6 @@ namespace Service.SnapFood.Share.Model.Commons
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public Guid UserId { get; set; }
+        public List<EnumRole> Roles { get; set; } = new();
     }
 }

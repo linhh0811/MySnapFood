@@ -1,0 +1,215 @@
+﻿@using System.Globalization
+@using Service.SnapFood.Manage.Dto.ThongKe
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+@using Service.SnapFood.Share.Query.Grid
+
+<FluentStack VerticalAlignment="VerticalAlignment.Top">
+    <FluentStack VerticalAlignment="VerticalAlignment.Top" Style="justify-content:start;align-items:flex-start;">
+
+        <div style="display: flex; flex-direction:row; gap:10px; ">
+            <h4 style="margin-bottom: 15px; margin-top: 15px; display: flex; align-items: center; gap: 5px;">
+                <FluentIcon Value="@(new Icons.Regular.Size24.Info())" Color="Color.Accent" />
+                THỐNG KÊ THEO THỜI GIAN
+            </h4>
+        </div>
+
+    </FluentStack>
+
+    <FluentStack VerticalAlignment="VerticalAlignment.Top" Style="justify-content:end;align-items:flex-start; padding-bottom:15px">
+        <div style="display: flex; flex-direction:row; gap:10px; ">
+            <div>
+                <FluentLabel Style="margin-bottom:10px">Từ ngày</FluentLabel>
+                <FluentDatePicker Placeholder="dd-mm-yyyy"
+                @bind-Value="TuNgay"
+                                  @bind-Value:after="OnDateChanged"
+                Style="width: 100%;" Culture="@customCulture">
+                </FluentDatePicker>
+            </div>
+            <div>
+                <FluentLabel Style="margin-bottom:10px">Đến ngày</FluentLabel>
+                <FluentDatePicker Placeholder="dd-mm-yyyy"
+                @bind-Value="DenNgay"
+                                  @bind-Value:after="OnDateChanged"
+
+                Style="width: 100%;" Culture="@customCulture">
+                </FluentDatePicker>
+            </div>
+
+        </div>
+    </FluentStack>
+</FluentStack>
+<div style="margin-bottom:10px">
+
+
+    <FluentGrid AdaptiveRendering="true" Justify="@JustifyContent.FlexStart">
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Bill" rel="noopener noreferrer" style="text-decoration: none;" title="Tổng hóa đơn hoàn thành / Tổng hóa đơn xử lý">
+                <FluentCard Class="stat-card blue">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.Box())" Color="Color.Accent" />
+                    <FluentLabel>Đơn hàng</FluentLabel>
+                    <div class="stat-value">@TTSoLieuTheoThoiGianDto.TongHoaDonThanhCong / @TTSoLieuTheoThoiGianDto.TongHoaDon</div>
+                </FluentCard>
+            </a>
+
+        </FluentGridItem>
+
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Khuyen-Mai" rel="noopener noreferrer" style="text-decoration: none;" title="Tiền khuyến mãi">
+                <FluentCard Class="stat-card pink">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.AppsList())" Color="Color.Accent" />
+                    <FluentLabel>Tiền khuyến mãi</FluentLabel>
+                    <div class="stat-value">@TTSoLieuTheoThoiGianDto.TienKhuyenMai.ToString("N0") đ</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+
+
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Ma-Giam-Gia" rel="noopener noreferrer" style="text-decoration: none;" title="Tiền mã giảm giá">
+                <FluentCard Class="stat-card green">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.Tag())" Color="Color.Accent" />
+                    <FluentLabel>Tiền mã giảm giá</FluentLabel>
+                    <div class="stat-value">@TTSoLieuTheoThoiGianDto.TienMaGiamGia.ToString("N0") đ</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Bill" rel="noopener noreferrer" style="text-decoration: none;" title="Phí ship">
+                <FluentCard Class="stat-card orange">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.TicketDiagonal())" Color="Color.Accent" />
+                    <FluentLabel>Phí ship</FluentLabel>
+                    <div class="stat-value">@TTSoLieuTheoThoiGianDto.PhiShip.ToString("N0") đ</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Bill" rel="noopener noreferrer" style="text-decoration: none;" title="Đơn hàng bị hủy">
+                <FluentCard Class="stat-card blue">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.PersonStar())" Color="Color.Accent" />
+                    <FluentLabel>Đơn hàng bị hủy</FluentLabel>
+                    <div class="stat-value">@TTSoLieuTheoThoiGianDto.TongHoaDonBiHuy</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Bill" rel="noopener noreferrer" style="text-decoration: none;" title="Tổng doanh thu: Tổng giá trị + phí ship - khuyến mãi - giảm giá">
+                <FluentCard Class="stat-card blue">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.PersonStar())" Color="Color.Accent" />
+                    <FluentLabel>Tổng doanh thu</FluentLabel>
+                    <div class="stat-value">@TTSoLieuTheoThoiGianDto.TongDoanhThu.ToString("N0") đ</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+
+    </FluentGrid>
+</div>
+
+<h4 style="margin-bottom: 15px; margin-top: 15px; display: flex; align-items: center; gap: 5px;">
+    <FluentIcon Value="@(new Icons.Regular.Size24.Info())" Color="Color.Accent" />
+    BIỂU ĐỒ
+</h4>
+<FluentTabs ActiveTabId="TabTwo" Size="TabSize.Medium">
+    <FluentTab Id="TabTwo" Label="Sản phẩm / Combo">
+        <LoadingContent>
+            <FluentProgressRing />
+        </LoadingContent>
+        <Content>
+            <ViewChartBieuDo TuNgay="TuNgay" DenNgay="DenNgay" OnDateChanged="OnDateChanged" />
+        </Content>
+    </FluentTab>
+
+    <FluentTab Id="TabOne" Label="Doanh thu" DeferredLoading="true">
+        <LoadingContent>
+            <FluentProgressRing />
+        </LoadingContent>
+        <Content>
+            <ViewChartBieuDoDoanhThu TuNgay="TuNgay" DenNgay="DenNgay" OnDateChanged="OnDateChanged" />
+        </Content>
+
+    </FluentTab>
+
+</FluentTabs>
+@code {
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    private TTSoLieuTheoThoiGianDto TTSoLieuTheoThoiGianDto { get; set; } = new TTSoLieuTheoThoiGianDto();
+    public DateTime? TuNgay { get; set; } = DateTime.Now.Date.AddDays(-7);
+
+    private DateTime? DenNgay { get; set; } =  DateTime.Now.Date;
+
+    private CultureInfo customCulture = CreateCustomCulture();
+    private static CultureInfo CreateCustomCulture()
+    {
+        var culture = new CultureInfo("vi-VN");
+
+        culture.DateTimeFormat.ShortDatePattern = "dd/MM/yyyy";
+        culture.DateTimeFormat.DateSeparator = "/";
+
+        return culture;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            TTSoLieuTheoThoiGianDto= await LoadTTSoLieuTheoThoiGianDto();
+            StateHasChanged();
+        }
+    }
+
+    private async Task<TTSoLieuTheoThoiGianDto> LoadTTSoLieuTheoThoiGianDto()
+    {
+        try
+        {
+
+
+            var baseQuery = new BaseQuery
+            {
+                TuNgay = (TuNgay ?? DateTime.Now.Date.AddDays(-7)).ToString(),
+                DenNgay = ((DenNgay ?? DateTime.Now.Date).AddDays(1)).ToString()
+            };
+            ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+            requestRestAPI.Endpoint = "api/ThongKe/GetTTSoLieuTheoThoiGian";
+            ResultAPI result = await CallApi.Post<TTSoLieuTheoThoiGianDto>(requestRestAPI, baseQuery);
+
+            if (result.Status == StatusCode.OK && result.Data is TTSoLieuTheoThoiGianDto dataTable)
+            {
+                var items = dataTable;
+
+                return items;
+            }
+            else
+            {
+                ToastService.ShowError($"Lỗi khi tải danh sách mã giảm giá");
+                return new TTSoLieuTheoThoiGianDto();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách mã giảm giá: {ex.Message}");
+            return new TTSoLieuTheoThoiGianDto();   
+        }
+       
+    }
+    private async Task OnDateChanged()
+    {
+        if (TuNgay.HasValue && DenNgay.HasValue && TuNgay.Value.Date > DenNgay.Value.Date)
+        {
+            ToastService.ShowError("Ngày kết thúc không được nhỏ hơn ngày bắt đầu");
+            TuNgay = DateTime.Now.AddDays(-7); 
+            
+        }
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        TTSoLieuTheoThoiGianDto = await LoadTTSoLieuTheoThoiGianDto();
+        StateHasChanged();
+    }
+}

@@ -24,6 +24,12 @@ namespace Service.SnapFood.Api.Controllers
             return Ok(store);
         }
 
+        [HttpGet("GetFooter")]
+        public async Task<IActionResult> GetFooter()
+        {
+            var store = await _storeService.GetFooter();
+            return Ok(store);
+        }
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] StoreDto item)
         {

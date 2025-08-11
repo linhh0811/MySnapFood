@@ -1,0 +1,40 @@
+﻿@page "/Quan-Ly/Thong-Ke"
+
+<div class="dashboard-container">  
+    <ViewTTSoLieu />
+    <hr/>
+    <ViewZoneChart/>
+</div>
+
+<style>
+    .dashboard-container {
+        padding: var(--design-unit-4);
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    @@media (max-width: 768px) {
+        .dashboard-container {
+            padding: var(--design-unit-2);
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--design-unit-2);
+        }
+
+        .stat-card {
+            height: 100px;
+            padding: var(--design-unit-2);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+
+@code {
+
+}

@@ -17,6 +17,11 @@
     <FluentDialog PreventDismissOnOverlayClick="false">
         <FluentDialogBody>
             <div class="login-wrap">
+                <button 
+                        Class="close-button"
+                        @onclick="@(() => Dialog.CloseAsync())">
+                    <span>X</span>
+                </button>
                 <div class="login-html">
                     <input id="tab-1" type="radio" name="tab" class="sign-in" checked><label for="tab-1" class="tab">Đăng Nhập</label>
 
@@ -315,6 +320,30 @@
     .foot-lnk {
     text-align: center;
     }
+
+    .close-button {
+        z-index:10;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #ff5b6a; /* Màu đỏ nhạt */
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 16px;
+        z-index: 1000; /* Đảm bảo nút ở trên cùng */
+    }
+
+        .close-button:hover {
+            background: #e43f3f; /* Màu đỏ đậm hơn khi hover */
+        }
 </style>
 
 @code {

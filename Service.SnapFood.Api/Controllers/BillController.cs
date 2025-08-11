@@ -35,6 +35,14 @@ namespace Service.SnapFood.Api.Controllers
             return Ok(bills);
         }
 
+        [HttpGet("GetBillDangXuLy")]
+        public IActionResult GetBillDangXuLy()
+        {
+            var bills =  _billService.GetBillDangXuLy();
+            return Ok(bills);
+        }
+        
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {

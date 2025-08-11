@@ -1,0 +1,177 @@
+﻿@using Service.SnapFood.Manage.Dto.ThongKe
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+<h4 style="margin-bottom: 15px; margin-top: 15px; display: flex; align-items: center; gap: 5px;">
+    <FluentIcon Value="@(new Icons.Regular.Size24.Info())" Color="Color.Accent" />
+    TÌNH TRẠNG HOẠT ĐỘNG CỦA CÁC DỊCH VỤ
+</h4>
+<div  style="margin-bottom:10px">
+
+
+    <FluentGrid  AdaptiveRendering="true" Justify="@JustifyContent.FlexStart">
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/San-Pham" rel="noopener noreferrer" style="text-decoration: none;" title="Sản phẩm hoạt động / tổng sản phẩm">
+                <FluentCard Class="stat-card blue">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.Box())" Color="Color.Accent" />
+                    <FluentLabel>Sản phẩm</FluentLabel>
+                    <div class="stat-value">@TTSoLieuDto.SanPhamHoatDong / @TTSoLieuDto.TongSanPham</div>
+                </FluentCard>
+            </a>
+
+        </FluentGridItem>
+
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Combo" rel="noopener noreferrer" style="text-decoration: none;" title="Combo hoạt động / tổng combo">
+                <FluentCard Class="stat-card pink" >
+                    <FluentIcon Value="@(new Icons.Regular.Size24.AppsList())" Color="Color.Accent" />
+                    <FluentLabel>Combo</FluentLabel>
+                    <div class="stat-value">@TTSoLieuDto.ComboHoatDong / @TTSoLieuDto.TongCombo</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+
+
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Khuyen-Mai" rel="noopener noreferrer" style="text-decoration: none;" title="Số lượng khuyến mãi đang hoạt động">
+                <FluentCard Class="stat-card green">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.Tag())" Color="Color.Accent" />
+                    <FluentLabel>Khuyến mãi hoạt động</FluentLabel>
+                    <div class="stat-value">@TTSoLieuDto.KhuyenMaiHoatDong</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Ma-Giam-Gia" rel="noopener noreferrer" style="text-decoration: none;" title="Mã giảm giá đang hoạt động">
+                <FluentCard Class="stat-card orange">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.TicketDiagonal())" Color="Color.Accent" />
+                    <FluentLabel>Mã giảm giá hoạt động</FluentLabel>
+                    <div class="stat-value">@TTSoLieuDto.MaGiamGiaHoatDong</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Nhan-Vien" rel="noopener noreferrer" style="text-decoration: none;" title="Tổng nhân viên">
+                <FluentCard Class="stat-card blue">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.PersonStar())" Color="Color.Accent" />
+                    <FluentLabel>Nhân viên</FluentLabel>
+                    <div class="stat-value">@TTSoLieuDto.TongNhanVien</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+        <FluentGridItem xs="6" md="3">
+            <a href="/Quan-Ly/Nguoi-Dung" rel="noopener noreferrer" style="text-decoration: none;" title="Tổng người dùng trong hệ thống">
+                <FluentCard Class="stat-card pink">
+                    <FluentIcon Value="@(new Icons.Regular.Size24.People())" Color="Color.Accent" />
+                    <FluentLabel>Người dùng</FluentLabel>
+                    <div class="stat-value">@TTSoLieuDto.TongNguoiDung</div>
+                </FluentCard>
+            </a>
+        </FluentGridItem>
+    </FluentGrid>
+</div>
+
+<style>
+    .stat-card {
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e1dfdd;
+    width: auto;
+    }
+
+    .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elevation-shadow-card-hover);
+    }
+
+    .stat-card.blue {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    }
+
+    .stat-card.pink {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    }
+
+    .stat-card.green {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    }
+
+    .stat-card.orange {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
+    }
+
+    .stat-card.purple {
+    background: linear-gradient(135deg, #ede7f6 0%, #d1c4e9 100%);
+    }
+
+    .stat-card h3 {
+    color: #323130;
+    font-size: 15px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    }
+
+    .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0078d4;
+    }
+
+
+
+    .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    margin-bottom: var(--design-unit-6);
+    }
+
+
+    @@media (max-width: 768px) {
+
+    .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .stat-card {
+    height: 100px;
+    padding: var(--design-unit-2);
+    }
+
+    .stat-value {
+    font-size: 1.5rem;
+    }
+    }
+</style>
+
+@code {
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    TTSoLieuDto TTSoLieuDto = new TTSoLieuDto();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            TTSoLieuDto =await GetTTSoLieu();
+            StateHasChanged();
+        }
+    }
+
+    private async Task<TTSoLieuDto> GetTTSoLieu()
+    {
+        ApiRequestModel requestRestAPI = new();
+        requestRestAPI.Endpoint = $"api/ThongKe/GetTTSoLieu";
+        var result = await CallApi.Get<TTSoLieuDto>(requestRestAPI);
+
+        if (result.Status == StatusCode.OK && result.Data is TTSoLieuDto dto)
+        {
+           return TTSoLieuDto = dto;
+        }
+        else
+        {
+            ToastService.ShowError( "Không thể tải thông tin.");
+            return new TTSoLieuDto();
+        }
+    }
+}

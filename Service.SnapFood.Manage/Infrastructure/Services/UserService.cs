@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using Service.SnapFood.Share.Model.Commons;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Service.SnapFood.Share.Model.Enum;
 
 namespace Service.SnapFood.Manage.Infrastructure.Services
 {
@@ -36,6 +37,16 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
                 string userId = user.FindFirst("user_id")?.Value ?? string.Empty;
                 string userName = user.Identity.Name ?? string.Empty;
                 string email = user.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+                var roles = user.FindAll(ClaimTypes.Role)
+                .Select(c =>
+                {
+                    return Enum.TryParse<EnumRole>(c.Value, true, out var parsed)
+                        ? parsed
+                        : (EnumRole?)null;
+                })
+                .Where(r => r != null)
+                .Select(r => r!.Value)
+                .ToList();
 
 
                 if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(userId))
@@ -47,7 +58,8 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
                 {
                     UserId = Guid.Parse(userId),
                     UserName = userName,
-                    Email=email
+                    Email=email,
+                    Roles=roles
                 };
 
                 if (currentUser is null)

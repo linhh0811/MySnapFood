@@ -32,6 +32,7 @@
 </header>
 
 @code {
+
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
@@ -40,6 +41,8 @@
     public EventCallback<List<CategoryDto>> DataCategory { get; set; }
     [Parameter]
     public EventCallback<CategoryDto> OnCategorySelected { get; set; }
+    [Parameter]
+    public string CategoryId { get; set; } = string.Empty;
 
     private CategoryDto CategorySelect = new();
 
@@ -48,8 +51,16 @@
     {
         await LoadCategory();
         await DataCategory.InvokeAsync(categoryDtos);
-        await OnCategorySelected.InvokeAsync(categoryDtos.First());
-        CategorySelect = categoryDtos.First();
+        if (string.IsNullOrEmpty(CategoryId))
+        {
+            await OnCategorySelected.InvokeAsync(categoryDtos.First());
+            CategorySelect = categoryDtos.First();
+        }else
+        {
+            await OnCategorySelected.InvokeAsync(categoryDtos.FirstOrDefault(x=>x.Id==CategoryId));
+            CategorySelect = categoryDtos.FirstOrDefault(x => x.Id == CategoryId) ?? categoryDtos.First();
+        }
+        
     }
     private async Task LoadCategory()
     {

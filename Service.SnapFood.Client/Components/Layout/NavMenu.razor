@@ -150,6 +150,10 @@
     private bool IsActive(string href)
     {
         var currentPath = new Uri(Navigation.Uri).AbsolutePath.ToLower();
+        if (href!="/")
+        {
+            return currentPath.Contains(href.ToLower());
+        }
         return currentPath == href.ToLower();
     }
 }
