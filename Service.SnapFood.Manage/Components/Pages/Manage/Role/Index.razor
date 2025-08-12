@@ -23,7 +23,7 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin))
                     <hr />
                     <div class="tree-container" style="width:100%; overflow-y: auto;">
                         <FluentTreeView @bind-SelectedItem="selectedRole" Items="@Roles" LazyLoadItems="false">
-                            <ItemTemplate>
+                            <ItemTemplate >
                                 <div @onclick="() => SelectRole(context)" style="display: flex; align-items: center; gap: 10px;width:100%;">
                                     <span>@context.Text</span>
                                 </div>
