@@ -83,8 +83,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                 };
                 requestRestAPI.Endpoint = "api/Combo/GetPaged";
 
-                ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
-                if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+                ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
+                if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
                 {
                     var items = JsonSerializer.Deserialize<List<ComboDto>>(dataTable.Data.GetRawText(),
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ComboDto>(); ;

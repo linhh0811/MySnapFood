@@ -23,6 +23,28 @@ namespace Service.SnapFood.Application.Service
             _unitOfWork = unitOfWork;
         }
 
+        public List<CartDto> GetListCartByUserId(Guid UserId)
+        {
+            var Carts = _unitOfWork.CartRepo.FindWhere(x => x.UserId == UserId);
+            var CartDto = Carts.Select(x => new CartDto()
+            {
+                Id = x.Id,
+                UserId = x.UserId
+            });
+            return CartDto.ToList();
+        }
+
+        public async Task<Guid> AddCartNew(Guid UserId)
+        {
+            Cart cartNew = new Cart();
+            cartNew.UserId = UserId;
+
+            _unitOfWork.CartRepo.Add(cartNew);
+            await _unitOfWork.CompleteAsync();
+
+            return cartNew.Id;
+        }
+
         public async Task AddComboToCartAsync(AddComboToCartDto item)
         {
             var cart = _unitOfWork.CartRepo.FirstOrDefault(x => x.UserId == item.UserId);

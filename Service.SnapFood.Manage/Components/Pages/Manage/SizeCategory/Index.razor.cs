@@ -5,7 +5,7 @@ using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Dto.Category;
 using Service.SnapFood.Manage.Dto.ProductDto;
-using Service.SnapFood.Manage.Dto.SizeDto;
+using Service.SnapFood.Manage.Dto.Size;
 using Service.SnapFood.Manage.Dto.TreeView;
 using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Model.Commons;

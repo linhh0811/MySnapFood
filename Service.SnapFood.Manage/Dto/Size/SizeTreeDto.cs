@@ -1,6 +1,6 @@
 ﻿using Service.SnapFood.Share.Model.SQL;
 
-namespace Service.SnapFood.Manage.Dto.SizeDto
+namespace Service.SnapFood.Manage.Dto.Size
 {
     public class SizeTreeDto
     {

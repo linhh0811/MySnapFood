@@ -1,7 +1,7 @@
 ﻿using Service.SnapFood.Share.Model.SQL;
 using System.ComponentModel.DataAnnotations;
 
-namespace Service.SnapFood.Manage.Dto.SizeDto
+namespace Service.SnapFood.Manage.Dto.Size
 {
     public class SizeDto
     {

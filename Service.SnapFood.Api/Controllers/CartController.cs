@@ -16,6 +16,12 @@ namespace Service.SnapFood.Api.Controllers
         {
             _cartService = cartService;
         }
+        [HttpPost("AddCartNew/{userId}")]
+        public async Task<IActionResult> AddCartNew(Guid userId)
+        {
+            var id = await _cartService.AddCartNew(userId);
+            return Ok(id);
+        }
 
         // GET: api/cart/{userId}
         [HttpGet("{userId}")]
@@ -25,6 +31,20 @@ namespace Service.SnapFood.Api.Controllers
             {
                 var cart = await _cartService.GetCartByIdUserAsync(userId);
                 return Ok(cart);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("ListCart/{userId}")]
+        public IActionResult GetListCart(Guid userId)
+        {
+            try
+            {
+                var carts =  _cartService.GetListCartByUserId(userId);
+                return Ok(carts);
             }
             catch (Exception ex)
             {
