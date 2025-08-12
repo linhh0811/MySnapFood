@@ -758,6 +758,9 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
         public DbSet<Promotions> Promotions { get; set; }
         public DbSet<ThongTinGiaoHang> ThongTinGiaoHangs { get; set; }
 
+        public DbSet<OtpConfirm> OtpConfirms { get; set; }
+
+
 
 
     }
