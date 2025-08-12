@@ -57,7 +57,7 @@
 
                                 <div class="group">
                                     <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isLoggingIn">Đăng nhập</FluentButton>
-
+                                    <FluentButton Appearance="Appearance.Lightweight" Disabled="@isLoggingIn" OnClick="OpenModalLayMatKhau">Bạn quên mật khẩu?</FluentButton>
                                 </div>
 
                             </EditForm>
@@ -102,7 +102,7 @@
 
                                 <div class="group">
                                     <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isRegistering">Đăng ký</FluentButton>
-
+                                  
                                 </div>
 
                             </EditForm>
@@ -329,7 +329,7 @@
         width: 30px;
         height: 30px;
         border-radius: 50%;
-        background: #ff5b6a; /* Màu đỏ nhạt */
+        background: transparent; /* Màu đỏ nhạt */
         color: white;
         display: flex;
         align-items: center;
@@ -351,6 +351,8 @@
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private RegisterDto registerModel = new();
     private LoginDto loginModel = new();
@@ -390,6 +392,26 @@
         }
 
 
+    }
+
+    private async Task OpenModalLayMatKhau()
+    {
+        try
+        {
+            await Dialog.CloseAsync();
+            var dialog = await DialogService.ShowDialogAsync<LayMatKhau>(new DialogParameters
+            {
+                Title = null,
+                PreventScroll = true,
+                Modal = true,
+                PreventDismissOnOverlayClick = false,
+                ShowDismiss = false
+            });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal: {ex.Message}");
+        }
     }
 
     private async Task HandleLogin()

@@ -6,10 +6,12 @@ namespace Service.SnapFood.Application.Interfaces
 {
     public interface ICartService
     {
+        Task<Guid> AddCartNew(Guid UserId);
         Task AddComboToCartAsync(AddComboToCartDto item);
         Task AddProductToCartAsync(AddProductToCartDto item);
         Task CheckOut(CheckOutDto item);
         //Task ClearCart(Guid cartId);
+        List<CartDto> GetListCartByUserId(Guid UserId);
         Task<CartDto> GetCartByIdUserAsync(Guid userId);
         Task RemoveCartItemAsync(Guid cartItemId);
         Task UpdateCartItemAsync(Guid cartItemId, int quantity);

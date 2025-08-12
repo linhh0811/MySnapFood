@@ -31,37 +31,85 @@
 </head>
 <body>
     <div class="login-container">
-        <FluentCard Style="padding:30px">
-            <FluentLabel Typo="Typography.H2" Style="padding-bottom:10px">Đăng nhập hệ thống</FluentLabel>
-            <EditForm Model="loginDto" OnValidSubmit="HandleSubmit">
-                <DataAnnotationsValidator />
+        @if (!IsLayLaiMatKhau)
+        {
+            <FluentCard Style="padding:30px;width:400px;">
+                <FluentLabel Typo="Typography.H2" Style="padding-bottom:10px">Đăng nhập hệ thống</FluentLabel>
+                <EditForm Model="loginDto" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
 
-                @if (!string.IsNullOrEmpty(ErrorMessage))
-                {
-                    <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error" Style="margin-bottom: 1rem;">
-                        @ErrorMessage
-                    </FluentMessageBar>
-                }
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error" Style="margin-bottom: 1rem;">
+                            @ErrorMessage
+                        </FluentMessageBar>
+                    }
 
-                <FluentStack Orientation="Orientation.Vertical" Style="gap: 1rem;">
-                    <FluentStack Orientation="Orientation.Vertical">
-                        <FluentLabel Weight="FontWeight.Bold">Email:</FluentLabel>
-                        <FluentTextField @bind-Value="loginDto.Email" Placeholder="Nhập email" Style="width: 100%;" />
-                        <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Email)" />
+                    <FluentStack Orientation="Orientation.Vertical" Style="gap: 1rem;">
+                        <FluentStack Orientation="Orientation.Vertical">
+                            <FluentLabel Weight="FontWeight.Bold">Email:</FluentLabel>
+                            <FluentTextField @bind-Value="loginDto.Email" Placeholder="Nhập email" Style="width: 100%;" />
+                            <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Email)" />
+                        </FluentStack>
+
+                        <FluentStack Orientation="Orientation.Vertical">
+                            <FluentLabel Weight="FontWeight.Bold">Mật khẩu:</FluentLabel>
+                            <FluentTextField @bind-Value="loginDto.Password" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu" Style="width: 100%;" />
+                            <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Password)" />
+                        </FluentStack>
+
+                        <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
+                            Đăng nhập
+                        </FluentButton>
+                        <hr />
+                        <FluentButton Loading="@loading" Appearance="Appearance.Lightweight" Style="width: 100%;" OnClick="LayMatKhau">
+                            Bạn quên mật khẩu?
+                        </FluentButton>
+
+
                     </FluentStack>
+                </EditForm>
+            </FluentCard>
+        }
+        else
+        {
+            <FluentCard Style="padding:30px;width:400px;">
+                <FluentLabel Typo="Typography.H2" Style="padding-bottom:10px">Lấy lại mật khẩu</FluentLabel>
+                <EditForm Model="loginDto" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
 
-                    <FluentStack Orientation="Orientation.Vertical">
-                        <FluentLabel Weight="FontWeight.Bold">Mật khẩu:</FluentLabel>
-                        <FluentTextField @bind-Value="loginDto.Password" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu" Style="width: 100%;" />
-                        <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Password)" />
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error" Style="margin-bottom: 1rem;">
+                            @ErrorMessage
+                        </FluentMessageBar>
+                    }
+
+                    <FluentStack Orientation="Orientation.Vertical" Style="gap: 1rem;">
+                        <FluentStack Orientation="Orientation.Vertical">
+                            <FluentLabel Weight="FontWeight.Bold">Email:</FluentLabel>
+                            <FluentTextField @bind-Value="loginDto.Email" Placeholder="Nhập email" Style="width: 100%;" />
+                            <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Email)" />
+                        </FluentStack>
+
+                        <FluentStack Orientation="Orientation.Vertical">
+                            <FluentLabel Weight="FontWeight.Bold">Mật khẩu:</FluentLabel>
+                            <FluentTextField @bind-Value="loginDto.Password" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu" Style="width: 100%;" />
+                            <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Password)" />
+                        </FluentStack>
+
+                        <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
+                            Lưu mật khẩu
+                        </FluentButton>
+
+
                     </FluentStack>
+                </EditForm>
+            </FluentCard>
+        }
 
-                    <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
-                        Đăng nhập
-                    </FluentButton>
-                </FluentStack>
-            </EditForm>
-        </FluentCard>
+
+
     </div>
 </body>
 </html>
@@ -74,6 +122,8 @@
 
     private LoginDto loginDto = new LoginDto();
     private bool loading = false;
+    private bool IsLayLaiMatKhau = false;
+
     private string? ErrorMessage;
 
     private async Task<bool> LoginNhanVien(LoginDto loginDto)
@@ -117,5 +167,11 @@
         {
             ToastService.ShowSuccess("Đăng nhập thành công!");
         }
+    }
+
+    private void LayMatKhau()
+    {
+        IsLayLaiMatKhau = true;
+        StateHasChanged();
     }
 }

@@ -13,8 +13,8 @@ namespace Service.SnapFood.Infrastructure.Configurations
             builder.HasKey(x => x.Id);
 
             builder.HasOne(x => x.User)
-                .WithOne(x => x.Cart)
-                .HasForeignKey<Cart>(x => x.UserId)
+                .WithMany(x => x.Carts)
+                .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
