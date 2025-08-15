@@ -1,0 +1,227 @@
+﻿@using Service.SnapFood.Manage.Components.Pages.Manage.ThanhToan
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Cart
+@using Service.SnapFood.Manage.Enums
+@using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@inherits ComponentBase
+@implements IDialogContentComponent<ThanhToanParameters>
+@if (!IsLoading)
+{
+    <FluentDialogBody>
+
+        <hr style="margin-bottom:0;" />
+        @foreach (var item in CartModel.CartItems)
+        {
+            var totalItemPrice = item.BasePrice * item.Quantity;
+            <div class="row align-items-center border-bottom pb-2">
+                <div class="col-2">
+                    <img style="max-width:70px;max-height:60px;" src="@item.ImageUrl" alt="@item.ItemName" class="img-fluid rounded" />
+                </div>
+                <div class="col-10">
+                    <p class="my-1 fw-bold">@item.ItemName</p>
+                    @if (item.ItemType == ItemType.Product)
+                    {
+                        <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
+                            <div style="cursor: pointer;font-size:12px;">
+                                Kích thước: @item.SizeName
+                            </div>
+                        </div>
+                    }
+                    @if (item.ItemType == ItemType.Combo)
+                    {
+                        <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
+                            @foreach (var x in item.ComboItems)
+                            {
+                                <p style="cursor: pointer;font-size:12px; margin:0px">@x.ProductName (@x.SizeName)</p>
+                            }
+                        </div>
+                    }
+                    @if (item.PriceEndown > 0)
+                    {
+                        <p class="my-2 text-muted">x @item.Quantity <span class="float-end fw-bold"><del class="float-end">@((item.BasePrice * item.Quantity).ToString("N0")) đ</del> <br />@((item.PriceEndown * item.Quantity).ToString("N0")) đ</span></p>
+                    }
+                    else
+                    {
+                        <p class="my-2 text-muted">x @item.Quantity <span class="float-end fw-bold">@((item.BasePrice * item.Quantity).ToString("N0")) đ</span></p>
+                    }
+                </div>
+            </div>
+        }
+        <div class="mt-3">
+            <p class="d-flex justify-content-between my-2 fw-bold">
+                Tổng tiền <span class="fw-bold">@totalPrice.ToString("N0") đ</span>
+            </p>
+            <p class="d-flex justify-content-between my-2 fw-bold">
+                Khuyến mãi <span class="fw-bold">@totalPriceEndown.ToString("N0") đ</span>
+            </p>
+            <hr />
+            <p class="d-flex justify-content-between my-2 fw-bold">
+                Khách phải trả
+                <span class="fw-bold">
+                    @((totalPrice - totalPriceEndown).ToString("N0")) đ
+                </span>
+            </p>
+            <hr />
+            <p class="d-flex justify-content-between my-2 fw-bold">
+                Phương thức thanh toán
+                <span class="fw-bold">
+                    @Content.PhuongThucThanhToan.GetDescription()
+                </span>
+            </p>
+        </div>
+
+        <div class="my-3">
+            <label class="mb-2 fw-bold">Ghi chú</label>
+            <textarea class="form-control" @bind="GhiChu" rows="3" placeholder="Ghi chú (nếu có)"></textarea>
+        </div>
+    </FluentDialogBody>
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Accent" Loading="@IsSaving" Disabled="@IsSaving" OnClick="HandleCheckOut">
+            Xác nhận
+        </FluentButton>
+    </FluentDialogFooter>
+}
+
+
+@code {
+    [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
+
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+    [Parameter] public ThanhToanParameters Content { get; set; } = new();
+
+    [Inject] protected ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] protected IToastService ToastService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    protected CartDto CartModel { get; set; } = new CartDto();
+    protected decimal totalPrice = 0;
+    protected decimal totalPriceEndown = 0;
+
+    public bool IsLoading { get; set; } = true;
+    public bool IsSaving { get; set; } = false;
+
+    public string GhiChu { get; set; } = string.Empty;  
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            IsLoading = true;
+            await LoadCart();
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    protected async Task LoadCart()
+    {
+
+        try
+        {
+            if (Content.CartId != Guid.Empty)
+            {
+                var request = new ApiRequestModel { Endpoint = $"api/Cart/CartId/{Content.CartId}" };
+                var result = await CallApi.Get<CartDto>(request);
+                if (result.Status == StatusCode.OK && result.Data != null)
+                {
+                    CartModel = (CartDto)result.Data;
+
+                    totalPrice = CartModel.CartItems.Sum(p => p.BasePrice * p.Quantity);
+                    totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0).Sum(p => p.BasePrice * p.Quantity - p.PriceEndown * p.Quantity);
+                    StateHasChanged();
+                }
+                else
+                {
+                    ToastService.ShowError("Không thể tải giỏ hàng.");
+                }
+            }
+            else
+            {
+                CartModel = new CartDto();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải giỏ hàng: {ex.Message}");
+        }
+    }
+
+    private async Task OpenModalQrCk()
+    {
+        try
+        {
+            var maCk = Guid.NewGuid().ToString("N").Substring(0, 5).ToUpper();
+            var parameters = new QRCKParameter
+            {
+                GiaTriDonHang = totalPrice - totalPriceEndown ,
+                NoiDungChuyenKhoan = $"SnapFodd - Mã: {maCk}",
+                MaCK = maCk
+
+            };
+            var dialog = await DialogService.ShowDialogAsync<ViewQRCK>(parameters, new DialogParameters
+            {
+                Title = "QRCK",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = true,
+                Modal = true
+            });
+            var result = await dialog.Result;
+            if (!result.Cancelled)
+            {
+                await CheckOut();
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
+        }
+    }
+
+    protected async Task CheckOut()
+    {
+        CheckOutTaiQuayDto checkOutTaiQuayDto = new CheckOutTaiQuayDto()
+        {
+            CartId = Content.CartId,
+            PhuongThucThanhToan = Content.PhuongThucThanhToan,
+            GhiChu = GhiChu,
+            NhanVienId = CurrentUser.UserId
+        };
+
+        var request = new ApiRequestModel { Endpoint = "api/Cart/CheckOutTaiQuay" };
+        var result = await CallApi.Post<object>(request, checkOutTaiQuayDto);
+        if (result.Status == StatusCode.OK)
+        {
+
+            ToastService.ShowSuccess("Đặt hàng thành công.");
+            await Dialog.CancelAsync();
+            await Content.OnRefresh.InvokeAsync();
+        }
+        else
+        {
+            ToastService.ShowError("Đặt hàng thất bại." + result.Message);
+        }
+    }
+
+    protected async Task HandleCheckOut()
+    {
+       
+        IsSaving = true;
+        if (Content.PhuongThucThanhToan == PaymentType.BankTransfer)
+        {
+            await OpenModalQrCk();
+        }
+        else if (Content.PhuongThucThanhToan == PaymentType.Cash)
+        {
+            await CheckOut();
+        }else
+        {
+            ToastService.ShowError("Lỗi phương thức thanh toán");
+
+        }
+        IsSaving = false;
+    }
+}

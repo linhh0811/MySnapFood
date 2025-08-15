@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
+using Service.SnapFood.Manage.Dto.Size;
 using Service.SnapFood.Share.Model.SQL;
 using System.ComponentModel.DataAnnotations;
 
@@ -37,5 +38,8 @@ namespace Service.SnapFood.Manage.Dto.ProductDto
         public bool IsSelected { get; set; }
         public string CreatedByName { get; set; } = string.Empty;
         public string LastModifiedByName { get; set; } = string.Empty;
+        public decimal PriceEndown { get; set; }
+        public List<SizeDto>? Sizes { get; set; }
+
     }
 }

@@ -1,15 +1,15 @@
-﻿@using Service.SnapFood.Client.Dto
-@using Service.SnapFood.Client.Dto.Cart
-@using Service.SnapFood.Client.Dto.Product
-@using Service.SnapFood.Client.Infrastructure.Service
+﻿
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Cart
+@using Service.SnapFood.Manage.Dto.ProductDto
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
-@using Service.SnapFood.Client.Components.Pages.Auth
+
 @using Service.SnapFood.Share.Model.Commons
 @using Microsoft.AspNetCore.Components.Authorization;
-@using Service.SnapFood.Client.Components.Layout;
+
 @using System.Text.Json
-@inject SharedStateService SharedService
+
 
 @inherits ComponentBase
 @implements IDialogContentComponent<ViewParameters>
@@ -40,8 +40,8 @@
                         {
                             <div class="size-item">
                                 <FluentButton Appearance="Appearance.Stealth"
-                                Class="@(SelectedSizeId == size.Id ? "size-button selected" : "size-button")"
-                                @onclick="() => SelectSize(size.Id, size.AdditionalPrice)">
+                                Class="@(SelectedSizeId.ToString() == size.Id ? "size-button selected" : "size-button")"
+                                @onclick="() => SelectSize(Guid.Parse(size.Id), size.AdditionalPrice)">
                                     @size.SizeName
                                 </FluentButton>
                                 <FluentLabel Style="color:red">+@size.AdditionalPrice.ToString("N0") đ</FluentLabel>
@@ -137,16 +137,12 @@
 </style>
 
 @code {
-    [CascadingParameter]
-    public CurrentUser CurrentUser { get; set; } = new();
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
-    [Inject] private NavMenu NavMenu { get; set; } = default!;
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
     [Parameter] public ViewParameters Content { get; set; } = new();
-    [Parameter] public EventCallback OnCartUpdated { get; set; }
 
     private ApiRequestModel requestRestAPI = new ApiRequestModel();
     private ProductDto ProductModel = new ProductDto();
@@ -160,7 +156,7 @@
         await GetProduct();
         if (ProductModel.Sizes is not null && ProductModel.Sizes.Any())
         {
-            SelectedSizeId = ProductModel.Sizes.First().Id;
+            SelectedSizeId = Guid.Parse(ProductModel.Sizes.First().Id);
             SizePrice = ProductModel.Sizes.First().AdditionalPrice;
         }
     }
@@ -214,7 +210,7 @@
             AddProductToCartDto AddProductToCartDto = new AddProductToCartDto
                 {
                     ProductId = ProductModel.Id,
-                    UserId = CurrentUser.UserId,
+                    CartId = Content.CartId,
                     Quantity = Quantity,
                     SizeId = SelectedSizeId
                 };
@@ -223,9 +219,9 @@
             // Xử lý kết quả từ API
             if (result.Status == StatusCode.OK)
             {
-                ToastService.ShowSuccess("Đã thêm sản phẩm vào giỏ hàng.");
-                await SharedService.TriggerUpdateAsync();
+                ToastService.ShowSuccess("Đã thêm sản phẩm vào giỏ hàng.");            
                 await HideDialog();
+                await Content.OnRefresh.InvokeAsync();
             }
             else
             {
