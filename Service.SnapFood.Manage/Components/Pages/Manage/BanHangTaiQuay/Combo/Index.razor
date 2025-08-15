@@ -1,0 +1,154 @@
+﻿@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Combo
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+@using Service.SnapFood.Share.Query.Grid
+@using System.Text.Json
+
+@foreach (var combo in ComboDto)
+{
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <FluentCard class="h-100 position-relative" style="min-height: 400px;">
+            <img src="@combo.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@combo.ComboName" />
+            <div style=" min-height: 120px;display: flex; flex-direction: column; justify-content: space-between;padding-bottom:40px;">
+                <div>
+                    <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px">@combo.ComboName</FluentLabel>
+                    @foreach (var item in combo.ComboItems)
+                    {
+                        <p class="card-title" style="margin: 0;">@item.ProductName</p>
+                    }
+                </div>
+                @if (combo.PriceEndown > 0)
+                {
+                    <div style="display: flex; align-items: center; gap: 10px; padding-top:10px;">
+                        <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                            @combo.BasePrice.ToString("N0") đ
+                        </FluentLabel>
+                        @if (combo.BasePrice > combo.PriceEndown)
+                        {
+                            var discountPercent = Math.Round(((combo.BasePrice - combo.PriceEndown) / combo.BasePrice) * 100);
+                            <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                -@discountPercent%
+                            </FluentLabel>
+                        }
+                    </div>
+                }
+
+            </div>
+            <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                    @if (combo.PriceEndown > 0)
+                    {
+                        <span>@combo.PriceEndown.ToString("N0") đ</span>
+                    }
+                    else
+                    {
+                        <span>@combo.BasePrice.ToString("N0") đ</span>
+
+                    }
+
+                </FluentLabel>
+                <FluentButton BackgroundColor="#ff5b6a"
+                              Color="white"
+                              Title="Thêm combo"
+                              Style="padding: 0; margin-left: auto;"
+                              Type="ButtonType.Submit"
+                              OnClick="()=>OpenModalAdd(combo.Id)">
+                    +
+                </FluentButton>
+            </div>
+        </FluentCard>
+    </div>
+}
+@code {
+    [Parameter] public string SearchKeyword { get; set; } = string.Empty;
+    [Parameter] public Guid CartId { get; set; }
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+
+
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private List<ComboDto> ComboDto = new List<ComboDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCombo();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+
+        await LoadCombo();
+    }
+    private async Task LoadCombo()
+    {
+
+        try
+        {
+            var baseQuery = new BaseQuery
+                {
+                    SearchIn = new List<string> { "ComboName" },
+                    Keyword = SearchKeyword,
+
+                    gridRequest = new GridRequest
+                    {
+                        page = 1,
+                        pageSize = int.MaxValue,
+
+                    }
+                };
+            requestRestAPI.Endpoint = "api/Combo/GetPaged";
+
+            ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
+            if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+            {
+                var items = JsonSerializer.Deserialize<List<ComboDto>>(dataTable.Data.GetRawText(),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ComboDto>();
+
+
+                ComboDto = items.Where(x=>x.ModerationStatus==ModerationStatus.Approved).ToList();
+
+            }
+            StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách sản phẩm: {ex.Message}");
+        }
+    }
+
+    private async Task OpenModalAdd(Guid id)
+    {
+        try
+        {
+            var parameters = new ViewParameters
+                {
+                    Id = id,
+                    CartId=CartId
+                };
+            var dialog = await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
+                {
+                    Title = "Thêm Combo",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "900px",
+                    ShowTitle = false,
+                    ShowDismiss = false
+
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
+        }
+    }
+
+
+
+
+}

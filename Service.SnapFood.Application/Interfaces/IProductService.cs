@@ -2,12 +2,14 @@
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Model.Commons;
+using Service.SnapFood.Share.Query;
 
 namespace Service.SnapFood.Application.Interfaces
 {
     public interface IProductService
     {
         DataTableJson GetPaged(ProductQuery query);
+        DataTableJson GetProductAndCombo(BaseQuery query);
         Task<List<Product>> GetAllAsync();
         Task<ProductDto?> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(ProductDto item);

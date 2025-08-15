@@ -38,6 +38,20 @@ namespace Service.SnapFood.Api.Controllers
             }
         }
 
+        [HttpGet("CartId/{cartId}")]
+        public async Task<IActionResult> GetCartByCartId(Guid cartId)
+        {
+            try
+            {
+                var cart = await _cartService.GetCartByCartIdAsync(cartId);
+                return Ok(cart);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("ListCart/{userId}")]
         public IActionResult GetListCart(Guid userId)
         {
@@ -115,6 +129,21 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         // DELETE: api/cart/remove/{cartItemId}
+        [HttpDelete("RemoveCart/{cartId}")]
+        public async Task<IActionResult> RemoveCart(Guid cartId)
+        {
+            try
+            {
+                await _cartService.RemoveCartAsync(cartId);
+                return Ok(new { message = "Cart item removed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // DELETE: api/cart/remove/{cartItemId}
         [HttpDelete("Remove/{cartItemId}")]
         public async Task<IActionResult> RemoveCartItem(Guid cartItemId)
         {
@@ -129,20 +158,7 @@ namespace Service.SnapFood.Api.Controllers
             }
         }
 
-        // DELETE: api/cart/clear/{cartId}
-        //[HttpDelete("Clear/{cartId}")]
-        //public async Task<IActionResult> ClearCart(Guid cartId)
-        //{
-        //    try
-        //    {
-        //        await _cartService.ClearCart(cartId);
-        //        return Ok(new { message = "Cart cleared successfully." });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
+       
 
         // DELETE: api/cart/removecombo/{cartComboItemId}
         [HttpDelete("RemoveCombo/{cartComboItemId}")]
@@ -181,6 +197,21 @@ namespace Service.SnapFood.Api.Controllers
             try
             {
                 await _cartService.CheckOut(item);
+                return Ok(new { message = "Checkout successful." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // POST: api/cart/checkout
+        [HttpPost("CheckOutTaiQuay")]
+        public async Task<IActionResult> CheckOutTaiQuay([FromBody] CheckOutTaiQuayDto item)
+        {
+            try
+            {
+                await _cartService.CheckOutDatHangTaiQuay(item);
                 return Ok(new { message = "Checkout successful." });
             }
             catch (Exception ex)
