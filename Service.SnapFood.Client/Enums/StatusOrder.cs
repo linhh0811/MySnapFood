@@ -11,8 +11,8 @@ namespace Service.SnapFood.Client.Enums
         [Description("Chờ xác nhận")]
         Pending = 0,
 
-        [Description("Đã xác nhận")]
-        Confirmed = 1,
+        //[Description("Đã xác nhận")]
+        //Confirmed = 1,
 
         [Description("Đang chuẩn bị")]
         DangChuanBi = 2,

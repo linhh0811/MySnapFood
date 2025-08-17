@@ -520,5 +520,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
                 ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
             }
         }
+
+
     }
 }

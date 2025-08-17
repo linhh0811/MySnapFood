@@ -683,7 +683,7 @@ namespace Service.SnapFood.Application.Service
                                 ReceivingType = item.ReceivingType,
                                 ReceiverName = item.ReceiverName,
                                 ReceiverPhone = item.ReceiverPhone,
-                                ReceiverAddress = "Nhận hàng tại quầy",
+                                ReceiverAddress = "",
                                 Distance = 0,
                                 DeliveryFee = 0,
                             };
@@ -790,7 +790,7 @@ namespace Service.SnapFood.Application.Service
 
         }
 
-        public async Task CheckOutDatHangTaiQuay(CheckOutTaiQuayDto item)
+        public async Task<Guid> CheckOutDatHangTaiQuay(CheckOutTaiQuayDto item)
         {
 
             var cart =await _unitOfWork.CartRepo.GetByIdAsync(item.CartId);
@@ -968,6 +968,7 @@ namespace Service.SnapFood.Application.Service
 
                         await _unitOfWork.CompleteAsync();
                         await _unitOfWork.CommitAsync();
+                        return bill.Id;
                     }
                     else
                     {

@@ -1,4 +1,5 @@
 ﻿@page "/bills/user/{id:guid}"
+@using Service.SnapFood.Manage.Dto
 @using Service.SnapFood.Manage.Dto.Bill
 @using Service.SnapFood.Manage.Dto.BillDetails
 @using Service.SnapFood.Manage.Enums
@@ -41,8 +42,8 @@
     <div class="mb-3">
         @if (Item.Status == StatusOrder.Pending)
         {
-            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.DangChuanBi)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
-            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync">Huỷ</FluentButton>
+            <FluentButton Appearance="Appearance.Accent" @onclick="OpenHoaDonModal" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
+            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
         }
         else if (Item.Status == StatusOrder.DangChuanBi)
         {
@@ -86,7 +87,7 @@ else if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiWeb && Item.Recei
     <div class="mb-3">
         @if (Item.Status == StatusOrder.Pending)
         {
-            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.DangChuanBi)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
+            <FluentButton Appearance="Appearance.Accent" @onclick="OpenHoaDonModal" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
             <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
         }
         else if (Item.Status == StatusOrder.DangChuanBi)
@@ -155,6 +156,8 @@ else if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiQuay)
             <p><span class="label">Phương thức đặt hàng: </span>@Item.PhuongThucDatHang.GetDescription()</p>
 
             <p><span class="label">Hình thức thanh toán: </span>@Item.BillPaymentDto.PaymentType.GetDescription()</p>
+            <p><span class="label">Hình thức nhận hàng: </span>@Item.ReceivingType.GetDescription()</p>
+
         </div>
     </div>
 </div>
@@ -168,11 +171,11 @@ else
 {
     <div style="margin-top: 16px">
         <FluentDataGrid Items="@Item.BillDetailsDtos.AsQueryable()"
-                        TGridItem="BillDetailsDto"
-                        GridTemplateColumns="0.75fr 1.45fr 0.75fr 0.75fr 0.75fr"
-                        ResizableColumns="false"
-                        MultiLine="true"
-                        ShowHover="true">
+        TGridItem="BillDetailsDto"
+        GridTemplateColumns="0.75fr 1.45fr 0.75fr 0.75fr 0.75fr"
+        ResizableColumns="false"
+        MultiLine="true"
+        ShowHover="true">
             <ChildContent>
                 <TemplateColumn Title="Hình ảnh" Style="display:flex;align-items:center;">
                     <img src="@context.ImageUrl" style="max-height:60px;max-width:70px;object-fit:contain;" />
@@ -282,79 +285,79 @@ else
 
 <style>
     .step-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 20px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        background: #fff;
-        margin-bottom: 20px;
-        position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fff;
+    margin-bottom: 20px;
+    position: relative;
     }
 
     .step {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        flex: 1;
-        position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
     }
 
-        .step:not(:first-child)::after {
-            content: "";
-            position: absolute;
-            top: 17px;
-            right: 50%;
-            width: 100%;
-            height: 3px;
-            background-color: #ddd;
-            z-index: 0;
-        }
+    .step:not(:first-child)::after {
+    content: "";
+    position: absolute;
+    top: 17px;
+    right: 50%;
+    width: 100%;
+    height: 3px;
+    background-color: #ddd;
+    z-index: 0;
+    }
 
-        .step.active:not(:first-child)::after {
-            background-color: #007bff;
-        }
+    .step.active:not(:first-child)::after {
+    background-color: #007bff;
+    }
 
     .step-container.cancelled .step.active:not(:first-child)::after {
-        background-color: #dc3545;
+    background-color: #dc3545;
     }
 
     .circle {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        background-color: #ddd;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        z-index: 1;
-        position: relative;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: #ddd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    z-index: 1;
+    position: relative;
     }
 
     .step.active .circle {
-        background-color: #007bff;
+    background-color: #007bff;
     }
 
     .step-container.cancelled .step.active .circle {
-        background-color: #dc3545;
+    background-color: #dc3545;
     }
 
     .step-label {
-        margin-top: 5px;
-        font-size: 16px;
-        color: #333;
+    margin-top: 5px;
+    font-size: 16px;
+    color: #333;
     }
 
     .step-container.cancelled .step.active .step-label {
-        color: #dc3545;
+    color: #dc3545;
     }
 
     /* Ensure the line stops at the current step */
     .step:last-child.active ~ .step::after {
-        background-color: #ddd;
+    background-color: #ddd;
     }
 </style>
 
@@ -443,5 +446,34 @@ else
 
     }
 
+    private async Task OpenHoaDonModal()
+    {
+        try
+        {
+            if (id != Guid.Empty)
+            {
+                var parameters = new InHoaDonParameter
+                {
+                    Id = id,
+                    OnRefresh = EventCallback.Factory.Create(this, LoadItem)
+                };
+                await DialogService.ShowDialogAsync<Pdf.Index>(parameters, new DialogParameters
+                {
+                    Title = "Hóa đơn",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                    Modal = true,
+                    Width = "900px",
+                    TrapFocus = false
+
+                });
+            }
+           
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal chi tiết: {ex.Message}");
+        }
+    }
 
 }

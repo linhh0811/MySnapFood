@@ -211,8 +211,8 @@ namespace Service.SnapFood.Api.Controllers
         {
             try
             {
-                await _cartService.CheckOutDatHangTaiQuay(item);
-                return Ok(new { message = "Checkout successful." });
+                var billId = await _cartService.CheckOutDatHangTaiQuay(item);
+                return Ok(billId);
             }
             catch (Exception ex)
             {

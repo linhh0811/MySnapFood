@@ -102,7 +102,9 @@
     public bool IsLoading { get; set; } = true;
     public bool IsSaving { get; set; } = false;
 
-    public string GhiChu { get; set; } = string.Empty;  
+    public string GhiChu { get; set; } = string.Empty; 
+
+    public Guid billId { get; set; } = Guid.Empty;
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -192,10 +194,11 @@
         };
 
         var request = new ApiRequestModel { Endpoint = "api/Cart/CheckOutTaiQuay" };
-        var result = await CallApi.Post<object>(request, checkOutTaiQuayDto);
+        var result = await CallApi.Post<Guid>(request, checkOutTaiQuayDto);
         if (result.Status == StatusCode.OK)
         {
-
+            billId = result.Data as Guid? ?? Guid.Empty;
+            await OpenHoaDonModal();
             ToastService.ShowSuccess("Đặt hàng thành công.");
             await Dialog.CancelAsync();
             await Content.OnRefresh.InvokeAsync();
@@ -223,5 +226,35 @@
 
         }
         IsSaving = false;
+    }
+
+    private async Task OpenHoaDonModal()
+    {
+        try
+        {
+            if (billId != Guid.Empty)
+            {
+                var parameters = new InHoaDonParameter
+                    {
+                        Id = billId,
+                        IsTaiQuay = true,
+                    };
+                await DialogService.ShowDialogAsync<Pdf.Index>(parameters, new DialogParameters
+                    {
+                        Title = "Hóa đơn",
+                        PreventDismissOnOverlayClick = true,
+                        PreventScroll = true,
+                        Modal = true,
+                        Width = "900px",
+                        TrapFocus = false
+
+                    });
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal chi tiết: {ex.Message}");
+        }
     }
 }
