@@ -4,44 +4,136 @@
 @using Service.SnapFood.Manage.Enums
 @using Service.SnapFood.Manage.Infrastructure.Services
 @using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Enum
 @using Service.SnapFood.Share.Model.Result
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @inject HttpClient Http
 
 <h3>Chi tiết đơn hàng</h3>
 
-<div class="step-container @(CurrentStep == 5 ? "cancelled" : "")">
-    @for (int i = 1; i <= 5; i++)
-    {
-        <div class="step @(i <= CurrentStep ? "active" : "")" data-step="@i">
-            <div class="circle">@i</div>
-            <div class="step-label">
-                @(i == 1 ? "Chờ xác nhận" :
-                                    i == 2 ? "Đã xác nhận" :
-                                    i == 3 ? "Giao hàng" :
-                                    i == 4 ? "Hoàn thành" : "Huỷ")
-            </div>
-        </div>
-    }
-</div>
+@if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiWeb && Item.ReceivingType == ReceivingType.HomeDelivery)
+{
+    <div class="step-container @(Item.Status == StatusOrder.Cancelled ? "cancelled" : "")">
 
-<div class="mb-3">
-    @if (CurrentStep == 1)
-    {
-        <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Confirmed)">Xác nhận</FluentButton>
-        <FluentButton BackgroundColor="red" Color="White" @onclick="HuyDonHangAsync">Huỷ</FluentButton>
-    }
-    else if (CurrentStep == 2)
-    {
-        <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Shipping)">Giao hàng</FluentButton>
-        <FluentButton BackgroundColor="red" Color="White" @onclick="HuyDonHangAsync">Huỷ</FluentButton>
-    }
-    else if (CurrentStep == 3)
-    {
-        <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)">Hoàn thành</FluentButton>
-        <FluentButton BackgroundColor="Red" Color="White" @onclick="HuyDonHangAsync">Huỷ</FluentButton>
-    }
-</div>
+        <div class="step @(currentStep >= 1 ? "active" : "")">
+            <div class="circle">1</div>
+            <div class="step-label">Chờ xác nhận</div>
+        </div>
+        <div class="step @(currentStep >= 3 ? "active" : "")">
+            <div class="circle">2</div>
+            <div class="step-label">Đang chuẩn bị</div>
+        </div>
+        <div class="step @(currentStep >= 4 ? "active" : "")">
+            <div class="circle">3</div>
+            <div class="step-label">Giao hàng</div>
+        </div>
+        <div class="step @(currentStep >= 5 ? "active" : "")">
+            <div class="circle">4</div>
+            <div class="step-label">Hoàn thành</div>
+        </div>
+        <div class="step @(Item.Status == StatusOrder.Cancelled ? "active" : "")">
+            <div class="circle">5</div>
+            <div class="step-label">Huỷ</div>
+        </div>
+
+    </div>
+
+    <div class="mb-3">
+        @if (Item.Status == StatusOrder.Pending)
+        {
+            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.DangChuanBi)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
+            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync">Huỷ</FluentButton>
+        }
+        else if (Item.Status == StatusOrder.DangChuanBi)
+        {
+            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Shipping)" IconStart="@(new Icons.Regular.Size20.BoxCheckmark())">Đã chuẩn bị xong</FluentButton>
+            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+        }
+        else if (Item.Status == StatusOrder.Shipping)
+        {
+            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Hoàn thành</FluentButton>
+            <FluentButton BackgroundColor="Red" Appearance="Appearance.Accent"  Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+        }
+    </div>
+}
+else if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiWeb && Item.ReceivingType == ReceivingType.PickUpAtStore)
+{
+    <div class="step-container @(Item.Status == StatusOrder.Cancelled ? "cancelled" : "")">
+
+        <div class="step @(currentStep >= 1 ? "active" : "")">
+            <div class="circle">1</div>
+            <div class="step-label">Chờ xác nhận</div>
+        </div>
+        <div class="step @(currentStep >= 3 ? "active" : "")">
+            <div class="circle">2</div>
+            <div class="step-label">Đang đang chuẩn bị</div>
+        </div>
+        <div class="step @(currentStep >= 4 ? "active" : "")">
+            <div class="circle">3</div>
+            <div class="step-label">Chờ nhận hàng</div>
+        </div>
+        <div class="step @(currentStep >= 5 ? "active" : "")">
+            <div class="circle">4</div>
+            <div class="step-label">Hoàn thành</div>
+        </div>
+        <div class="step @(Item.Status == StatusOrder.Cancelled ? "active" : "")">
+            <div class="circle">5</div>
+            <div class="step-label">Huỷ</div>
+        </div>
+
+    </div>
+
+    <div class="mb-3">
+        @if (Item.Status == StatusOrder.Pending)
+        {
+            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.DangChuanBi)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
+            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+        }
+        else if (Item.Status == StatusOrder.DangChuanBi)
+        {
+            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.ChoLayHang)" IconStart="@(new Icons.Regular.Size20.BoxCheckmark())">Đã chuẩn bị xong</FluentButton>
+            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+        }
+        else if (Item.Status == StatusOrder.ChoLayHang)
+        {
+            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" >Khách hàng đã nhận hàng</FluentButton>
+            <FluentButton BackgroundColor="Red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+        }
+    </div>
+}
+else if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiQuay)
+{
+    <div class="step-container @(Item.Status == StatusOrder.Cancelled ? "cancelled" : "")">
+
+
+        <div class="step @(currentStep >= 3 ? "active" : "")">
+            <div class="circle">1</div>
+            <div class="step-label">Đang chuẩn bị</div>
+        </div>
+
+        <div class="step @(currentStep >= 5 ? "active" : "")">
+            <div class="circle">2</div>
+            <div class="step-label">Hoàn thành</div>
+        </div>
+        <div class="step @(Item.Status == StatusOrder.Cancelled ? "active" : "")">
+            <div class="circle">3</div>
+            <div class="step-label">Huỷ</div>
+        </div>
+
+    </div>
+
+    <div class="mb-3">
+
+        @if (Item.Status == StatusOrder.DangChuanBi)
+        {
+            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Hoàn thành</FluentButton>
+            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+        }
+
+    </div>
+}
+
+
 
 <div class="order-info">
     <div class="row">
@@ -49,13 +141,19 @@
         <div class="col-md-6 left">
             <p><strong>@Item.BillDeliveryDto.ReceiverName</strong></p>
             <p>@Item.BillDeliveryDto.ReceiverAddress</p>
-            <p>Điện thoại: @Item.BillDeliveryDto.ReceiverPhone</p>
+            @if (!string.IsNullOrEmpty(@Item.BillDeliveryDto.ReceiverPhone))
+            {
+                <p>Điện thoại: @Item.BillDeliveryDto.ReceiverPhone</p>
+            }
+
         </div>
 
         <!-- Bên phải -->
         <div class="col-md-6 right">
             <p><span class="label">Mã đơn hàng: </span><span class="order-id">@Item.BillCode</span></p>
             <p><span class="label">Thời gian đặt: </span>@Item.Created.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><span class="label">Phương thức đặt hàng: </span>@Item.PhuongThucDatHang.GetDescription()</p>
+
             <p><span class="label">Hình thức thanh toán: </span>@Item.BillPaymentDto.PaymentType.GetDescription()</p>
         </div>
     </div>
@@ -70,11 +168,11 @@ else
 {
     <div style="margin-top: 16px">
         <FluentDataGrid Items="@Item.BillDetailsDtos.AsQueryable()"
-        TGridItem="BillDetailsDto"
-        GridTemplateColumns="0.75fr 1.45fr 0.75fr 0.75fr 0.75fr"
-        ResizableColumns="false"
-        MultiLine="true"
-        ShowHover="true" >
+                        TGridItem="BillDetailsDto"
+                        GridTemplateColumns="0.75fr 1.45fr 0.75fr 0.75fr 0.75fr"
+                        ResizableColumns="false"
+                        MultiLine="true"
+                        ShowHover="true">
             <ChildContent>
                 <TemplateColumn Title="Hình ảnh" Style="display:flex;align-items:center;">
                     <img src="@context.ImageUrl" style="max-height:60px;max-width:70px;object-fit:contain;" />
@@ -83,7 +181,7 @@ else
                     <span style="font-size:16px;">
                         @context.ItemsName
                     </span>
-                    @if (context.ItemType == ItemType.Combo)
+                    @if (context.ItemType == ItemType.Combo && context.Product is not null)
                     {
                         <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
                             @foreach (var item in context.Product)
@@ -150,11 +248,11 @@ else
             @foreach (var item in Item.BillNotesDtos)
             {
                 <div style="display: flex; justify-content: flex-start;@(item.NoteContent.Contains("hủy")?"color:red":"")">
-                    <p style="min-width: 120px; text-align: left;">@(item.NoteType == NoteType.CustomerOrder?"Khách hàng":"Cửa hàng"): </p>
+                    <p style="min-width: 120px; text-align: left;">@(item.NoteType == NoteType.CustomerOrder ? "Khách hàng" : "Cửa hàng"): </p>
                     <p style="width:200px;">@item.Created.ToString("dd/MM/yyyy HH:mm:ss")</p>
                     <p style="width:100%;">@item.NoteContent</p>
                 </div>
-            }           
+            }
         </div>
         <div class="col-4" style="margin-top: 20px; text-align: right;">
             <div style="display: flex; justify-content: flex-end;">
@@ -184,89 +282,90 @@ else
 
 <style>
     .step-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 20px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background: #fff;
-    margin-bottom: 20px;
-    position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #fff;
+        margin-bottom: 20px;
+        position: relative;
     }
 
     .step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-    position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
     }
 
-    .step:not(:first-child)::after {
-    content: "";
-    position: absolute;
-    top: 17px;
-    right: 50%;
-    width: 100%;
-    height: 3px;
-    background-color: #ddd;
-    z-index: 0;
-    }
+        .step:not(:first-child)::after {
+            content: "";
+            position: absolute;
+            top: 17px;
+            right: 50%;
+            width: 100%;
+            height: 3px;
+            background-color: #ddd;
+            z-index: 0;
+        }
 
-    .step.active:not(:first-child)::after {
-    background-color: #007bff;
-    }
+        .step.active:not(:first-child)::after {
+            background-color: #007bff;
+        }
 
     .step-container.cancelled .step.active:not(:first-child)::after {
-    background-color: #dc3545;
+        background-color: #dc3545;
     }
 
     .circle {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    background-color: #ddd;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    z-index: 1;
-    position: relative;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background-color: #ddd;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        z-index: 1;
+        position: relative;
     }
 
     .step.active .circle {
-    background-color: #007bff;
+        background-color: #007bff;
     }
 
     .step-container.cancelled .step.active .circle {
-    background-color: #dc3545;
+        background-color: #dc3545;
     }
 
     .step-label {
-    margin-top: 5px;
-    font-size: 16px;
-    color: #333;
+        margin-top: 5px;
+        font-size: 16px;
+        color: #333;
     }
 
     .step-container.cancelled .step.active .step-label {
-    color: #dc3545;
+        color: #dc3545;
     }
 
     /* Ensure the line stops at the current step */
     .step:last-child.active ~ .step::after {
-    background-color: #ddd;
+        background-color: #ddd;
     }
 </style>
 
 @code {
-    [Parameter] public Guid id { get; set; }   
+    [Parameter] public Guid id { get; set; }
     [Inject] protected ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
-    private int CurrentStep = 0;
+
     private BillViewDto Item = new();
+    int currentStep = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -280,19 +379,23 @@ else
         if (result.Status == StatusCode.OK)
         {
             Item = result.Data as BillViewDto ?? new BillViewDto();
-            CurrentStep = ConvertStatusToStep((int)Item.Status);
+            currentStep = ConvertStatusToStep(Item.Status);
         }
     }
 
-    private int ConvertStatusToStep(int status)
+    private int ConvertStatusToStep(StatusOrder status)
     {
         return status switch
         {
-            0 => 1, // Pending
-            1 => 2, // Confirmed
-            2 => 3, // Shipping
-            3 => 4, // Completed
-            4 => 5, // Cancelled
+            StatusOrder.Pending => 1, // Pending
+            // StatusOrder.Confirmed => 2, // Confirmed
+            StatusOrder.DangChuanBi => 3, // Confirmed
+
+            StatusOrder.Shipping => 4, // Shipping
+            StatusOrder.ChoLayHang => 4, // chờ lấy hàng
+
+            StatusOrder.Completed => 5, // Completed
+            StatusOrder.Cancelled => 6, // Cancelled
             _ => 1
         };
     }
@@ -307,11 +410,10 @@ else
                     StatusOrder = status,
                     Reason = reason
                 };
-          
+
             ResultAPI result = await CallApi.Put(request, updateDto);
-            if (result.Status == StatusCode.OK) 
+            if (result.Status == StatusCode.OK)
             {
-                CurrentStep = ConvertStatusToStep((int)status);
                 await LoadItem();
                 StateHasChanged();
             }
@@ -340,4 +442,6 @@ else
         }
 
     }
+
+
 }

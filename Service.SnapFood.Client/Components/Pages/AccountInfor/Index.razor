@@ -27,46 +27,90 @@
     }
     else if (UserInfo != null)
     {
+        <EditForm Model="UserInfo" OnValidSubmit="SaveChanges">
+            <DataAnnotationsValidator />
+            <div class="container mt-3 info">
 
-        <div class="container mt-3 info">
+
+                <div class="mb-3 ">
+                    <label for="hoTen" class="form-label">Họ tên</label>
+                    <input class="form-control" @bind="UserInfo.FullName" placeholder="Nhập họ tên" />
+                    <ValidationMessage style="color:red" For="@(() => UserInfo.FullName)" />
+
+                </div>
+                <div class="mb-3 ">
+                    <label class="form-label">Số điện thoại</label>
+                    <input class="form-control" @bind="UserInfo.Numberphone" placeholder="Số điện thoại" />
+                    <ValidationMessage style="color:red" For="@(() => UserInfo.Numberphone)" />
+
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input class="form-control" @bind="UserInfo.Email" placeholder="Email" />
+                    <ValidationMessage style="color:red" For="@(() => UserInfo.Email)" />
+
+                </div>
+                <div class="mb-3">
+                    <FluentStack>
+                        <FluentCheckbox @bind-Value="@UserInfo.IsThayDoiMatKhau" @onclick="FuncThayDoiMatKhau" Label="Thay đổi mật khẩu" />
+                    </FluentStack>
+                </div>
+                @if (UserInfo.IsThayDoiMatKhau)
+                {
+                    <div class="mb-3">
+                        <label for="hoTen" class="form-label">Mật khẩu cũ</label>
+                        <input class="form-control" @bind="UserInfo.Password" placeholder="Nhập mật khẩu cũ" type="password"/>
+                        @if (!string.IsNullOrEmpty(CheckPassword))
+                        {
+                            <div class="validation-message" style="color:red">@CheckPassword.</div>
+
+                        }
+                    </div> <div class="mb-3">
+                        <label for="hoTen" class="form-label">Mật khẩu mới</label>
+                        <input class="form-control" @bind="UserInfo.PasswordMoi" placeholder="Nhập mật khẩu mới" type="password" />
+                        @if (!string.IsNullOrEmpty(CheckPasswordMoi))
+                        {
+                            <div class="validation-message" style="color:red">@CheckPasswordMoi.</div>
+
+                        }
+                    </div> <div class="mb-3">
+                        <label for="hoTen" class="form-label">Xác nhận mật khẩu mới</label>
+                        <input class="form-control" @bind="UserInfo.PasswordConfirmMoi" placeholder="Nhập lại mật khẩu mới" type="password" />
+                        @if (!string.IsNullOrEmpty(CheckPasswordConfirm))
+                        {
+                            <div class="validation-message" style="color:red">@CheckPasswordConfirm.</div>
+
+                        }
+                    </div>
+                }
 
 
-            <div class="mb-3 " >
-                <label for="hoTen" class="form-label">Họ tên</label>
-                <input class="form-control" @bind="UserInfo.FullName" placeholder="Nhập họ tên" />
+                <div class="d-flex justify-content-between">
+                    <FluentButton Loading=IsSaving BackgroundColor="#ff5961" Color="white" Type="ButtonType.Submit" >
+                        @if (IsSaving)
+                        {
+                            <span>Đang lưu...</span>
+
+                        }
+                        else
+                        {
+                            <span>Lưu thông tin</span>
+
+                        }
+
+                    </FluentButton>
+                </div>
             </div>
-            <div class="mb-3 ">
-                <label class="form-label">Số điện thoại</label>
-                <input class="form-control" @bind="UserInfo.Numberphone" placeholder="Số điện thoại" />
-            </div> 
-            <div class="mb-3">   
-                <label class="form-label">Email</label>
-                <input class="form-control" @bind="UserInfo.Email" placeholder="Email" />
-            </div>
 
-            <div class="d-flex justify-content-between">
-                <FluentButton Loading=IsSaving BackgroundColor="#ff5961" Color="white" @onclick="SaveChanges">
-                    @if (IsSaving)
-                    {
-                        <span>Đang lưu...</span>
+        </EditForm>
 
-                    }
-                    else
-                    {
-                        <span>Lưu thông tin</span>
-                        
-                    }
-                    
-                </FluentButton>
-            </div>
-        </div>
     }
 </div>
 
 <style>
     .info .form-control {
-        border-radius: 10px;
-        border-color: #ffcccc;
+    border-radius: 10px;
+    border-color: #ffcccc;
     }
 </style>
 
@@ -81,11 +125,18 @@
     private string ErrorMessage = string.Empty;
     private readonly ApiRequestModel requestRestAPI = new();
 
+    private bool ThayDoiMatKhau{ get; set; } = false;
+
+    private string CheckPassword { get; set; } = string.Empty;
+    private string CheckPasswordMoi { get; set; } = string.Empty;
+    private string CheckPasswordConfirm { get; set; } = string.Empty;
+
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-           
+
             requestRestAPI.Endpoint = $"api/User/{CurrentUser.UserId}";
             var result = await CallApi.Get<UserDto>(requestRestAPI);
 
@@ -97,8 +148,8 @@
             {
                 ErrorMessage = "Không thể tải thông tin người dùng.";
             }
-               
-          
+
+
         }
         catch (Exception ex)
         {
@@ -118,6 +169,40 @@
         try
         {
             IsSaving = true;
+            if (UserInfo.IsThayDoiMatKhau)
+            {
+                if (string.IsNullOrEmpty(UserInfo.Password) || string.IsNullOrEmpty(UserInfo.PasswordMoi) || string.IsNullOrEmpty(UserInfo.PasswordConfirmMoi))
+                {
+                    if (string.IsNullOrEmpty(UserInfo.Password))
+                    {
+                        CheckPassword = "Mật khẩu không được để trống";                       
+                    }
+
+                    if (string.IsNullOrEmpty(UserInfo.PasswordMoi))
+                    {
+                        CheckPasswordMoi = "Mật khẩu mới không được để trống";                    
+                    }
+
+                    if (string.IsNullOrEmpty(UserInfo.PasswordConfirmMoi))
+                    {
+                        CheckPasswordConfirm = "Mật khẩu mới không được để trống";                      
+                    }
+
+
+                    StateHasChanged();
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(UserInfo.PasswordConfirmMoi) && !string.IsNullOrEmpty(UserInfo.PasswordMoi) && UserInfo.PasswordConfirmMoi != UserInfo.PasswordMoi)
+                {
+                    CheckPasswordConfirm = "Mật khẩu xác nhận không chính xác";
+                    StateHasChanged();
+                    return;
+                }
+               
+            }
+
+
             requestRestAPI.Endpoint = $"api/User/{UserInfo.Id}";
             var result = await CallApi.Put(requestRestAPI, UserInfo);
 
@@ -127,7 +212,7 @@
             }
             else
             {
-                ToastService.ShowError("Cập nhật thất bại rồi cưng: " + result.Message);
+                ToastService.ShowError("Cập nhật thất bại: " + result.Message);
             }
         }
         catch (Exception ex)
@@ -138,5 +223,10 @@
         {
             IsSaving = false;
         }
+    }
+
+    private void FuncThayDoiMatKhau()
+    {
+        StateHasChanged();
     }
 }

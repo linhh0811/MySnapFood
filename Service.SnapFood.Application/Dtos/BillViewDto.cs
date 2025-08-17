@@ -1,4 +1,5 @@
 ﻿using Service.SnapFood.Domain.Enums;
+using Service.SnapFood.Share.Model.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,9 @@ namespace Service.SnapFood.Application.Dtos
         public decimal TotalAmount { get; set; }
         public decimal TotalAmountEndow { get; set; }
         public decimal DiscountAmount { get; set; }
+        public PhuongThucDatHangEnum PhuongThucDatHang { get; set; }
+        public ReceivingType ReceivingType { get; set; }
+
 
         public DateTime Created {  get; set; }
 

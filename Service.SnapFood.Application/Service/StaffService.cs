@@ -122,7 +122,7 @@ namespace Service.SnapFood.Application.Service
                 <p>Trân trọng,<br>Hệ thống quản lý</p>
                 <p>-----------------------------------------------------------------</p>
                 <p>
-                    <img src='https://iili.io/FfGg4uS.png' alt='Logo' width='285px' height='195px'/> 
+                    <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/> 
                 </p>
                 <p>
                     <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3> <br>
@@ -185,7 +185,7 @@ namespace Service.SnapFood.Application.Service
                 <p>Trân trọng,<br>Hệ thống quản lý</p>
                 <p>-----------------------------------------------------------------</p>
                 <p>
-                    <img src='https://iili.io/FfGg4uS.png' alt='Logo' width='285px' height='195px'/>
+                    <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/>
                 </p>
                 <p>
                     <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>

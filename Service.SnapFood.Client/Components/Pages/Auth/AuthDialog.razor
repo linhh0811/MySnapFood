@@ -23,9 +23,9 @@
                     <span>X</span>
                 </button>
                 <div class="login-html">
-                    <input id="tab-1" type="radio" name="tab" class="sign-in" checked><label for="tab-1" class="tab">Đăng Nhập</label>
+                    <input id="tab-1" type="radio" name="tab" class="sign-in" checked><label for="tab-1" class="tab" style="color: #6a6f8c;">Đăng Nhập</label>
 
-                    <input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab">Đăng Ký</label>
+                    <input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab" style="color: #6a6f8c;">Đăng Ký</label>
                     <div class="login-form">
                         <div class="sign-in-htm">
                             <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
@@ -119,12 +119,6 @@
 
 <style>
 
-    body {
-    margin: 0;
-    color: #6a6f8c;
-    /* background: #c8c8c8; */
-    font: 600 16px/18px "Open Sans", sans-serif;
-    }
 
     *,
     :after,
@@ -202,7 +196,7 @@
 
     .login-html .sign-in:checked + .tab,
     .login-html .sign-up:checked + .tab {
-    color: #fff;
+    color: #fff!important;
     border-color: #1161ee;
     cursor: pointer;
     }
@@ -232,10 +226,6 @@
     padding: 15px 20px;
     border-radius: 25px;
     background: rgba(255, 255, 255, 0.1);
-    }
-
-    .login-form .group input[data-type="password"] {
-    -webkit-text-security: circle;
     }
 
     .login-form .group .label {
@@ -344,6 +334,10 @@
         .close-button:hover {
             background: #e43f3f; /* Màu đỏ đậm hơn khi hover */
         }
+
+    .group .form-label {
+        color: white !important;
+    }
 </style>
 
 @code {

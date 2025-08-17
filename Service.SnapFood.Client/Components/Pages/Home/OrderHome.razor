@@ -11,13 +11,13 @@
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
 <br/>
-<CategoryOrderHome CategoryId="@Id" OnCategorySelected="OnCategorySelected"></CategoryOrderHome>
+<CategoryOrderHome CategoryId="@Id" OnCategorySelected="OnCategorySelected" OnSearchChanged="HandleSearchChanged"></CategoryOrderHome>
 <hr />
 <div class="container row">
     @if (!IsLoading)
     {
-        <Service.SnapFood.Client.Components.Pages.Product.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Product.Index>
-        <Service.SnapFood.Client.Components.Pages.Combo.Index OnCategorySelected="categorySelected"></Service.SnapFood.Client.Components.Pages.Combo.Index>
+        <Service.SnapFood.Client.Components.Pages.Product.Index OnCategorySelected="categorySelected" SearchKeyword="@SearchKeyword"></Service.SnapFood.Client.Components.Pages.Product.Index>
+        <Service.SnapFood.Client.Components.Pages.Combo.Index OnCategorySelected="categorySelected" SearchKeyword="@SearchKeyword"> </Service.SnapFood.Client.Components.Pages.Combo.Index>
     }
 </div>
 
@@ -52,5 +52,11 @@
         {
             categorySelected = category;
         }
+    }
+    protected string SearchKeyword { get; set; } = string.Empty;
+
+    private void HandleSearchChanged(string keyword)
+    {
+        SearchKeyword = keyword;
     }
 }

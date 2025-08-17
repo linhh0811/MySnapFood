@@ -179,13 +179,17 @@ namespace Service.SnapFood.Application.Service
                 {
                     NoteContent = "Đơn hàng đã được xác nhận";
                 }
+                else if (updateOrderStatusDto.StatusOrder == StatusOrder.DangChuanBi)
+                {
+                    NoteContent = "Đơn hàng đã được xác nhận, đang chuẩn bị hàng";
+                }
                 else if (updateOrderStatusDto.StatusOrder == StatusOrder.Shipping)
                 {
-                    NoteContent = "Đơn hàng đã được giao cho vận chuyển";
+                    NoteContent = "Đơn hàng đã được chuẩn bị xong và chuẩn bị giao cho khách hàng";
                 }
                 else if (updateOrderStatusDto.StatusOrder == StatusOrder.Completed)
                 {
-                    NoteContent = "Đơn hàng đã được giao cho khách hàng";
+                    NoteContent = "Đơn hàng đã được hoàn thành";
                 }
                 else if (updateOrderStatusDto.StatusOrder == StatusOrder.Cancelled)
                 {
@@ -298,6 +302,10 @@ namespace Service.SnapFood.Application.Service
                 billViewDto.TotalAmount = bill.TotalAmount;
                 billViewDto.TotalAmountEndow = bill.TotalAmountEndow;
                 billViewDto.DiscountAmount = bill.DiscountAmount;
+
+                billViewDto.PhuongThucDatHang = bill.PhuongThucDatHang;
+                billViewDto.ReceivingType = bill.ReceivingType;
+
 
                 billViewDto.Status = bill.Status;
                 billViewDto.Created = bill.Created;
@@ -622,12 +630,19 @@ namespace Service.SnapFood.Application.Service
             var ChoXacNhan = bill.Where(x => x.Status == StatusOrder.Pending).Count();
             var DaXacNhan = bill.Where(x => x.Status == StatusOrder.Confirmed).Count();
             var DangGiaoHang = bill.Where(x => x.Status == StatusOrder.Shipping).Count();
+            var DangChuanBi = bill.Where(x => x.Status == StatusOrder.DangChuanBi).Count();
+            var ChoLayHang = bill.Where(x => x.Status == StatusOrder.ChoLayHang).Count();
+
+            
+
             BillDangXuLyDto BillDangXuLyDto = new BillDangXuLyDto()
             {
                 Tong = Tong,
                 ChoXacNhan = ChoXacNhan,
                 DangGiaoHang = DangGiaoHang,
-                DaXacNhan = DaXacNhan
+                DaXacNhan = DaXacNhan,
+                DangChuanBi= DangChuanBi,
+                ChoLayHang =ChoLayHang
             };
             return BillDangXuLyDto;
         }
