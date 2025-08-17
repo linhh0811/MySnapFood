@@ -96,6 +96,8 @@ else
     public List<CategoryDto> Categories { get; set; } = new List<CategoryDto>();
     [Parameter]
     public CategoryDto OnCategorySelected { get; set; } = new CategoryDto();
+    [Parameter]
+    public string SearchKeyword { get; set; } = string.Empty;
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private List<ProductDto> ProductDto = new List<ProductDto>();
     [Parameter] public ViewParameters Content { get; set; } = new();
@@ -135,8 +137,21 @@ else
                 var items = JsonSerializer.Deserialize<List<ProductDto>>(dataTable.Data.GetRawText(),
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ProductDto>();
 
+                if (OnCategorySelected.Id==Guid.Empty.ToString())
+                {
+                    ProductDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
+                    
+                }
+                else
+                {
+                    ProductDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved && x.CategoryId == OnCategorySelected.Id).ToList();
 
-                ProductDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved && x.CategoryId == OnCategorySelected.Id).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(SearchKeyword))
+                {
+                    ProductDto = ProductDto.Where(x => x.ProductName.ToLower().Contains(SearchKeyword.ToLower().Trim())).ToList();
+                }
 
             }
             StateHasChanged();

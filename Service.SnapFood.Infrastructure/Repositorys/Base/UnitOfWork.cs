@@ -67,6 +67,8 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
         public IDiscountCodeRepository DiscountCodeRepo { get; private set; }
         public IDiscountCodeUsageRepository DiscountCodeUsageRepo { get; private set; }
 
+        public IOtpConfirmRepository OtpConfirmRepository { get; private set; }
+
         public UnitOfWork(AppDbContext context, IRequestContext requestContext)
         {
             _context = context;
@@ -96,6 +98,7 @@ namespace Service.SnapFood.Infrastructure.Repositorys.Base
             ThongTinGiaoHangRepository = new ThongTinGiaoHangRepository(_context);
             DiscountCodeRepo = new DiscountCodeRepository(_context);
             DiscountCodeUsageRepo = new DiscountCodeUsageRepository(_context);
+            OtpConfirmRepository = new OtpConfirmRepository(_context);
 
         }
 

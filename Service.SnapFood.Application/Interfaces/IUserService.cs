@@ -13,5 +13,8 @@ namespace Service.SnapFood.Application.Interfaces
         Task<bool> UpdateAsync(Guid id, UserDto item);
         Task<AuthResponseDto?> LoginAsync(LoginDto item);
         Task<Guid> RegisterAsync(RegisterDto item);
+        Task SendOtp(OtpConfirmDto otpConfirmDto);
+        Task LayLaiMatKhau(OtpConfirmDto otpConfirmDto);
+
     }
 }

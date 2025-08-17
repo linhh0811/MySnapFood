@@ -76,6 +76,8 @@ else
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Parameter]
     public CategoryDto OnCategorySelected { get; set; } = new CategoryDto();
+    [Parameter]
+    public string SearchKeyword { get; set; } = string.Empty;
 
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private List<ComboDto> ComboDto = new List<ComboDto>();
@@ -116,8 +118,20 @@ else
                 var items = JsonSerializer.Deserialize<List<ComboDto>>(dataTable.Data.GetRawText(),
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ComboDto>();
 
+                if (OnCategorySelected.Id == Guid.Empty.ToString())
+                {
+                    ComboDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved ).ToList();
 
-                ComboDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved && x.CategoryId == OnCategorySelected.Id).ToList();
+                }
+                else
+                {
+                    ComboDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved && x.CategoryId == OnCategorySelected.Id).ToList();
+
+                }
+                if (!string.IsNullOrEmpty(SearchKeyword))
+                {
+                    ComboDto = ComboDto.Where(x => x.ComboName.ToLower().Contains(SearchKeyword.ToLower().Trim())).ToList();
+                }
 
             }
             StateHasChanged();

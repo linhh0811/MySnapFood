@@ -156,41 +156,7 @@ namespace Service.SnapFood.Application.Service
         #endregion
 
         #region Sửa
-        //public async Task<bool> UpdateAsync(Guid id, UserDto item)
-        //{
-        //    if (id == Guid.Empty)
-        //        throw new ArgumentException("ID không hợp lệ");
-        //    if (item == null)
-        //        throw new ArgumentNullException(nameof(item), "Dữ liệu cập nhật không được để trống");
-
-        //    // Validate input
-        //    ValidateUserInput(item);
-
-        //    var user = await _unitOfWork.UserRepo.GetByIdAsync(id);
-        //    if (user == null)
-        //        throw new Exception("Không tìm thấy người dùng");
-
-        //    // Kiểm tra email trùng
-        //    if (user.Email.ToLowerInvariant() != item.Email.ToLowerInvariant())
-        //    {
-        //        var existingUsers = await _unitOfWork.UserRepo.GetAllAsync();
-        //        if (existingUsers.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
-        //            throw new Exception("Email đã tồn tại");
-        //    }
-
-        //    user.FullName = item.FullName;
-        //    user.Email = item.Email;
-        //    user.Numberphone = item.Numberphone;
-        //    if (!string.IsNullOrWhiteSpace(item.Password))
-        //        user.Password = BCrypt.Net.BCrypt.HashPassword(item.Password);
-        //    user.UserType = item.UserType;
-        //    user.FillDataForUpdate(Guid.NewGuid());
-
-        //    _unitOfWork.UserRepo.Update(user);
-        //    await _unitOfWork.CompleteAsync();
-        //    return true;
-        //}
-
+        
 
         public async Task<bool> UpdateAsync(Guid id, UserDto item)
         {
@@ -201,6 +167,8 @@ namespace Service.SnapFood.Application.Service
 
             // Validate input
             ValidateUserInput(item);
+
+          
 
             var user = await _unitOfWork.UserRepo.GetByIdAsync(id);
             if (user == null)
@@ -214,43 +182,86 @@ namespace Service.SnapFood.Application.Service
                     throw new Exception("Email đã tồn tại");
             }
 
+            if (item.IsThayDoiMatKhau)
+            {
+                if (!BCrypt.Net.BCrypt.Verify(item.Password.Trim(), user.Password))
+                {
+                    throw new Exception("Mật khẩu không chính xác");
+                }
+                if (item.PasswordMoi != item.PasswordConfirmMoi)
+                {
+                    throw new Exception("Mật khẩu xác nhận không chính xác");
+                }
+                user.Password = BCrypt.Net.BCrypt.HashPassword(item.PasswordMoi.Trim());
+
+            }
+
             user.FullName = item.FullName;
             user.Email = item.Email;
             user.Numberphone = item.Numberphone;
-            if (!string.IsNullOrWhiteSpace(item.Password))
-                user.Password = BCrypt.Net.BCrypt.HashPassword(item.Password);
-            user.UserType = item.UserType;
-            user.FillDataForUpdate(Guid.NewGuid());
 
             _unitOfWork.UserRepo.Update(user);
             await _unitOfWork.CompleteAsync();
 
             // Gửi email thông báo cập nhật
             string subject = "Cập nhật thông tin tài khoản";
-            string body = $@"
-        <p>Xin chào <strong>{item.FullName}</strong>,</p>
-        <p>Thông tin tài khoản của bạn đã được cập nhật.</p>
 
-        <h4>📋 Thông tin mới:</h4>
-        <ul>
-            <li><strong>Họ tên:</strong> {item.FullName}</li>
-            <li><strong>Email:</strong> {item.Email}</li>
-            <li><strong>SĐT:</strong> {item.Numberphone}</li>
-        </ul>
-        <p>Trân trọng,<br>Hệ thống quản lý</p>
-        <p>-----------------------------------------------------------------</p>
-        <p>
-            <img src='https://iili.io/FfGg4uS.png' alt='Logo' width='285px' height='195px'/>
-        </p>
-        <p>
-            <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>
-            <strong>Địa chỉ:</strong> 13, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội <br>
-            <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
-            <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
-        </p>
-    ";
+            string body = string.Empty;
+            if (item.IsThayDoiMatKhau)
+            {
+                body = $@"
+                    <p>Xin chào <strong>{item.FullName}</strong>,</p>
+                    <p>Thông tin tài khoản của bạn đã được cập nhật.</p>
 
-            await _emailService.SendEmailAsync(item.Email, subject, body);
+                    <h4>📋 Thông tin mới:</h4>
+                    <ul>
+                        <li><strong>Họ tên:</strong> {item.FullName}</li>
+                        <li><strong>Email:</strong> {item.Email}</li>
+                        <li><strong>SĐT:</strong> {item.Numberphone}</li>
+                        <li><strong>Mật khẩu:</strong> Đã được thay đổi</li>
+
+                    </ul>
+                    <p>Trân trọng,<br>Hệ thống quản lý</p>
+                    <p>-----------------------------------------------------------------</p>
+                    <p>
+                        <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/>
+                    </p>
+                    <p>
+                        <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>
+                        <strong>Địa chỉ:</strong> 13, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội <br>
+                        <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
+                        <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
+                    </p>
+                ";
+            }
+            else
+            {
+                body = $@"
+                    <p>Xin chào <strong>{item.FullName}</strong>,</p>
+                    <p>Thông tin tài khoản của bạn đã được cập nhật.</p>
+
+                    <h4>📋 Thông tin mới:</h4>
+                    <ul>
+                        <li><strong>Họ tên:</strong> {item.FullName}</li>
+                        <li><strong>Email:</strong> {item.Email}</li>
+                        <li><strong>SĐT:</strong> {item.Numberphone}</li>
+                    </ul>
+                    <p>Trân trọng,<br>Hệ thống quản lý</p>
+                    <p>-----------------------------------------------------------------</p>
+                    <p>
+                        <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/>
+                    </p>
+                    <p>
+                        <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>
+                        <strong>Địa chỉ:</strong> 13, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội <br>
+                        <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
+                        <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
+                    </p>
+                ";
+            }
+
+
+                await _emailService.SendEmailAsync(item.Email, subject, body);
 
             return true;
         }
@@ -286,31 +297,7 @@ namespace Service.SnapFood.Application.Service
         }
 
 
-        //public async Task<Guid> RegisterAsync(RegisterDto item)
-        //{
-        //    if (item == null)
-        //        throw new ArgumentNullException(nameof(item), "Thông tin đăng ký không được để trống");
-
-        //    // Validate input
-        //    ValidateRegisterInput(item);
-
-        //    var users = await _unitOfWork.UserRepo.GetAllAsync();
-        //    if (users.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
-        //        throw new Exception("Email đã tồn tại");
-
-        //    var user = new User
-        //    {
-        //        FullName = item.FullName,
-        //        Email = item.Email,
-        //        Password = BCrypt.Net.BCrypt.HashPassword(item.Password),
-        //        UserType = UserType.User // Mặc định là User
-        //    };
-        //    user.FillDataForInsert(Guid.NewGuid());
-
-        //    _unitOfWork.UserRepo.Add(user);
-        //    await _unitOfWork.CompleteAsync();
-        //    return user.Id;
-        //}
+    
         public async Task<Guid> RegisterAsync(RegisterDto item)
         {
             if (item == null)
@@ -362,24 +349,19 @@ namespace Service.SnapFood.Application.Service
                 throw new ArgumentException("Email không được để trống");
             if (!IsValidEmail(item.Email))
                 throw new ArgumentException("Email không hợp lệ");
-            if (!string.IsNullOrWhiteSpace(item.Password) && item.Password.Length < 6)
-                throw new ArgumentException("Mật khẩu phải có ít nhất 6 ký tự");
+           
         }
 
         private void ValidateRegisterInput(RegisterDto item)
         {
-            //if (string.IsNullOrWhiteSpace(item.FullName))
-            //    throw new ArgumentException("Họ tên không được để trống");
+            
             if (string.IsNullOrWhiteSpace(item.Email))
                 throw new ArgumentException("Email không được để trống");
             if (!IsValidEmail(item.Email))
                 throw new ArgumentException("Email không hợp lệ");
             if (string.IsNullOrWhiteSpace(item.Password))
                 throw new ArgumentException("Mật khẩu không được để trống");
-            //if (item.Password.Length < 6)
-            //    throw new ArgumentException("Mật khẩu phải có ít nhất 6 ký tự");
-            //if (!IsStrongPassword(item.Password))
-            //    throw new ArgumentException("Mật khẩu phải chứa ít nhất một chữ cái in hoa, một chữ cái thường và một số");
+            
         }
 
         private bool IsValidEmail(string email)
@@ -387,10 +369,94 @@ namespace Service.SnapFood.Application.Service
             return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
         }
 
-        private bool IsStrongPassword(string password)
+        #endregion
+
+        #region Otp
+        public async Task SendOtp(OtpConfirmDto otpConfirmDto)
         {
-            return Regex.IsMatch(password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$");
+            var user = _unitOfWork.UserRepo.FirstOrDefault(x => x.Email == otpConfirmDto.Email.ToLower());
+            if (user is null)
+            {
+                throw new Exception("Email không tồn tại trong hệ thống");
+            }
+
+            var otpCheck = _unitOfWork.OtpConfirmRepository.FirstOrDefault(x => (x.UserId == user.Id) && (x.Created >= DateTime.Now.AddMinutes(-1)));
+            if (otpCheck is not null)
+            {
+                throw new Exception("Không thể gửi liên tục, vui lòng đợi");
+            }
+            OtpConfirm otpConfirm = new OtpConfirm()
+            {
+                UserId = user.Id,
+                OtpCode = GetRandom6DigitString()
+            };
+
+            _unitOfWork.OtpConfirmRepository.Add(otpConfirm);
+            await _unitOfWork.CompleteAsync();
+
+            string subject = "Lấy lại mật khẩu Snap-Food";
+
+            string body = $@"
+                    <p>Xin chào <strong>{user.FullName}</strong>,</p>
+                    <p>Thông tin tài khoản của bạn đã được cập nhật.</p>
+
+                    <h4>📋 Lấy lại mật khẩu Snap-Food:</h4>
+                    <ul>
+                        <li><strong>Mã xác nhận của bạn là:</strong> {otpConfirm.OtpCode}</li>
+                        <li>Mã xác nhận chỉ tồn tại trong <strong>1 phút</strong></li>
+                       
+
+                    </ul>
+                    <p>Vui lòng không cung cấp mã xác nhận cho người lạ.</p>
+                    <p>Trân trọng,<br>Hệ thống quản lý</p>
+                    <p>-----------------------------------------------------------------</p>
+                    <p>
+                        <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/>
+                    </p>
+                    <p>
+                        <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>
+                        <strong>Địa chỉ:</strong> 13, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội <br>
+                        <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
+                        <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
+                    </p>
+                ";
+
+            await _emailService.SendEmailAsync(user.Email, subject, body);
         }
+
+
+        
+
+        public async Task LayLaiMatKhau(OtpConfirmDto otpConfirmDto)
+        {
+            var user = _unitOfWork.UserRepo.FirstOrDefault(x => x.Email == otpConfirmDto.Email.ToLower());
+            if (user is null)
+            {
+                throw new Exception("Email không tồn tại trong hệ thống");
+            }
+
+            var otpCheck = _unitOfWork.OtpConfirmRepository.FirstOrDefault(x => (x.UserId == user.Id) && (x.OtpCode== otpConfirmDto.OtpCode.Trim()) && (x.Created >= DateTime.Now.AddMinutes(-1)));
+            if (otpCheck is null)
+            {
+                throw new Exception("Mã xác nhận không chính xác");
+            }
+            if (otpConfirmDto.PasswordMoi != otpConfirmDto.PasswordConfirmMoi)
+            {
+                throw new Exception("Mật khẩu xác nhận không chính xác");
+            }
+            user.Password = BCrypt.Net.BCrypt.HashPassword(otpConfirmDto.PasswordMoi.Trim());
+            _unitOfWork.UserRepo.Update(user);
+            await _unitOfWork.CompleteAsync();
+
+        }
+        public  string GetRandom6DigitString()
+        {
+            Random random = new Random();
+            int number = random.Next(0, 1000000); // từ 0 đến 999999
+            return number.ToString("D6"); // định dạng để luôn có 6 chữ số, thêm số 0 phía trước nếu cần
+        }
+
+      
         #endregion
     }
 }

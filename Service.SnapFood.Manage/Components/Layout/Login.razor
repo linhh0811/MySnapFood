@@ -4,7 +4,7 @@
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using System.Net.Http.Json
-@using Blazored.LocalStorage    
+@using Blazored.LocalStorage
 @using Microsoft.AspNetCore.Components.Authorization
 @inject HttpClient Http
 @inject NavigationManager Navigation
@@ -25,7 +25,6 @@
         background: linear-gradient(135deg, #3498db, #8e44ad);
         margin: 0;
         }
-
 
     </style>
 </head>
@@ -49,20 +48,20 @@
                         <FluentStack Orientation="Orientation.Vertical">
                             <FluentLabel Weight="FontWeight.Bold">Email:</FluentLabel>
                             <FluentTextField @bind-Value="loginDto.Email" Placeholder="Nhập email" Style="width: 100%;" />
-                            <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Email)" />
+                            <ValidationMessage style="color:red" For="@(() => loginDto.Email)" />
                         </FluentStack>
 
                         <FluentStack Orientation="Orientation.Vertical">
                             <FluentLabel Weight="FontWeight.Bold">Mật khẩu:</FluentLabel>
                             <FluentTextField @bind-Value="loginDto.Password" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu" Style="width: 100%;" />
-                            <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Password)" />
+                            <ValidationMessage style="color:red" For="@(() => loginDto.Password)" />
                         </FluentStack>
 
                         <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
                             Đăng nhập
                         </FluentButton>
                         <hr />
-                        <FluentButton Loading="@loading" Appearance="Appearance.Lightweight" Style="width: 100%;" OnClick="LayMatKhau">
+                        <FluentButton Loading="@loading" Appearance="Appearance.Lightweight" Style="width: 100%;" OnClick="()=>DoiTrangThai(true)">
                             Bạn quên mật khẩu?
                         </FluentButton>
 
@@ -75,7 +74,7 @@
         {
             <FluentCard Style="padding:30px;width:400px;">
                 <FluentLabel Typo="Typography.H2" Style="padding-bottom:10px">Lấy lại mật khẩu</FluentLabel>
-                <EditForm Model="loginDto" OnValidSubmit="HandleSubmit">
+                <EditForm Model="layMatKhauDto" OnValidSubmit="Confirm">
                     <DataAnnotationsValidator />
 
                     @if (!string.IsNullOrEmpty(ErrorMessage))
@@ -88,18 +87,51 @@
                     <FluentStack Orientation="Orientation.Vertical" Style="gap: 1rem;">
                         <FluentStack Orientation="Orientation.Vertical">
                             <FluentLabel Weight="FontWeight.Bold">Email:</FluentLabel>
-                            <FluentTextField @bind-Value="loginDto.Email" Placeholder="Nhập email" Style="width: 100%;" />
-                            <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Email)" />
+                            <FluentTextField @bind-Value="layMatKhauDto.Email" Placeholder="Nhập email" Style="width: 100%;" />
+                            <ValidationMessage style="color:red" For="@(() => layMatKhauDto.Email)" />
+
+                            @if (!string.IsNullOrEmpty(CheckEmail))
+                            {
+                                <div class="validation-message" style="color:red">@CheckEmail.</div>
+
+                            }
+                        </FluentStack>
+
+                        <FluentStack Orientation="Orientation.Horizontal" Style="gap: 1rem; align-items: flex-end;">
+                            <FluentStack Orientation="Orientation.Vertical" Style="flex: 1;">
+                                <FluentLabel Weight="FontWeight.Bold">Mã xác nhận:</FluentLabel>
+                                <FluentTextField @bind-Value="layMatKhauDto.OtpCode" Placeholder="Nhập mã xác nhận" Style="width: 100%;" />
+                                <ValidationMessage style="color:red" For="@(() => layMatKhauDto.OtpCode)" />
+                            </FluentStack>
+
+                            <FluentButton @onclick="SendOTPAsync"
+                            Disabled="@isSendingOTP"
+                            Loading="@loading"
+                            Appearance="Appearance.Accent"
+                            Style="min-width: 100px;">
+                                @(isSendingOTP ? $"Gửi lại ({countdown}s)" : "Gửi mã")
+                            </FluentButton>
+                        </FluentStack>
+
+
+                        <FluentStack Orientation="Orientation.Vertical">
+                            <FluentLabel Weight="FontWeight.Bold">Mật khẩu mới:</FluentLabel>
+                            <FluentTextField @bind-Value="layMatKhauDto.PasswordMoi" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu mới" Style="width: 100%;" />
+                            <ValidationMessage style="color:red" For="@(() => layMatKhauDto.PasswordMoi)" />
                         </FluentStack>
 
                         <FluentStack Orientation="Orientation.Vertical">
-                            <FluentLabel Weight="FontWeight.Bold">Mật khẩu:</FluentLabel>
-                            <FluentTextField @bind-Value="loginDto.Password" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu" Style="width: 100%;" />
-                            <ValidationMessage Style="color: var(--error); font-size: 0.875rem;" For="@(() => loginDto.Password)" />
+                            <FluentLabel Weight="FontWeight.Bold">Xác nhận mật khẩu mới:</FluentLabel>
+                            <FluentTextField @bind-Value="layMatKhauDto.PasswordConfirmMoi" TextFieldType="TextFieldType.Password" Placeholder="Xác nhận nhập mật khẩu mới" Style="width: 100%;" />
+                            <ValidationMessage style="color:red" For="@(() => layMatKhauDto.PasswordConfirmMoi)" />
                         </FluentStack>
 
                         <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
-                            Lưu mật khẩu
+                            Xác nhận
+                        </FluentButton>
+                        <hr />
+                        <FluentButton Loading="@loading" Appearance="Appearance.Lightweight" Style="width: 100%;" OnClick="()=>DoiTrangThai(false)" IconStart="@(new Icons.Regular.Size20.ArrowLeft())">
+                            Quay lại
                         </FluentButton>
 
 
@@ -120,11 +152,14 @@
 
     private ApiRequestModel requestRestAPI = new ApiRequestModel();
 
-    private LoginDto loginDto = new LoginDto();
+    private LoginDto loginDto { get; set; } = new LoginDto();
+    private OtpConfirmDto layMatKhauDto { get; set; } = new OtpConfirmDto();
+
     private bool loading = false;
     private bool IsLayLaiMatKhau = false;
 
     private string? ErrorMessage;
+    public string CheckEmail { get; set; } = string.Empty;
 
     private async Task<bool> LoginNhanVien(LoginDto loginDto)
     {
@@ -169,9 +204,120 @@
         }
     }
 
-    private void LayMatKhau()
+    private void DoiTrangThai(bool trangThai)
     {
-        IsLayLaiMatKhau = true;
+        IsLayLaiMatKhau = trangThai;
         StateHasChanged();
+    }
+
+
+    private bool isSendingOTP = false;
+    private int countdown = 60;
+    private Timer? timer;
+
+    private async Task SendOTPAsync()
+    {
+        try
+        {
+            loading = true;
+            if (isSendingOTP) return;
+
+            if (string.IsNullOrEmpty(layMatKhauDto.Email))
+            {
+                CheckEmail = "Vui lòng nhập email";
+                StateHasChanged();
+                return;
+            }
+
+            requestRestAPI.Endpoint = "api/User/SendOtp";
+            ResultAPI result = await CallApi.Put(requestRestAPI, layMatKhauDto);
+
+            if (result.Status == StatusCode.OK)
+            {
+
+                isSendingOTP = true;
+                countdown = 60;
+                StartCountdown();
+
+                ToastService.ShowSuccess("Mã xác nhận đã được gửi!");
+            }
+            else
+            {
+                ToastService.ShowError("" + result.Message);
+            }
+
+        }
+        catch (Exception ex)
+        {
+
+            ToastService.ShowError("" + ex.Message);
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+
+        }
+      
+    }
+
+    private async Task Confirm()
+    {
+        try
+        {
+            loading = true;
+
+            requestRestAPI.Endpoint = "api/User/LayMatKhau";
+            ResultAPI result = await CallApi.Put(requestRestAPI, layMatKhauDto);
+
+            if (result.Status == StatusCode.OK)
+            {
+
+                ToastService.ShowSuccess("Mật khẩu đã được thay đổi");
+                DoiTrangThai(false);
+            }
+            else
+            {
+                ToastService.ShowError("Lỗi: " + result.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+
+            ToastService.ShowError("Lỗi: " + ex.Message);
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+
+        }
+       
+    }
+
+
+    private void StartCountdown()
+    {
+        timer?.Dispose(); // Hủy timer cũ nếu có
+
+        timer = new Timer(state =>
+        {
+            if (countdown > 0)
+            {
+                countdown--;
+                InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                isSendingOTP = false;
+                timer?.Dispose();
+                InvokeAsync(StateHasChanged);
+            }
+        }, null, 0, 1000); // 1000ms = 1 giây
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
     }
 }

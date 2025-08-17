@@ -1,5 +1,6 @@
 ﻿using Service.SnapFood.Client.Dto.BillDetails;
 using Service.SnapFood.Client.Enums;
+using Service.SnapFood.Share.Model.Enum;
 
 namespace Service.SnapFood.Client.Dto.Bill
 {
@@ -13,7 +14,8 @@ namespace Service.SnapFood.Client.Dto.Bill
         public decimal DiscountAmount { get; set; }
 
         public DateTime Created { get; set; }
-
+        public PhuongThucDatHangEnum PhuongThucDatHang { get; set; }
+        public ReceivingType ReceivingType { get; set; }
         public List<BillDetailsDto> BillDetailsDtos { get; set; } = new List<BillDetailsDto>();
         public BillPaymentDto BillPaymentDto { get; set; } = new BillPaymentDto();
         public List<BillNotesDto> BillNotesDtos { get; set; } = new List<BillNotesDto>();

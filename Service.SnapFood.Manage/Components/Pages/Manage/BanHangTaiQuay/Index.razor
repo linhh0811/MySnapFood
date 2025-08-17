@@ -33,13 +33,8 @@ else
                                         Multiple="false"
                                         Virtualize="true"
                                         OptionText="@(item => item.Name)"
-                                        OptionStyle="min-height: 80px;"
-                                        IconSearch="null"
-                                        Value="@searchText"
-                                        ValueChanged="@(value => searchText = value)">
-                        <SelectedOptionTemplate>
-                            <!-- Để trống để không hiển thị giá trị đã chọn -->
-                        </SelectedOptionTemplate>
+                                        OptionStyle="min-height: 80px;max-height: 100px;">
+                       
                         <OptionTemplate>
                             <div style="display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; cursor: pointer;min-height: 80px;"
                                  @ondblclick="() => OnDoubleClick(context)"                          
@@ -94,6 +89,14 @@ else
                                 </div>
                             </div>
                         </OptionTemplate>
+                        <FooterContent>
+                            @if (!context.Any())
+                            {
+                                <FluentLabel Style="font-size: 11px; text-align: center; width: 200px;">
+                                    Không có dữ liệu...
+                                </FluentLabel>
+                            }
+                        </FooterContent>
                     </FluentAutocomplete>
 
 
@@ -349,5 +352,17 @@ else
 
     .content {
         padding-top: 0;
+    }
+
+    .fluent-overlay{
+        z-index:6!important;
+    }
+
+    fluent-anchored-region{
+        z-index: 6!important;
+    }
+
+    .positioning-region{
+        z-index: 10 !important;
     }
 </style>

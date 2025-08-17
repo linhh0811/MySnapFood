@@ -221,7 +221,9 @@ else
         return status switch
         {
             StatusOrder.Pending => "Chờ xác nhận",
-            StatusOrder.Confirmed => "Đã xác nhận",
+            // StatusOrder.Confirmed => "Đã xác nhận",
+            StatusOrder.DangChuanBi => "Đang chuẩn bị",
+            StatusOrder.ChoLayHang => "Chờ lấy hàng",
             StatusOrder.Shipping => "Đang giao hàng",
             StatusOrder.Completed => "Đã giao thành công",
             StatusOrder.Cancelled => "Đã hủy",
@@ -234,7 +236,9 @@ else
         return status switch
         {
             StatusOrder.Pending => "text-warning",    // Màu vàng
-            StatusOrder.Confirmed => "text-primary", // Màu xanh
+            // StatusOrder.Confirmed => "text-primary", // Màu xanh
+            StatusOrder.DangChuanBi => "text-primary", // Màu xanh
+            StatusOrder.ChoLayHang => "text-info",
             StatusOrder.Shipping => "text-info",     // Màu xanh nhạt
             StatusOrder.Completed => "text-success", // Màu xanh lá
             StatusOrder.Cancelled => "text-danger",  // Màu đỏ
@@ -246,7 +250,9 @@ else
 {
     new(null, "Tất cả trạng thái"),
     new(StatusOrder.Pending, "Chờ xác nhận"),
-    new(StatusOrder.Confirmed, "Đã xác nhận"),
+    // new(StatusOrder.Confirmed, "Đã xác nhận"),
+     new(StatusOrder.DangChuanBi, "Đang chuẩn bị"),
+    new(StatusOrder.ChoLayHang, "Chờ lấy hàng"),
     new(StatusOrder.Shipping, "Đang giao hàng"),
     new(StatusOrder.Completed, "Đã giao thành công"),
     new(StatusOrder.Cancelled, "Đã hủy"),

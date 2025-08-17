@@ -27,35 +27,61 @@
                     <input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab"></label>
                     <div class="login-form">
                         <div class="sign-in-htm">
-                            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-                                @if (!string.IsNullOrWhiteSpace(loginError))
-                                {
+                            <EditForm Model="layMatKhauDto" OnValidSubmit="Confirm">
 
-                                    <FluentMessageBar Title="Lỗi" Intent="@MessageIntent.Error">
-                                        @loginError
-                                    </FluentMessageBar>
-                                }
                                 <DataAnnotationsValidator />
-
 
                                 <div class="group">
                                     <label class="form-label">Email</label>
-                                    <InputText class="form-control" @bind-Value="loginModel.Email" />
-                                    <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => loginModel.Email)" />
+                                    <InputText class="form-control" @bind-Value="layMatKhauDto.Email" />
+                                    <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => layMatKhauDto.Email)" />
+
+                                </div>
+
+ 
+                                <div class="group" style="flex:1">
+                                    <label class="form-label">Mã xác nhận</label>
+
+                                    <div style="display: flex; gap: 10px;">
+                                        <InputText class="form-control" style="flex: 1;" @bind-Value="layMatKhauDto.OtpCode" />
+                                        <FluentButton @onclick="SendOTPAsync"
+                                                      Disabled="@isSendingOTP"
+                                                      Loading="@IsLoading"
+                                                      Appearance="Appearance.Accent"
+                                                      Style="min-width: 100px;height:37px;">
+                                            @(isSendingOTP ? $"Gửi lại ({countdown}s)" : "Gửi mã")
+                                        </FluentButton>
+                                    </div>
+
+                                    <ValidationMessage style="color:red; margin-top: 5px;" For="@(() => layMatKhauDto.OtpCode)" />
+                                </div>
+
+
+
+                                <div class="group">
+                                    <label class="form-label">Mật khẩu mới</label>
+                                    <InputText class="form-control" type="password" @bind-Value="layMatKhauDto.PasswordMoi" />
+                                    <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => layMatKhauDto.PasswordMoi)" />
 
                                 </div>
 
                                 <div class="group">
-                                    <label class="form-label">Mật khẩu</label>
-                                    <InputText class="form-control" type="password" @bind-Value="loginModel.Password" />
-                                    <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => loginModel.Password)" />
+                                    <label class="form-label">Xác nhận mật khẩu</label>
+                                    <InputText class="form-control" type="password" @bind-Value="layMatKhauDto.PasswordConfirmMoi" />
+                                    <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => layMatKhauDto.PasswordConfirmMoi)" />
 
                                 </div>
 
 
 
                                 <div class="group">
-                                    <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isLoggingIn">Đăng nhập</FluentButton>
+                                    <FluentButton Loading="@IsLoading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;height:37px; margin-top:5px;">
+                                        Xác nhận
+                                    </FluentButton>
+                                    <hr />
+                                    <FluentButton Loading="@IsLoading" Appearance="Appearance.Lightweight" Style="width: 100%;" IconStart="@(new Icons.Regular.Size20.ArrowLeft())" OnClick="OpenModalDangNhap">
+                                        Quay lại
+                                    </FluentButton>
                                 </div>
 
                             </EditForm>
@@ -74,12 +100,6 @@
 
 <style>
 
-    body {
-        margin: 0;
-        color: #6a6f8c;
-        /* background: #c8c8c8; */
-        font: 600 16px/18px "Open Sans", sans-serif;
-    }
 
     *,
     :after,
@@ -189,9 +209,6 @@
                 background: rgba(255, 255, 255, 0.1);
             }
 
-            .login-form .group input[data-type="password"] {
-                -webkit-text-security: circle;
-            }
 
             .login-form .group .label {
                 color: #aaa;
@@ -299,6 +316,10 @@
         .close-button:hover {
             background: #e43f3f; /* Màu đỏ đậm hơn khi hover */
         }
+
+    .group .form-label {
+        color: white!important;
+    }
 </style>
 
 @code {
@@ -310,51 +331,19 @@
 
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private RegisterDto registerModel = new();
-    private LoginDto loginModel = new();
+    private OtpConfirmDto layMatKhauDto { get; set; } = new OtpConfirmDto();
 
-    private string registerError = "";
-    private string loginError = "";
-
-    private bool isRegistering = false;
-    private bool isLoggingIn = false;
+    private bool IsLoading = false;
+    public string CheckEmail { get; set; } = string.Empty;
 
 
-    [Inject] private NavigationManager manager { get; set; } = default!;
-
-    private async Task HandleRegister()
-    {
-        registerError = "";
-        isRegistering = true;
-        requestRestAPI.Endpoint = "api/User/Register";
-        ResultAPI result = await CallApi.Post<RegisterDto>(requestRestAPI, registerModel);
-
-        if (result.Status == StatusCode.OK)
-        {
-            await Dialog.CloseAsync();
-            ToastService.ShowSuccess("Tạo tài khoản thành công.");
-
-            loginModel.Email = registerModel.Email;
-            loginModel.Password = loginModel.Password;
-
-            await HandleLogin();
-
-        }
-        else
-        {
-            isRegistering = false;
-            registerError = "Tạo tài khoản thất bại: " + result.Message;
-
-        }
-
-
-    }
-
-    private async Task OpenModalLayMatKhau()
+    
+    private async Task OpenModalDangNhap()
     {
         try
         {
             await Dialog.CloseAsync();
-            var dialog = await DialogService.ShowDialogAsync<LayMatKhau>(new DialogParameters
+            var dialog = await DialogService.ShowDialogAsync<AuthDialog>(new DialogParameters
                 {
                     Title = null,
                     PreventScroll = true,
@@ -368,40 +357,112 @@
             ToastService.ShowError($"Lỗi khi mở modal: {ex.Message}");
         }
     }
-
-    private async Task HandleLogin()
+   
+    private async Task SendOTPAsync()
     {
-        loginError = "";
-
-
         try
         {
-            isLoggingIn = true;
-            requestRestAPI.Endpoint = "api/User/Login";
-            ResultAPI response = await CallApi.Post<Dto.Auth.AuthResponseDto>(requestRestAPI, loginModel);
-            if (response.Status == StatusCode.OK)
+            IsLoading = true;
+            if (isSendingOTP) return;
+
+            if (string.IsNullOrEmpty(layMatKhauDto.Email))
             {
-                var result = response.Data as Dto.Auth.AuthResponseDto;
-                if (result?.Token != null)
-                {
-                    await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(result);
-                    await Dialog.CloseAsync();
-                    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
-                }
-                ToastService.ShowSuccess("Đăng nhập thành công.");
+                CheckEmail = "Vui lòng nhập email";
+                StateHasChanged();
+                return;
+            }
+
+            requestRestAPI.Endpoint = "api/User/SendOtp";
+            ResultAPI result = await CallApi.Put(requestRestAPI, layMatKhauDto);
+
+            if (result.Status == StatusCode.OK)
+            {
+
+                isSendingOTP = true;
+                countdown = 60;
+                StartCountdown();
+
+                ToastService.ShowSuccess("Mã xác nhận đã được gửi!");
             }
             else
             {
-                isLoggingIn = false;
-                loginError = "Thông tin không chính xác";
+                ToastService.ShowError("" + result.Message);
+            }
+
+        }
+        catch (Exception ex)
+        {
+
+            ToastService.ShowError("" + ex.Message);
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+
+        }
+
+    }
+
+    private async Task Confirm()
+    {
+        try
+        {
+            IsLoading = true;
+
+            requestRestAPI.Endpoint = "api/User/LayMatKhau";
+            ResultAPI result = await CallApi.Put(requestRestAPI, layMatKhauDto);
+
+            if (result.Status == StatusCode.OK)
+            {
+
+                ToastService.ShowSuccess("Mật khẩu đã được thay đổi");
+            }
+            else
+            {
+                ToastService.ShowError("Lỗi: " + result.Message);
             }
         }
         catch (Exception ex)
         {
-            isLoggingIn = false;
-            loginError = ex.Message;
+
+            ToastService.ShowError("Lỗi: " + ex.Message);
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
 
         }
 
+    }
+
+    private bool isSendingOTP = false;
+    private int countdown = 60;
+    private Timer? timer;
+
+    private void StartCountdown()
+    {
+        timer?.Dispose(); // Hủy timer cũ nếu có
+
+        timer = new Timer(state =>
+        {
+            if (countdown > 0)
+            {
+                countdown--;
+                InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                isSendingOTP = false;
+                timer?.Dispose();
+                InvokeAsync(StateHasChanged);
+            }
+        }, null, 0, 1000); // 1000ms = 1 giây
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
     }
 }

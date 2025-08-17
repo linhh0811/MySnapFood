@@ -7,10 +7,31 @@
 @using Service.SnapFood.Share.Query.Grid
 @using System.Text.Json
 <header>
+        <FluentStack Orientation="Orientation.Horizontal"
+                     Style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+
+            </FluentStack>
+        <input class="form-control" style="border-radius: 10px;border: 2px solid #ffcccc; max-width:400px;" @oninput="SearchChanged" placeholder="Nhập từ khóa tìm kiếm" />
+
+        </FluentStack>
     <nav class="navbar navbar-expand-lg navbar-light bg-light p-3"style="z-index:2;">
+       
         <div class="container">
+           
             <ul class="navbar-nav mx-auto" style="width:100%">
                 <FluentHorizontalScroll Style="width: 80%; margin: 0 auto;">
+                    <li style="width: 170px;" class="nav-item mx-3">
+                        <div @onclick="()=>SelectCategory(CategoryNone)" style="cursor: pointer;">
+                            <img src="@CategoryNone.ImageUrl"
+                            style="height: 70px; width: 100%; object-fit: cover;"
+                                 alt="@CategoryNone.CategoryName">
+                            <div style="text-align: center;">
+                                <a class="nav-link text-muted fw-bold fs-5 active"><p style="@(CategoryNone.Id == CategorySelect.Id ? "color: red;":"" ); ">@CategoryNone.CategoryName</p></a>
+                            </div>
+                        </div>
+
+                    </li>
                     @foreach (var category in categoryDtos)
                     {
                         <li style="width: 170px;" class="nav-item mx-3">
@@ -43,18 +64,32 @@
     public EventCallback<CategoryDto> OnCategorySelected { get; set; }
     [Parameter]
     public string CategoryId { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> OnSearchChanged { get; set; }
 
     private CategoryDto CategorySelect = new();
+    private CategoryDto CategoryNone = new()
+    {
+        Id=Guid.Empty.ToString(),
+        CategoryName="Tất cả món ăn",
+            ImageUrl = "https://www.lotteria.vn/media/catalog/product/cache/400x400/2/2/229119-online.png.webp"
+        
+    };
 
+    private string keyword = string.Empty;
 
+    private async Task SearchChanged(ChangeEventArgs e)
+    {
+        keyword = e.Value?.ToString() ?? string.Empty;
+        await OnSearchChanged.InvokeAsync(keyword);
+    }
     protected override async Task OnInitializedAsync()
     {
         await LoadCategory();
         await DataCategory.InvokeAsync(categoryDtos);
         if (string.IsNullOrEmpty(CategoryId))
         {
-            await OnCategorySelected.InvokeAsync(categoryDtos.First());
-            CategorySelect = categoryDtos.First();
+            await OnCategorySelected.InvokeAsync(CategoryNone);
+            CategorySelect = CategoryNone;
         }else
         {
             await OnCategorySelected.InvokeAsync(categoryDtos.FirstOrDefault(x=>x.Id==CategoryId));

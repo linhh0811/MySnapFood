@@ -59,6 +59,25 @@ namespace Service.SnapFood.Api.Controllers
             return Ok();
 
         }
+
+        [HttpPut("SendOtp")]
+        public async Task<IActionResult> SendOtp([FromBody] OtpConfirmDto item)
+        {
+
+            await _userService.SendOtp(item);
+            return Ok();
+
+        }
+
+        [HttpPut("LayMatKhau")]
+        public async Task<IActionResult> LayMatKhau([FromBody] OtpConfirmDto item)
+        {
+
+            await _userService.LayLaiMatKhau(item);
+            return Ok();
+
+        }
+
         [HttpPost("GetPaged")]
         public IActionResult GetPage(BaseQuery query)
         {
@@ -91,5 +110,7 @@ namespace Service.SnapFood.Api.Controllers
 
             return Ok(new { message = "Cập nhật thành công" });
         }
+
+
     }
 }

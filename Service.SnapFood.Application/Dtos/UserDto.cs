@@ -16,6 +16,9 @@ namespace Service.SnapFood.Application.Dtos
         public string Email { get; set; } = string.Empty;
         public string Numberphone { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public string PasswordMoi { get; set; } = string.Empty;
+        public string PasswordConfirmMoi { get; set; } = string.Empty;
+
         public UserType UserType { get; set; }
         public bool IsInRole { get; set; }
         public ModerationStatus ModerationStatus { get; set; }
@@ -25,5 +28,6 @@ namespace Service.SnapFood.Application.Dtos
         public Guid LastModifiedBy { get; set; }
         public string CreatedByName { get; set; } = string.Empty;
         public string LastModifiedByName { get; set; } = string.Empty;
+        public bool IsThayDoiMatKhau { get; set; } = false;
     }
 }

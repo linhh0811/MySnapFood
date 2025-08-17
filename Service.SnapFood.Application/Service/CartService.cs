@@ -819,7 +819,7 @@ namespace Service.SnapFood.Application.Service
                             TotalAmount = 0,
                             DiscountAmount = 0,
                             BillDetails = new List<BillDetails>(),
-                            Status = StatusOrder.Pending,
+                            Status = StatusOrder.DangChuanBi,
                             ReceivingType = ReceivingType.PickUpAtStore,
                             PhuongThucDatHang = Share.Model.Enum.PhuongThucDatHangEnum.DatTaiQuay
 
@@ -930,7 +930,7 @@ namespace Service.SnapFood.Application.Service
                             BillNotes billNotes2 = new BillNotes()
                             {
                                 BillId = bill.Id,
-                                NoteType = NoteType.CustomerOrder,
+                                NoteType = NoteType.Internal,
                                 NoteContent = "Ghi chú: " + item.GhiChu,
                                 CreatedBy = Guid.Empty
 

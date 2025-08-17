@@ -37,6 +37,12 @@
     input, textarea, button, select {
         font-family: inherit !important;
     }
+
+   
+
+    .fluent-toast-provider {
+        z-index: 9999 !important;
+    }
 </style>
 
 @if (isLoading)
@@ -79,6 +85,7 @@ else
     else
     {
         <Login></Login>
+        <FluentToastProvider MaxToastCount="10" Position="ToastPosition.BottomRight" />
     }
 }
 <div id="blazor-error-ui">

@@ -46,15 +46,18 @@ namespace Service.SnapFood.Application.Service
         }
         public TTSoLieuTheoThoiGianDto GetTTSoLieuTheoThoiGian(BaseQuery baseQuery)
         {
-            var tongBill = _unitOfWork.BillRepo.FindWhere(x => x.Created >= baseQuery.SearchTuNgay && x.Created <= baseQuery.SearchDenNgay&& x.Status != StatusOrder.Cancelled);
+            var tongBill = _unitOfWork.BillRepo.FindWhere(x => x.Created >= baseQuery.SearchTuNgay && x.Created <= baseQuery.SearchDenNgay);
             var tongHoaDon = tongBill.Count();
+
+            var billDaXuLy = _unitOfWork.BillRepo.FindWhere(x => x.Created >= baseQuery.SearchTuNgay && x.Created <= baseQuery.SearchDenNgay && (x.Status == StatusOrder.Completed|| x.Status == StatusOrder.Cancelled));
+            var TongHoaDonThanhCong = billDaXuLy.Count();
 
             var tongBillBiHuy = _unitOfWork.BillRepo.FindWhere(x => x.Created >= baseQuery.SearchTuNgay && x.Created <= baseQuery.SearchDenNgay && x.Status == StatusOrder.Cancelled);
             var tongHoaDonBiHuy = tongBillBiHuy.Count();
 
             var billThanhCong = _unitOfWork.BillRepo.FindWhere(x => x.Created >= baseQuery.SearchTuNgay && x.Created <= baseQuery.SearchDenNgay&&x.Status==StatusOrder.Completed);
             var listBillId = billThanhCong.Select(x => x.Id).ToList();
-            var TongHoaDonThanhCong = billThanhCong.Count();
+            
             var TienKhuyenMai = billThanhCong.Sum(x => x.TotalAmountEndow);
             var TienMaGiamGia = billThanhCong.Sum(x => x.DiscountAmount);
             var PhiShip =_unitOfWork.BillDeliveryRepo.FindWhere(x=>listBillId.Contains(x.BillId)).Select(x => x.DeliveryFee).Sum();
