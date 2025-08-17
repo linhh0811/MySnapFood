@@ -1,0 +1,332 @@
+﻿@* @page "/Pdf"
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Bill
+@using Service.SnapFood.Manage.Dto.Cart
+@using Service.SnapFood.Manage.Dto.Store
+@using Service.SnapFood.Manage.Enums
+@using Service.SnapFood.Manage.Infrastructure.Services
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@inject IJSRuntime JS
+@inject HttpClient Http
+
+@inherits ComponentBase
+@implements IDialogContentComponent<ThanhToanParameters>
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentButton Appearance="Appearance.Accent" @onclick="ExportToPdf" IconStart="@(new Icons.Regular.Size20.Print())">In hóa đơn</FluentButton>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogBody>
+
+
+    @if (!IsLoading)
+    {
+        <div class="invoice-container" id="printArea" style="max-width: 800px; margin: 0 auto; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+            <!-- Invoice Content -->
+            <div class="invoice-content" style="padding: 40px;">
+                <!-- Header -->
+                <div class="invoice-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 3px solid #007bff; padding-bottom: 20px;">
+                    <div class="company-info">
+                        <h1 style="color: #007bff; font-size: 28px; margin-bottom: 10px; margin: 0;">@Store.StoreName - SnapFood</h1>
+                        <p style="color: #666; margin-bottom: 5px; margin: 0;"><strong>Địa chỉ: </strong>@Store.Address.SpecificAddress, @Store.Address.Ward, @Store.Address.District, @Store.Address.Province  </p>
+                        <p style="color: #666; margin-bottom: 5px; margin: 0;"><strong>Điện thoại: </strong>@Store.NumberPhone</p>
+                    </div>
+                </div>
+
+                <!-- Invoice Details -->
+                <div class="invoice-details" style=" gap: 30px; margin-bottom: 30px;">
+                    <div class="detail-section">
+                        <h3 style="color: #007bff; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">Thông tin đơn hàng</h3>
+                        <div class="detail-item" style="margin-bottom: 8px;">
+                            <span class="detail-label" style="font-weight: bold; color: #333; display: inline-block; width: 120px;">Mã đơn hàng:</span>
+                            <span>@Item.BillCode</span>
+                        </div>
+                        <div class="detail-item" style="margin-bottom: 8px;">
+                            <span class="detail-label" style="font-weight: bold; color: #333; display: inline-block; width: 120px;">Thời gian đặt:</span>
+                            <span>@Item.Created.ToString("HH:mm:ss dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        @if (Item.ReceivingType == ReceivingType.PickUpAtStore)
+                        {
+                            <h3 style="color: #007bff; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">Thông tin khách hàng</h3>
+                        }
+                        @if (Item.ReceivingType != ReceivingType.PickUpAtStore)
+                        {
+                            <h3 style="color: #007bff; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">Thông tin giao hàng</h3>
+
+                        }
+                        @if (!string.IsNullOrEmpty(@Item.BillDeliveryDto.ReceiverName))
+                        {
+                            <div class="detail-item" style="margin-bottom: 8px;">
+                                <span class="detail-label" style="font-weight: bold; color: #333; display: inline-block; width: 120px;">Tên khách hàng:</span>
+                                <span>@Item.BillDeliveryDto.ReceiverName</span>
+                            </div>
+                        }
+                        @if (Item.ReceivingType != ReceivingType.PickUpAtStore)
+                        {
+                            @if (!string.IsNullOrEmpty(@Item.BillDeliveryDto.ReceiverAddress))
+                            {
+                                <div class="detail-item" style="margin-bottom: 8px;">
+                                    <span class="detail-label" style="font-weight: bold; color: #333; display: inline-block; width: 120px;">Địa chỉ:</span>
+                                    <span>@Item.BillDeliveryDto.ReceiverAddress</span>
+                                </div>
+                            }
+                        }
+
+
+
+                        @if (!string.IsNullOrEmpty(@Item.BillDeliveryDto.ReceiverPhone))
+                        {
+                            <div class="detail-item" style="margin-bottom: 8px;">
+                                <span class="detail-label" style="font-weight: bold; color: #333; display: inline-block; width: 120px;">Điện thoại:</span>
+                                <span> @Item.BillDeliveryDto.ReceiverPhone</span>
+                            </div>
+                        }
+                        <div class="detail-item" style="margin-bottom: 8px;">
+                            <span class="detail-label" style="font-weight: bold; color: #333; display: inline-block; width: 120px;">Hình thức TT:</span>
+                            <span>@Item.BillPaymentDto.PaymentType.GetDescription()</span>
+                        </div>
+                        <div class="detail-item" style="margin-bottom: 8px;">
+                            <span class="detail-label" style="font-weight: bold; color: #333; display: inline-block; width: 120px;">Phương thức ĐH:</span>
+                            <span>@Item.PhuongThucDatHang.GetDescription()</span>
+                        </div>
+                        <div class="detail-item" style="margin-bottom: 8px;">
+                            <span class="detail-label" style="font-weight: bold; color: #333; display: inline-block; width: 120px;">Phương thức NH:</span>
+                            <span>@Item.ReceivingType.GetDescription()</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Items Table -->
+                <table class="items-table" style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                    <thead>
+                        <tr>
+                            <th style="background: #007bff; color: white; padding: 12px; text-align: left; font-weight: bold;">STT</th>
+                            <th style="background: #007bff; color: white; padding: 12px; text-align: left; font-weight: bold;">Tên hàng hóa/Dịch vụ</th>
+                            <th style="background: #007bff; color: white; padding: 12px; text-align: center; font-weight: bold;">Số lượng</th>
+                            <th style="background: #007bff; color: white; padding: 12px; text-align: right; font-weight: bold;">Đơn giá</th>
+                            <th style="background: #007bff; color: white; padding: 12px; text-align: right; font-weight: bold;">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in @Item.BillDetailsDtos)
+                        {
+                            <tr style="background: #f8f9fa;">
+                                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: center;">1</td>
+                                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; display: flex; flex-direction: column; justify-content: center;">
+                                    <span style="font-size:16px;">
+                                        @item.ItemsName
+                                    </span>
+                                    @if (item.ItemType == ItemType.Combo && item.Product is not null)
+                                    {
+                                        <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">
+                                            @foreach (var p in item.Product)
+                                            {
+                                                <div style="cursor: pointer;font-size:12px;">
+                                                    @p.ProductName
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </td>
+                                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: center;">@item.Quantity</td>
+                                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: right;">
+                                    <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                                        @if (item.PriceEndow > 0)
+                                        {
+                                            <div style="font-size: 12px; color: #999; text-decoration: line-through; margin-bottom: 2px;">@item.Price.ToString("N0") đ</div>
+                                            <div style="font-weight: bold; color: #e74c3c; font-size: 14px;">@item.PriceEndow.ToString("N0") đ</div>
+                                        }
+                                        else
+                                        {
+                                            <div style="font-weight: bold; color: #e74c3c; font-size: 14px;">@item.Price.ToString("N0") đ</div>
+
+                                        }
+                                    </div>
+                                </td>
+                                <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; color: #007bff;">
+                                    @if (item.PriceEndow > 0)
+                                    {
+                                        <span>@((item.PriceEndow * item.Quantity).ToString("N0")) đ</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@((item.Price * item.Quantity).ToString("N0")) đ</span>
+
+                                    }
+                                </td>
+                            </tr>
+                        }
+
+
+                    </tbody>
+                </table>
+
+                <!-- Totals -->
+                <div class="totals" style="margin-left: auto; width: 300px;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                        <span>Tổng tiền hàng:</span>
+                        <span style="font-weight: bold; color: #007bff;">@Item.TotalAmount.ToString("N0") VNĐ</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                        <span>Khuyến mãi:</span>
+                        <span style="font-weight: bold; color: #007bff;">@Item.TotalAmountEndow.ToString("N0") VNĐ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                        <span>Mã giảm giá:</span>
+                        <span style="font-weight: bold; color: #007bff;">@Item.DiscountAmount.ToString("N0") VNĐ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                        <span>Phí giao hàng:</span>
+                        <span style="font-weight: bold; color: #007bff;">@Item.BillDeliveryDto.DeliveryFee.ToString("N0") VNĐ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 3px solid #007bff; margin-top: 10px; font-weight: bold; font-size: 18px; color: #007bff;">
+                        <span>TỔNG CỘNG:</span>
+                        <span>@((Item.TotalAmount + Item.BillDeliveryDto.DeliveryFee - Item.DiscountAmount - Item.TotalAmountEndow).ToString("N0")) VNĐ</span>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="invoice-footer" style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+                    <div class="footer-section" style="margin-bottom: 20px;">
+                        <h4 style="color: #007bff; margin-bottom: 10px;">Ghi chú:</h4>
+                        @foreach (var item in Item.BillNotesDtos)
+                        {
+                            <div style="display: flex; justify-content: flex-start;">
+                                <span style="min-width: 120px; text-align: left;">@(item.NoteType == NoteType.CustomerOrder ? "Khách hàng" : "Cửa hàng"): </span>
+                                <span style="width:200px;">@item.Created.ToString("HH:mm:ss dd/MM/yyyy")</span>
+                                <span style="width:100%;">@item.NoteContent</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+</FluentDialogBody>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync" Loading="@IsCancelling" Disabled="@IsCancelling">
+        Đóng
+    </FluentButton>
+</FluentDialogFooter>
+
+
+
+
+
+@code {
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    [Parameter]
+    public ThanhToanParameters Content { get; set; } = new();
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+
+    private bool IsCancelling { get; set; }
+    private bool IsLoading { get; set; } = true;
+
+    protected CartDto CartModel { get; set; } = new CartDto();
+
+    private StoreDto Store { get; set; } = new StoreDto();
+
+
+
+    private async Task ExportToPdf()
+    {
+        var html = await JS.InvokeAsync<string>("getHtmlContent", "printArea");
+
+        var response = await Http.PostAsJsonAsync("/api/pdf/export", new { Html = html });
+
+        if (response.IsSuccessStatusCode)
+        {
+            var fileBytes = await response.Content.ReadAsByteArrayAsync();
+            var base64 = Convert.ToBase64String(fileBytes);
+            await JS.InvokeVoidAsync("downloadFile", $"HoaDon.pdf", base64);
+            await Content.OnRefresh.InvokeAsync();
+            await CancelAsync();
+        }
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoading = true;
+        await LoadStores();
+        IsLoading = false;
+    }
+
+    
+    protected async Task LoadCart()
+    {
+
+        try
+        {
+            if (Content.CartId != Guid.Empty)
+            {
+                var request = new ApiRequestModel { Endpoint = $"api/Cart/CartId/{Content.CartId}" };
+                var result = await CallApi.Get<CartDto>(request);
+                if (result.Status == StatusCode.OK && result.Data != null)
+                {
+                    CartModel = (CartDto)result.Data;
+
+                    totalPrice = CartModel.CartItems.Sum(p => p.BasePrice * p.Quantity);
+                    totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0).Sum(p => p.BasePrice * p.Quantity - p.PriceEndown * p.Quantity);
+                    StateHasChanged();
+                }
+                else
+                {
+                    ToastService.ShowError("Không thể tải giỏ hàng.");
+                }
+            }
+            else
+            {
+                CartModel = new CartDto();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải giỏ hàng: {ex.Message}");
+        }
+    }
+
+  
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+    protected async Task LoadStores()
+    {
+        try
+        {
+            var request = new ApiRequestModel { Endpoint = "api/Store/GetStore" };
+            var result = await CallApi.Get<StoreDto>(request);
+            if (result.Status == StatusCode.OK && result.Data != null)
+            {
+                Store = result.Data as StoreDto ?? new StoreDto();
+
+            }
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách cửa hàng: {ex.Message}");
+        }
+    }
+}
+
+ *@
