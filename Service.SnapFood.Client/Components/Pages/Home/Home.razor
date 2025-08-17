@@ -12,32 +12,48 @@
     }
 </style>
 
-<div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel" style="z-index:2;">
+<div id="carouselExampleIndicators"
+     class="carousel slide"
+     data-bs-ride="carousel"
+     data-bs-interval="2000"
+     style="z-index:2;">
+
+    <!-- Indicator -->
     <div class="carousel-indicators">
         @for (int i = 0; i < slides.Count; i++)
         {
-            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="@i"
-            class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : null)" aria-label="Slide @(i + 1)"></button>
+            <button type="button"
+                    data-bs-target="#carouselExampleIndicators"
+                    data-bs-slide-to="@i"
+                    class="@(i == 0 ? "active" : "")"
+                    aria-current="@(i == 0 ? "true" : null)"
+                    aria-label="Slide @(i + 1)">
+            </button>
         }
     </div>
-    <div class="carousel-inner">
-        @foreach (var slide in slides)
-        {
-            <div class="carousel-item @(slides.IndexOf(slide) == 0 ? "active" : "")">
-                <img src="@slide.imgurl" class="d-block w-100" alt="Slide @(slides.IndexOf(slide) + 1)">
 
+    <!-- Slides -->
+    <div class="carousel-inner">
+        @for (int i = 0; i < slides.Count; i++)
+        {
+            <div class="carousel-item @(i == 0 ? "active" : "")">
+                <img src="@slides[i].imgurl"
+                     class="d-block w-100"
+                     style="max-height:400px; object-fit:cover;"
+                     alt="Slide @(i + 1)">
             </div>
         }
     </div>
+
+    <!-- Controls -->
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Previous</span>
+        <span class="carousel-control-prev-icon"></span>
     </button>
     <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Next</span>
+        <span class="carousel-control-next-icon"></span>
     </button>
 </div>
+
 <div class="container my-4">
     
     <CategoryHome></CategoryHome>
