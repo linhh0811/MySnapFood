@@ -1,4 +1,4 @@
-﻿        using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
@@ -631,5 +631,199 @@ namespace Service.SnapFood.Application.Service
             };
             return BillDangXuLyDto;
         }
+
+        public async Task<List<TopSellingItemDto>> GetTop5SellingProductsAsync(int top = 5)
+        {
+            var now = DateTime.Now;
+            // Step 1: Top 5 sản phẩm
+            var rawData = await (from bd in _unitOfWork.BillDetailsRepo.Query()
+                                 join p in _unitOfWork.ProductRepo.Query() on bd.ItemId equals p.Id
+                                 join s in _unitOfWork.SizesRepo.Query() on p.SizeId equals s.Id into sizeGroup
+                                 from s in sizeGroup.DefaultIfEmpty()
+                                 where bd.ItemType == ItemType.Product
+                                       && bd.Bill != null
+                                       && bd.Bill.Status == StatusOrder.Completed
+                                 group new { bd, p, s } by new
+                                 {
+                                     bd.ItemId,
+                                     p.ProductName,
+                                     p.ImageUrl,
+                                     p.BasePrice,
+                                     SizeName = (s != null ? s.SizeName : "Tiêu chuẩn")
+                                 } into g
+                                 select new
+                                 {
+                                     Id = g.Key.ItemId,
+                                     g.Key.ProductName,
+                                     g.Key.ImageUrl,
+                                     g.Key.BasePrice,
+                                     g.Key.SizeName,
+                                     TotalQuantity = g.Sum(x => x.bd.Quantity)
+                                 })
+                                .OrderByDescending(x => x.TotalQuantity)
+                                .Take(5)
+                                .ToListAsync();
+
+            // Step 2: Lấy promotion hợp lệ cho top 5 sản phẩm
+            var productIds = rawData.Select(x => x.Id).ToList();
+            var promos = await (from pi in _unitOfWork.PromotionItemsRepository.Query()
+                                where pi.ProductId != null && productIds.Contains(pi.ProductId.Value)
+                                join pr in _unitOfWork.PromotionRepository.Query()
+                                    on pi.PromotionId equals (Guid?)pr.Id into promoGroup
+                                from pr in promoGroup.DefaultIfEmpty()
+                                where pr == null || (pr.StartDate <= now && pr.EndDate >= now)
+                                select new
+                                {
+                                    ProductId = pi.ProductId.Value,  // ép về Guid
+                                    pr.PromotionType,
+                                    pr.PromotionValue
+                                }).ToListAsync();
+
+
+            // Step 3: Map promotion
+            var result = rawData.Select(x =>
+            {
+                var promo = promos.FirstOrDefault(p => p.ProductId == x.Id);
+
+                decimal priceEndown = x.BasePrice;
+                decimal discountPercent = 0;
+
+                if (promo != null)
+                {
+                    if (promo.PromotionType == PromotionType.Amount)
+                    {
+                        priceEndown = x.BasePrice - promo.PromotionValue;
+                        discountPercent = (promo.PromotionValue / x.BasePrice) * 100;
+                    }
+                    else if (promo.PromotionType == PromotionType.FixedPrice)
+                    {
+                        priceEndown = promo.PromotionValue;
+                        discountPercent = ((x.BasePrice - promo.PromotionValue) / x.BasePrice) * 100;
+                    }
+                }
+
+                return new TopSellingItemDto
+                {
+                    Id = x.Id,
+                    ProductName = x.ProductName,
+                    ImageUrl = x.ImageUrl ?? "/images/default.png",
+                    BasePrice = x.BasePrice,
+                    SizeName = x.SizeName,
+                    TotalQuantity = x.TotalQuantity,
+                    PriceEndown = priceEndown,
+                    DiscountPercent = discountPercent,
+                    IsDangKM = promo != null
+                };
+            }).ToList();
+
+            return result;
+
+
+        }
+
+        public async Task<List<TopSellingItemDto>> GetTop5SellingCombosAsync(int top = 5)
+        {
+
+            var now = DateTime.Now;
+
+            // Step 1: Top 5 combo bán chạy
+            var rawData = await (from bd in _unitOfWork.BillDetailsRepo.Query()
+                                 join c in _unitOfWork.ComboRepo.Query() on bd.ItemId equals c.Id
+                                 where bd.ItemType == ItemType.Combo
+                                       && bd.Bill != null
+                                       && bd.Bill.Status == StatusOrder.Completed
+                                 group new { bd, c } by new
+                                 {
+                                     bd.ItemId,
+                                     c.ComboName,
+                                     c.ImageUrl,
+                                     c.BasePrice
+                                 } into g
+                                 select new
+                                 {
+                                     Id = g.Key.ItemId,
+                                     g.Key.ComboName,
+                                     g.Key.ImageUrl,
+                                     g.Key.BasePrice,
+                                     TotalQuantity = g.Sum(x => x.bd.Quantity)
+                                 })
+                                .OrderByDescending(x => x.TotalQuantity)
+                                .Take(top)
+                                .ToListAsync();
+
+            // Step 2: Lấy promotion hợp lệ
+            var comboIds = rawData.Select(x => x.Id).ToList();
+            var promos = await (from pi in _unitOfWork.PromotionItemsRepository.Query()
+                                where pi.ComboId != null && comboIds.Contains(pi.ComboId.Value)
+                                join pr in _unitOfWork.PromotionRepository.Query()
+                                    on pi.PromotionId equals (Guid?)pr.Id into promoGroup
+                                from pr in promoGroup.DefaultIfEmpty()
+                                where pr == null || (pr.StartDate <= now && pr.EndDate >= now)
+                                select new
+                                {
+                                    ComboId = pi.ComboId.Value,
+                                    pr.PromotionType,
+                                    pr.PromotionValue
+                                }).ToListAsync();
+
+            // Step 3: Lấy danh sách sản phẩm trong combo
+            var comboProducts = await (from cp in _unitOfWork.ProductComboRepo.Query()
+                                       join p in _unitOfWork.ProductRepo.Query() on cp.ProductId equals p.Id
+                                       where comboIds.Contains(cp.ComboId)
+                                       select new
+                                       {
+                                           cp.ComboId,
+                                           ProductName = p.ProductName,
+                                           cp.Quantity
+                                       }).ToListAsync();
+
+            // Step 4: Map vào DTO
+            var result = rawData.Select(x =>
+            {
+                var promo = promos.FirstOrDefault(p => p.ComboId == x.Id);
+
+                decimal priceEndown = x.BasePrice;
+                decimal discountPercent = 0;
+
+                if (promo != null)
+                {
+                    if (promo.PromotionType == PromotionType.Amount)
+                    {
+                        priceEndown = x.BasePrice - promo.PromotionValue;
+                        discountPercent = (promo.PromotionValue / x.BasePrice) * 100;
+                    }
+                    else if (promo.PromotionType == PromotionType.FixedPrice)
+                    {
+                        priceEndown = promo.PromotionValue;
+                        discountPercent = ((x.BasePrice - promo.PromotionValue) / x.BasePrice) * 100;
+                    }
+                }
+
+                return new TopSellingItemDto
+                {
+                    Id = x.Id,
+                    ProductName = x.ComboName,
+                    ImageUrl = x.ImageUrl ?? "/images/default.png",
+                    BasePrice = x.BasePrice,
+                    SizeName = "Combo",
+                    TotalQuantity = x.TotalQuantity,
+                    PriceEndown = priceEndown,
+                    DiscountPercent = discountPercent,
+                    IsDangKM = promo != null,
+
+                    // lấy list sản phẩm của combo
+                    Items = comboProducts.Where(cp => cp.ComboId == x.Id)
+                                         .Select(cp => new ComboProductDto
+                                         {
+                                             ProductName = cp.ProductName,
+                                             Quantity = cp.Quantity
+                                         }).ToList()
+                };
+            }).ToList();
+
+            return result;
+        }
     }
-}
+
+     
+    }

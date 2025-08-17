@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Enums;
@@ -193,6 +194,19 @@ namespace Service.SnapFood.Api.Controllers
             {
                 return BadRequest($"Lỗi: {ex.Message}");
             }
+        }
+
+        [HttpGet("topproduct")]
+        public async Task<IActionResult> GetTopSelling([FromQuery] int top = 5)
+        {
+            var result = await _billService.GetTop5SellingProductsAsync();
+            return Ok(result);
+        }
+        [HttpGet("topcombo")]
+        public async Task<IActionResult> GetTopSellingCombo([FromQuery] int top = 5)
+        {
+            var result = await _billService.GetTop5SellingCombosAsync();
+            return Ok(result);
         }
     }
 }
