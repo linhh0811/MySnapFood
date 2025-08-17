@@ -10,15 +10,21 @@ namespace Service.SnapFood.Client.Dto.Bill
         public string ImageUrl { get; set; } = "/images/default.png";
         public decimal BasePrice { get; set; }
         public decimal PriceEndown { get; set; }
-        public decimal DiscountPercent { get; set; }      // % giảm
+        public decimal DiscountPercent { get; set; }      
+        public string CategoryName { get; set; } = string.Empty;
+
+      
+
 
         public int TotalQuantity { get; set; }
         public string SizeName { get; set; } = string.Empty;
       
-        public List<PromotionItemDto> PromotionItems { get; set; } = new List<PromotionItemDto>();
+      
 
         public bool IsDangKM { get; set; }
         public List<ComboProductDto> Items { get; set; } = new();
+
+        public string DisplayCategory { get; set; }
 
 
     }

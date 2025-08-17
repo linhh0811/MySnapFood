@@ -135,7 +135,6 @@ else
 
     }
 }
-
 <section class="py-4">
     <h2 class="mb-3 fw-bold text-center text-uppercase">🔥 TOP 5 SẢN PHẨM BÁN CHẠY</h2>
     <div class="row">
@@ -149,59 +148,80 @@ else
             {
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                     <FluentCard class="h-100 position-relative shadow-sm product-card"
-                                style="min-height: 360px; border-radius: 12px; overflow: hidden;">
+                                style="min-height: 280px; border-radius: 12px; overflow: hidden;">
 
                         <!-- Hình ảnh -->
                         <img src="@p.ImageUrl"
                              style="height: 180px; object-fit: cover; width: 100%;"
                              alt="@p.ProductName" />
 
-                        <div style="padding: 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px;">
+                        <div style="padding: 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 100px;">
                             <div>
-                                <!-- Tên sản phẩm -->
+
                                 <FluentLabel Typo="Typography.H6" class="fw-bold">@p.ProductName</FluentLabel>
+                                <FluentLabel Typo="Typography.H6">
 
-                                    <!-- Size -->
-                                    @if (!string.IsNullOrEmpty(p.SizeName))
-                                {
-                                    <p class="card-title" style="margin: 0; padding:0; font-size: 14px; color: #555;">
-                                        @p.SizeName
-                                    </p>
-                                }
+                                        @if (!string.IsNullOrEmpty(p.DisplayCategory))
+                                    {
+                                        <span class="text-muted" style="font-size: 14px;">@p.DisplayCategory</span>
+                                    }
 
-                                <!-- Số lượng bán -->
+                                </FluentLabel>
+
+                                <!-- Số lượng đã bán -->
                                 <p class="text-muted mb-1" style="font-size: 13px;">
                                     Đã bán: <b>@p.TotalQuantity</b>
                                 </p>
 
-                                <!-- Giá gốc + % giảm -->
-                                @if (p.BasePrice > p.PriceEndown)
-                                {
-                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                <!-- Giá gốc + % giảm (giữ chỗ ngay cả khi không có giảm) -->
+                                <div style="display: flex; align-items: center; gap: 10px; min-height: 24px;">
+                                    @if (p.BasePrice > p.PriceEndown)
+                                    {
                                         <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
                                             @p.BasePrice.ToString("N0") đ
                                         </FluentLabel>
                                         <FluentLabel Typo="Typography.H6" Style="color: green;">
                                             -@Math.Round(p.DiscountPercent, 0)%
                                         </FluentLabel>
-                                    </div>
-                                }
+                                    }
+                                    else
+                                    {
+                                        <!-- chừa chỗ để không bị lệch -->
+                                        <span style="visibility:hidden;">placeholder</span>
+                                    }
+                                </div>
                             </div>
 
-                            <!-- Giá cuối + nút thêm -->
-                            <div style="display: flex; align-items: center; gap: 10px; margin-top: auto;">
+                            <!-- Giá cuối + nút thêm ngang hàng -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
                                 <FluentLabel Typo="Typography.H5" Style="color: red; font-weight: bold;">
                                     @p.PriceEndown.ToString("N0") đ
                                 </FluentLabel>
 
-                                <FluentButton BackgroundColor="#ff5b6a"
-                                              Color="white"
-                                              Title="Thêm sản phẩm"
-                                              Style="padding: 0; margin-left: auto;"
-                                              Type="ButtonType.Submit"
-                                              OnClick="()=>HandleClick(p.Id, p.SizeName)">
-                                    +
-                                </FluentButton>
+                                @if (!string.IsNullOrEmpty(p.SizeName))
+                                {
+                                    <!-- Có size => mở modal chọn size -->
+                                    <FluentButton BackgroundColor="#ff5b6a"
+                                                  Color="white"
+                                                  Title="Chọn kích thước"
+                                                  Style="padding: 0; margin-left: auto;"
+                                                  Type="ButtonType.Submit"
+                                                  OnClick="()=>HandleClick(p.Id, p.SizeName)">
+                                        +
+                                    </FluentButton>
+                                }
+                                else
+                                {
+                                    <!-- Không có size => thêm thẳng -->
+                                    <FluentButton BackgroundColor="#ff5b6a"
+                                                  Color="white"
+                                                  Title="Thêm sản phẩm"
+                                                  Style="padding: 0; margin-left: auto;"
+                                                  Type="ButtonType.Submit"
+                                                  OnClick="()=>AddProductToCart(p.Id)">
+                                        +
+                                    </FluentButton>
+                                }
                             </div>
                         </div>
                     </FluentCard>
@@ -210,6 +230,7 @@ else
         }
     </div>
 </section>
+
 
 
 <section class="py-4">
@@ -432,6 +453,8 @@ else
             await AddProductToCart(productId);
         }
     }
+
+
     private async Task AddProductToCart(Guid productId)
     {
         try

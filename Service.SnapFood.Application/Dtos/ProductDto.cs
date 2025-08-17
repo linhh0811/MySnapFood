@@ -23,7 +23,7 @@ namespace Service.SnapFood.Application.Dtos
         public int Quantity { get; set; }
         public decimal BasePrice { get; set; }
         public string CategoryName { get; set; }= string.Empty;
-        public string? SizeName { get; set; } 
+        public string SizeName { get; set; } = string.Empty;
         public List<SizeDto>? Sizes { get; set; }
         public ModerationStatus ModerationStatus { get; set; }
         public ModerationStatus CategoryModerationStatus { get; set; }
@@ -36,6 +36,7 @@ namespace Service.SnapFood.Application.Dtos
         public Guid LastModifiedBy { get;  set; }
         public string CreatedByName { get; set; } = string.Empty;
         public string LastModifiedByName { get; set; } = string.Empty;
+        public int Discount { get; set; }
         public decimal PriceEndown { get; set; }
     }
 }
