@@ -39,6 +39,7 @@ namespace Service.SnapFood.Application.Service
                     {
                         Id = x.Id,
                         PromotionId = x.PromotionId,
+                        Quantity = x.Quantity,
                         ItemId = x.ItemId,
                         ItemType = x.ItemType
                     }).ToList()
@@ -179,6 +180,7 @@ namespace Service.SnapFood.Application.Service
                 {
                     Id = x.Id,
                     PromotionId = x.PromotionId,
+                    Quantity = x.Quantity,
                     ItemId = x.ItemId,
                     ItemType = x.ItemType
                 }).ToList(),

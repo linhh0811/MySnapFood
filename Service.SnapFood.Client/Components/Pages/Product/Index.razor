@@ -1,4 +1,5 @@
-﻿@using Service.SnapFood.Client.Dto
+﻿@using Service.SnapFood.Client.Components.Pages.Auth
+@using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Cart
 @using Service.SnapFood.Client.Dto.Category
 @using Service.SnapFood.Client.Dto.Product
@@ -140,7 +141,7 @@ else
                 if (OnCategorySelected.Id==Guid.Empty.ToString())
                 {
                     ProductDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
-                    
+
                 }
                 else
                 {
@@ -192,14 +193,21 @@ else
 
     private async Task HandleClick(Guid productId, string? sizeId)
     {
-        if (!string.IsNullOrEmpty(sizeId))
+        if (CurrentUser.UserId==Guid.Empty)
         {
-            await OpenModalAdd(productId);
-        }
-        else
+            await OpenModalAuth();
+        }else
         {
-            await AddProductToCart(productId);
+            if (!string.IsNullOrEmpty(sizeId))
+            {
+                await OpenModalAdd(productId);
+            }
+            else
+            {
+                await AddProductToCart(productId);
+            }
         }
+       
     }
     private async Task AddProductToCart(Guid productId)
     {
@@ -230,6 +238,25 @@ else
         catch (Exception ex)
         {
             ToastService.ShowError($"Lỗi: {ex.Message}");
+        }
+    }
+
+    private async Task OpenModalAuth()
+    {
+        try
+        {
+            var dialog = await DialogService.ShowDialogAsync<AuthDialog>(new DialogParameters
+                {
+                    Title = null,
+                    PreventScroll = true,
+                    Modal = true,
+                    PreventDismissOnOverlayClick = false,
+                    ShowDismiss = false
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal: {ex.Message}");
         }
     }
 }

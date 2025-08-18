@@ -55,7 +55,7 @@
             <FluentGridItem md="12">
                 <div class="row-info">
                     <label>Giá bán:</label>
-                    <div>@ProductDto.BasePrice</div>
+                    <div>@ProductDto.BasePrice.ToString("N0") đ</div>
                 </div>
             </FluentGridItem>
 
@@ -78,6 +78,15 @@
                     <div class="row-info">
                         <label>Ngày tạo:</label>
                         <div>@ProductDto.Created.ToString("dd/MM/yyyy HH:mm:ss")</div>
+                    </div>
+                </FluentGridItem>
+            }
+            else
+            {
+                <FluentGridItem md="12">
+                    <div class="row-info">
+                        <label>Người tạo:</label>
+                        <div>@ProductDto.CreatedByName</div>
                     </div>
                 </FluentGridItem>
             }

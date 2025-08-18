@@ -18,6 +18,7 @@ namespace Service.SnapFood.Application.Dtos
         public string ImageUrl { get; set; } = string.Empty;
         public decimal BasePrice { get; set; }
         public decimal PriceEndown { get; set; }
+        public int Quantity { get; set; }
 
         public List<ComboProductDto> ComboItems { get; set; } = new();
         public string? CategoryName { get; set; }

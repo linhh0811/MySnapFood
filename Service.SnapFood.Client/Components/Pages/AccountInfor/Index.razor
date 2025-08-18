@@ -2,7 +2,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IToastService ToastService
 @inject ICallServiceRegistry CallApi
-
+@inject NavigationManager Navigation
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @using Service.SnapFood.Client.Dto.User
@@ -136,18 +136,25 @@
     {
         try
         {
-
-            requestRestAPI.Endpoint = $"api/User/{CurrentUser.UserId}";
-            var result = await CallApi.Get<UserDto>(requestRestAPI);
-
-            if (result.Status == StatusCode.OK && result.Data is UserDto dto)
+            if (CurrentUser.UserId==Guid.Empty)
             {
-                UserInfo = dto;
+                Navigation.NavigateTo("/");
             }
             else
             {
-                ErrorMessage = "Không thể tải thông tin người dùng.";
+                requestRestAPI.Endpoint = $"api/User/{CurrentUser.UserId}";
+                var result = await CallApi.Get<UserDto>(requestRestAPI);
+
+                if (result.Status == StatusCode.OK && result.Data is UserDto dto)
+                {
+                    UserInfo = dto;
+                }
+                else
+                {
+                    ErrorMessage = "Không thể tải thông tin người dùng.";
+                }
             }
+          
 
 
         }

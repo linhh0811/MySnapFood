@@ -31,13 +31,20 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
 
         protected override async Task OnInitializedAsync()
         {
-            isLoading = true;
             if (CurrentUser.UserId == Guid.Empty)
-            {             
-                return;
+            {
+                Navigation.NavigateTo("/");
             }
-            await LoadCart();
-            isLoading = false;
+            else
+            {
+                isLoading = true;
+                if (CurrentUser.UserId == Guid.Empty)
+                {
+                    return;
+                }
+                await LoadCart();
+                isLoading = false;
+            }
         }
 
         protected void NavigateToOrderHome()

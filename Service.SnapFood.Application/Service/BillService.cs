@@ -246,6 +246,20 @@ namespace Service.SnapFood.Application.Service
                                 }
                             }
                         }
+                        if (item.PriceEndow>0)
+                        {
+                            var promotion = _unitOfWork.PromotionRepository.FirstOrDefault(x => (x.StartDate <= item.Created) && (x.EndDate >= item.Created));
+                            if (promotion is not null)
+                            {
+                                var promotionItem = _unitOfWork.PromotionItemsRepository.FirstOrDefault(x => (x.PromotionId == promotion.Id) && (x.ItemId == item.ItemId));
+                                if (promotionItem is not null)
+                                {
+                                    promotionItem.Quantity++;
+                                    _unitOfWork.PromotionItemsRepository.Update(promotionItem);
+                                    await _unitOfWork.CompleteAsync();
+                                }
+                            }
+                        }
                     }
                 }
                 

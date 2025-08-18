@@ -16,6 +16,7 @@ namespace Service.SnapFood.Domain.Entitys
         public Guid? ComboId { get; set; }
 
         public ItemType ItemType { get; set; }
+        public int Quantity { get; set; }
         public virtual Product? Product { get; set; }
         public virtual Combo? Combo { get; set; }
         public virtual Promotions Promotion { get; set; } = null!;

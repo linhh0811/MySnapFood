@@ -10,7 +10,7 @@ namespace Service.SnapFood.Manage.Dto.Promotion
         public Guid PromotionId { get; set; }
         public Guid ItemId { get; set; }
         public ItemType ItemType { get; set; }
-        //Thêm
+        public int Quantity { get; set; }
         public string ItemName { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
         public decimal BasePrice { get; set; }
