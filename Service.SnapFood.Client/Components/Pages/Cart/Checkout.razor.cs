@@ -59,19 +59,26 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
 
         protected override async Task OnInitializedAsync()
         {
-            isLoading = true;
             if (CurrentUser.UserId == Guid.Empty)
             {
-                ToastService.ShowError("Vui lòng đăng nhập để thanh toán.");
                 Navigation.NavigateTo("/");
-                return;
             }
-            await LoadCart();
-            await LoadAddress();
-            await LoadStores();
-            await LoadThongTinGiaoHang();
+            else
+            {
+                isLoading = true;
+                if (CurrentUser.UserId == Guid.Empty)
+                {
+                    ToastService.ShowError("Vui lòng đăng nhập để thanh toán.");
+                    Navigation.NavigateTo("/");
+                    return;
+                }
+                await LoadCart();
+                await LoadAddress();
+                await LoadStores();
+                await LoadThongTinGiaoHang();
 
                 isLoading = false;
+            }
         }
 
         protected async Task LoadThongTinGiaoHang()

@@ -1,7 +1,9 @@
-﻿@using Service.SnapFood.Client.Dto
+﻿@using Service.SnapFood.Client.Components.Pages.Auth
+@using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Category
 @using Service.SnapFood.Client.Dto.Combo
 @using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.SQL
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using Service.SnapFood.Share.Query
@@ -71,6 +73,8 @@ else
     }
 }
 @code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -112,8 +116,8 @@ else
                 };
             requestRestAPI.Endpoint = "api/Combo/GetPaged";
 
-            ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
-            if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+            ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
+            if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
             {
                 var items = JsonSerializer.Deserialize<List<ComboDto>>(dataTable.Data.GetRawText(),
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ComboDto>();
@@ -147,27 +151,51 @@ else
     {
         try
         {
-            var parameters = new ViewParameters
-                {
-                    Id = id,
-                };
-            var dialog = await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
-                {
-                    Title = "Thêm Combo",
-                    PreventDismissOnOverlayClick = true,
-                    PreventScroll = true,
-                    Modal = true,
-                    Width = "900px",
-                    ShowTitle = false,
-                    ShowDismiss = false
+            if (CurrentUser.UserId == Guid.Empty)
+            {
+                await OpenModalAuth();
+            }
+            else
+            {
+                var parameters = new ViewParameters
+                    {
+                        Id = id,
+                    };
+                var dialog = await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
+                    {
+                        Title = "Thêm Combo",
+                        PreventDismissOnOverlayClick = true,
+                        PreventScroll = true,
+                        Modal = true,
+                        Width = "900px",
+                        ShowTitle = false,
+                        ShowDismiss = false
 
-                });
+                    });
+            }
         }
         catch (Exception ex)
         {
             ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
         }
     }
-
+    private async Task OpenModalAuth()
+    {
+        try
+        {
+            var dialog = await DialogService.ShowDialogAsync<AuthDialog>(new DialogParameters
+                {
+                    Title = null,
+                    PreventScroll = true,
+                    Modal = true,
+                    PreventDismissOnOverlayClick = false,
+                    ShowDismiss = false
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal: {ex.Message}");
+        }
+    }
    
 }

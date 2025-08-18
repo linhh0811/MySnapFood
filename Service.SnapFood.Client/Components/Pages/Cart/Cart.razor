@@ -6,7 +6,8 @@
 @using Service.SnapFood.Client.Enums
 @using Service.SnapFood.Client.Infrastructure.Service
 
-<h3 style="margin-top:30px;z-index:2">Giỏ hàng của bạn</h3>
+<h2 class="mb-3 fw-bold text-center text-uppercase" style="margin-top:30px;margin-bottom:30px;z-index:2">🛒 GIỎ HÀNG CỦA BẠN</h2>
+
 
 @if (isLoading)
 {
@@ -20,10 +21,17 @@ else
 
     @if (CartModel == null || !CartModel.CartItems.Any())
     {
-        <p>Giỏ hàng của bạn trống.</p>
-        <FluentButton Appearance="Appearance.Accent" @onclick="NavigateToOrderHome">
-            Quay lại mua sắm
-        </FluentButton>
+        <div class="empty-cart">
+            <div class="empty-icon">🛒</div>
+            <h2 class="empty-title">Giỏ hàng trống</h2>
+            <p class="empty-description">
+                Bạn chưa có món nào trong giỏ hàng.<br>
+                Hãy khám phá các món ngon và thêm vào giỏ nhé!
+            </p>
+            <a href="#" class="cta-button pulse" @onclick="NavigateToOrderHome">
+                🍕 Khám phá món ngon
+            </a>
+        </div>
     }
     else
     {
@@ -184,3 +192,110 @@ else
     }
 }
 
+<style>
+    /* Style chính cho container giỏ hàng trống */
+    .empty-cart {
+        text-align: center;
+        padding: 60px 20px;
+        border-radius: 20px;
+        margin: 40px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* Hiệu ứng shimmer (ánh sáng lướt qua) */
+        .empty-cart::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+  
+
+    /* Style cho icon giỏ hàng */
+    .empty-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 30px;
+        background: linear-gradient(135deg, #ff9ff3, #feca57);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(255, 159, 243, 0.3);
+        animation: float 3s ease-in-out infinite;
+    }
+
+    /* Animation float cho icon */
+   
+
+    /* Style cho tiêu đề */
+    .empty-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    /* Style cho mô tả */
+    .empty-description {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    /* Style cho button call-to-action */
+    .cta-button {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* Hover effect cho button */
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
+        }
+
+        /* Hiệu ứng ánh sáng lướt qua button */
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+    /* Animation pulse cho button */
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+
+
+</style>

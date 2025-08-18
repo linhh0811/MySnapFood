@@ -1,4 +1,6 @@
 ﻿@page "/Dia-Chi"
+@inject NavigationManager Navigation
+
 @using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Addresss
 @using Service.SnapFood.Share.Interface.Extentions
@@ -77,7 +79,7 @@
         }
 
     }
-    
+
 
 </div>
 @code {
@@ -93,9 +95,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        isLoading = true;
-        await LoadAddress();
-        isLoading = false;
+        if (CurrentUser.UserId == Guid.Empty)
+        {
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            isLoading = true;
+            await LoadAddress();
+            isLoading = false;
+        }
     }
 
     private async Task LoadAddress()

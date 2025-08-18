@@ -1,4 +1,5 @@
 ﻿@page "/Khuyen-Mai"
+@using Service.SnapFood.Client.Components.Pages.Auth
 @using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Cart
 @using Service.SnapFood.Client.Dto.Promotion
@@ -68,15 +69,15 @@
                         }
                         else
                         {
-                                <p>Vui lòng tải lại trang!</p>
-                            }
+                            <p>Vui lòng tải lại trang!</p>
                         }
+                    }
                     else
                     {
                         <p style="color:green">Đang diễn ra</p>
 
                     }
-                    
+
                     <p style="font-size:16px;">@item.StartDate.ToString("HH:mm - dd/MM") ⮕ @item.EndDate.ToString("HH:mm - dd/MM")</p>
                     @foreach (var i in item.PromotionItems)
                     {
@@ -171,12 +172,12 @@
                                             @priceEndown.ToString("N0") đ
                                         </FluentLabel>
                                         <FluentButton BackgroundColor="#ff5b6a"
-                                                      Color="white"
-                                                      Title="Thêm combo"
-                                                      Style="padding: 0; margin-left: auto;"
-                                                      Type="ButtonType.Submit"
-                                                      OnClick="()=>OpenModalComboAdd(i.ItemId)"
-                                                      Disabled=!item.IsDangKM>
+                                        Color="white"
+                                        Title="Thêm combo"
+                                        Style="padding: 0; margin-left: auto;"
+                                        Type="ButtonType.Submit"
+                                        OnClick="()=>OpenModalComboAdd(i.ItemId)"
+                                        Disabled=!item.IsDangKM>
                                             +
                                         </FluentButton>
                                     </div>
@@ -219,7 +220,7 @@
 
     private void UpdateTimer(object? sender, ElapsedEventArgs? e)
     {
-      
+
         // Cập nhật giao diện
         InvokeAsync(StateHasChanged);
     }
@@ -246,21 +247,28 @@
     {
         try
         {
-            var parameters = new ViewParameters
-                {
-                    Id = id,
-                };
-            var dialog = await DialogService.ShowDialogAsync<Combo.View>(parameters, new DialogParameters
-                {
-                    Title = "Thêm Combo",
-                    PreventDismissOnOverlayClick = true,
-                    PreventScroll = true,
-                    Modal = true,
-                    Width = "900px",
-                    ShowTitle = false,
-                    ShowDismiss = false
+            if (CurrentUser.UserId == Guid.Empty)
+            {
+                await OpenModalAuth();
+            }
+            else
+            {
+                var parameters = new ViewParameters
+                    {
+                        Id = id,
+                    };
+                var dialog = await DialogService.ShowDialogAsync<Combo.View>(parameters, new DialogParameters
+                    {
+                        Title = "Thêm Combo",
+                        PreventDismissOnOverlayClick = true,
+                        PreventScroll = true,
+                        Modal = true,
+                        Width = "900px",
+                        ShowTitle = false,
+                        ShowDismiss = false
 
-                });
+                    });
+            }
         }
         catch (Exception ex)
         {
@@ -295,13 +303,20 @@
     }
     private async Task HandleClick(Guid productId, string? sizeName)
     {
-        if (!string.IsNullOrEmpty(sizeName))
+        if (CurrentUser.UserId == Guid.Empty)
         {
-            await OpenModalProductAdd(productId);
+            await OpenModalAuth();
         }
         else
         {
-            await AddProductToCart(productId);
+            if (!string.IsNullOrEmpty(sizeName))
+            {
+                await OpenModalProductAdd(productId);
+            }
+            else
+            {
+                await AddProductToCart(productId);
+            }
         }
     }
     private async Task AddProductToCart(Guid productId)
@@ -333,6 +348,24 @@
         catch (Exception ex)
         {
             ToastService.ShowError($"Lỗi: {ex.Message}");
+        }
+    }
+    private async Task OpenModalAuth()
+    {
+        try
+        {
+            var dialog = await DialogService.ShowDialogAsync<AuthDialog>(new DialogParameters
+                {
+                    Title = null,
+                    PreventScroll = true,
+                    Modal = true,
+                    PreventDismissOnOverlayClick = false,
+                    ShowDismiss = false
+                });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal: {ex.Message}");
         }
     }
 }

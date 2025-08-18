@@ -4,6 +4,7 @@
 @using Service.SnapFood.Client.Enums
 @using Service.SnapFood.Client.Query
 @using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using System.Timers
 @using Service.SnapFood.Share.Query.Grid
@@ -154,9 +155,11 @@
 
 
 @code {
+    [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
+
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
-
+    [Inject] protected NavigationManager Navigation { get; set; } = default!;
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     private List<DiscountCodeDto> DiscountCodeDtos { get; set; } = new();
     private Timer? Timer;
@@ -165,19 +168,26 @@
 
     override protected async Task OnInitializedAsync()
     {
-        try
+        if (CurrentUser.UserId == Guid.Empty)
         {
-            isLoading = true;
-            DiscountCodeDtos = await LoadDiscountCodes();
-            isLoading = false;
-            Timer = new Timer(1000);
-            Timer.Elapsed += UpdateTimer;
-            Timer.AutoReset = true; // Lặp lại mỗi giây
-            Timer.Start();
+            Navigation.NavigateTo("/");
         }
-        catch (Exception ex)
+        else
         {
-            ToastService.ShowError($"Lỗi khi lấy dữ liệu: {ex.Message}");
+            try
+            {
+                isLoading = true;
+                DiscountCodeDtos = await LoadDiscountCodes();
+                isLoading = false;
+                Timer = new Timer(1000);
+                Timer.Elapsed += UpdateTimer;
+                Timer.AutoReset = true; // Lặp lại mỗi giây
+                Timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi lấy dữ liệu: {ex.Message}");
+            }
         }
     }
 
@@ -199,9 +209,9 @@
                 };
             ApiRequestModel requestRestAPI = new ApiRequestModel() { };
             requestRestAPI.Endpoint = "api/DiscountCode/GetPaged";
-            ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);
+            ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
 
-            if (result.Status == StatusCode.OK && result.Data is DataTableJson dataTable)
+            if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
             {
                 var items = JsonSerializer.Deserialize<List<DiscountCodeDto>>(dataTable.Data.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
 
