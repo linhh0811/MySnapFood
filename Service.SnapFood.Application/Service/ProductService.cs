@@ -1,4 +1,5 @@
-﻿using Service.SnapFood.Application.Dtos;
+﻿using Microsoft.EntityFrameworkCore;
+using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Entitys;
 using Service.SnapFood.Domain.Enums;
@@ -6,6 +7,7 @@ using Service.SnapFood.Domain.Interfaces.UnitOfWork;
 using Service.SnapFood.Domain.Query;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.SQL;
+using Service.SnapFood.Share.Query;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -255,6 +257,89 @@ namespace Service.SnapFood.Application.Service
                 throw new Exception(ex.Message);
             }
         }
+
+        public DataTableJson GetProductAndCombo(BaseQuery query)
+        {
+            try
+            {
+                int totalProductRecords = 0;
+                int totalComboRecords = 0;
+
+                // Lấy danh sách sản phẩm
+                var dataProductQuery = _unitOfWork.ProductRepo.FilterData(
+                    q => q.Where(x => (x.ModerationStatus == ModerationStatus.Approved)
+                    &&(string.IsNullOrEmpty(query.Keyword)||x.ProductName.Contains(query.Keyword))),
+                    query.gridRequest,
+                    ref totalProductRecords
+                );
+
+                var dataProduct = dataProductQuery.ToList()
+                    .Select(m => new ComboKetHopProductDto
+                    {
+                        Id = m.Id,
+                        ImageUrl = m.ImageUrl,
+                        Name = m.ProductName,
+                        Price = m.BasePrice,
+                        PriceEndown = GetPriceEndown(m.Id, m.BasePrice),
+                        SizeName = GetSizeNameById(m.SizeId ?? Guid.Empty),
+                        CategoryName = GetCategoryNameById(m.CategoryId),
+                        ItemType = ItemType.Product,
+                        ComboItems = new List<ComboProductDto>() // sản phẩm không có danh sách combo con
+                    })
+                    .ToList();
+
+                // Lấy danh sách combo
+                var dataComboQuery = _unitOfWork.ComboRepo.FilterData(
+                    q => q.Where(x => (x.ModerationStatus == ModerationStatus.Approved)
+                    && (string.IsNullOrEmpty(query.Keyword) || x.ComboName.Contains(query.Keyword))),
+                    query.gridRequest,
+                    ref totalComboRecords
+                ).Include(x => x.Category);
+
+                var comboIds = dataComboQuery.Select(m => m.Id).ToList();
+
+                // Lấy tất cả combo items
+                var allComboItems = _unitOfWork.ProductComboRepo
+                    .FindWhere(x => comboIds.Contains(x.ComboId))
+                    .GroupBy(x => x.ComboId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(x => new ComboProductDto
+                        {
+                            ProductId = x.ProductId,
+                            Quantity = x.Quantity,
+                            ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
+                            ModerationStatus = _unitOfWork.ProductRepo.GetById(x.ProductId)?.ModerationStatus ?? 0
+                        }).ToList()
+                    );
+
+                var dataCombo = dataComboQuery.ToList()
+                    .Select(m => new ComboKetHopProductDto
+                    {
+                        Id = m.Id,
+                        CategoryName = m.Category.CategoryName,
+                        Name = m.ComboName,
+                        ImageUrl = m.ImageUrl,
+                        Price = m.BasePrice,
+                        ItemType = ItemType.Combo,
+                        ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>()
+                    })
+                    .ToList();
+
+                // Gộp 2 list
+                var allData = dataProduct.Concat(dataCombo).ToList();
+
+                // Tổng số bản ghi
+                int totalRecords = totalProductRecords + totalComboRecords;
+
+                return new DataTableJson(allData, query.draw, totalRecords);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
 
         #endregion
 

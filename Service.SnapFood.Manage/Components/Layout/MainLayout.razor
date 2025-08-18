@@ -27,7 +27,7 @@
         font-size: 24px;
         font-weight: bold;
         background-color: rgba(255, 255, 255, 0.7);
-        z-index: 1;
+        z-index: -1;
     }
 
     *, *::before, *::after {
@@ -36,6 +36,12 @@
 
     input, textarea, button, select {
         font-family: inherit !important;
+    }
+
+   
+
+    .fluent-toast-provider {
+        z-index: 9999 !important;
     }
 </style>
 
@@ -79,6 +85,7 @@ else
     else
     {
         <Login></Login>
+        <FluentToastProvider MaxToastCount="10" Position="ToastPosition.BottomRight" />
     }
 }
 <div id="blazor-error-ui">

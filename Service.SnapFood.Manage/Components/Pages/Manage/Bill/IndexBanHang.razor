@@ -33,7 +33,7 @@ else if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contain
 
 
             <FluentGrid Spacing="3" AdaptiveRendering="true" Justify="@JustifyContent.FlexStart">
-                <FluentGridItem xs="6" md="3">
+                <FluentGridItem xs="4" md="2">
 
                     <FluentCard Class="stat-card orange" @onclick="() => SelectTrangThai(StatusOrder.None)">
                         <FluentIcon Value="@(new Icons.Regular.Size24.Clock())" Color="Color.Accent" />
@@ -42,7 +42,7 @@ else if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contain
                     </FluentCard>
 
                 </FluentGridItem>
-                <FluentGridItem xs="6" md="3">
+                <FluentGridItem xs="4" md="2">
 
                     <FluentCard Class="stat-card blue" @onclick="() => SelectTrangThai(StatusOrder.Pending)">
                         <FluentIcon Value="@(new Icons.Regular.Size24.TaskListSquareAdd())" Color="Color.Accent" />
@@ -53,18 +53,19 @@ else if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contain
 
                 </FluentGridItem>
 
-                <FluentGridItem xs="6" md="3">
+                <FluentGridItem xs="4" md="2">
 
-                    <FluentCard Class="stat-card pink" @onclick="() => SelectTrangThai(StatusOrder.Confirmed)">
+                    <FluentCard Class="stat-card pink" @onclick="() => SelectTrangThai(StatusOrder.DangChuanBi)">
                         <FluentIcon Value="@(new Icons.Regular.Size24.CheckmarkCircle())" Color="Color.Accent" />
-                        <FluentLabel>Đã xác nhận</FluentLabel>
-                        <div class="stat-value">@billDangXuLyDto.DaXacNhan</div>
+                        <FluentLabel>Đang chuẩn bị</FluentLabel>
+                        <div class="stat-value">@billDangXuLyDto.DangChuanBi</div>
                     </FluentCard>
 
                 </FluentGridItem>
 
+                
 
-                <FluentGridItem xs="6" md="3">
+                <FluentGridItem xs="4" md="2">
 
                     <FluentCard Class="stat-card green" @onclick="() => SelectTrangThai(StatusOrder.Shipping)">
                         <FluentIcon Value="@(new Icons.Regular.Size24.VehicleTruck())" Color="Color.Accent" />
@@ -74,6 +75,15 @@ else if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contain
 
                 </FluentGridItem>
 
+                <FluentGridItem xs="4" md="2">
+
+                    <FluentCard Class="stat-card green" @onclick="() => SelectTrangThai(StatusOrder.ChoLayHang)">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.VehicleTruck())" Color="Color.Accent" />
+                        <FluentLabel>Chờ lấy hàng</FluentLabel>
+                        <div class="stat-value">@billDangXuLyDto.ChoLayHang</div>
+                    </FluentCard>
+
+                </FluentGridItem>
 
             </FluentGrid>
         </div>
@@ -388,7 +398,10 @@ else
         return status switch
         {
             StatusOrder.Pending => "Chờ xác nhận",
-            StatusOrder.Confirmed => "Đã xác nhận",
+            // StatusOrder.Confirmed => "Đã xác nhận",
+            StatusOrder.DangChuanBi => "Đang chuẩn bị",
+            StatusOrder.ChoLayHang => "Chờ lấy hàng",
+
             StatusOrder.Shipping => "Đang giao hàng",
             StatusOrder.Completed => "Đã giao thành công",
             StatusOrder.Cancelled => "Đã hủy",
@@ -401,7 +414,9 @@ else
         return status switch
         {
             StatusOrder.Pending => "text-warning",    // Màu vàng
-            StatusOrder.Confirmed => "text-primary", // Màu xanh
+            // StatusOrder.Confirmed => "text-primary",// Màu xanh
+            StatusOrder.DangChuanBi => "text-primary", // Màu xanh
+            StatusOrder.ChoLayHang => "text-info",
             StatusOrder.Shipping => "text-info",     // Màu xanh nhạt
             StatusOrder.Completed => "text-success", // Màu xanh lá
             StatusOrder.Cancelled => "text-danger",  // Màu đỏ
@@ -413,7 +428,9 @@ else
 {
     new(null, "Tất cả trạng thái"),
     new(StatusOrder.Pending, "Chờ xác nhận"),
-    new(StatusOrder.Confirmed, "Đã xác nhận"),
+    // new(StatusOrder.Confirmed, "Đã xác nhận"),
+    new(StatusOrder.DangChuanBi, "Đang chuẩn bị"),
+    new(StatusOrder.ChoLayHang, "Chờ lấy hàng"),
     new(StatusOrder.Shipping, "Đang giao hàng"),
     new(StatusOrder.Completed, "Đã giao thành công"),
     new(StatusOrder.Cancelled, "Đã hủy"),

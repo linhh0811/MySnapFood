@@ -18,123 +18,293 @@
 }
 else
 {
-    @foreach (var item in promotionDtos)
+    if (promotionDtos.Any())
     {
-        <section id="@item.Id" class="py-3">
+        <h2 class="mb-3 fw-bold text-center text-uppercase">SẢN PHẨM COMBO ĐANG KHUYẾN MÃI</h2>
+
+        <hr>
+        @foreach (var item in promotionDtos)
+        {
+            <section id="@item.Id" class="py-3">
+                <div class="row">
+                    @foreach (var i in item.PromotionItems)
+                    {
+
+                        decimal priceEndown = i.BasePrice;
+                        if (item.PromotionType == PromotionType.Amount)
+                        {
+                            priceEndown = i.BasePrice - item.PromotionValue;
+                        }
+                        else if (item.PromotionType == PromotionType.FixedPrice)
+                        {
+                            priceEndown = item.PromotionValue;
+                        }
+
+                        @if (i.ItemType == ItemType.Product)
+                        {
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <FluentCard class="h-100 position-relative" style="min-height: 380px;">
+                                    <img src="@i.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@i.ItemName" />
+                                    <div style="padding: 0; min-height: 100px; display: flex; flex-direction: column; justify-content: space-between;">
+                                        <div>
+                                            <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px;">@i.ItemName</FluentLabel>
+                                            @if (!string.IsNullOrEmpty(i.SizeName))
+                                            {
+                                                <p class="card-title" style="margin: 0;padding:0px;padding-bottom:20px;">@i.SizeName</p>
+                                            }
+                                            else if (!string.IsNullOrEmpty(i.CategoryName))
+                                            {
+                                                <p class="card-title" style="margin: 0;padding:0px;">@i.CategoryName</p>
+
+                                            }
+                                        </div>
+
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                                @i.BasePrice.ToString("N0") đ
+                                            </FluentLabel>
+
+                                            @if (i.BasePrice > priceEndown)
+                                            {
+                                                var discountPercent = Math.Round(((i.BasePrice - priceEndown) / i.BasePrice) * 100);
+                                                <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                                    -@discountPercent%
+                                                </FluentLabel>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                                        <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                                            @priceEndown.ToString("N0") đ
+                                        </FluentLabel>
+                                        <FluentButton BackgroundColor="#ff5b6a"
+                                        Color="white"
+                                        Title="Thêm sản phẩm"
+                                        Style="padding: 0; margin-left: auto;"
+                                        Type="ButtonType.Submit" OnClick="()=>HandleClick(i.ItemId,i.SizeName)"
+                                        Disabled=!item.IsDangKM>
+                                            +
+                                        </FluentButton>
+                                    </div>
+                                </FluentCard>
+                            </div>
+                        }
+                        else if (i.ItemType == ItemType.Combo)
+                        {
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <FluentCard class="h-100 position-relative" style="min-height: 400px;">
+                                    <img src="@i.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@i.ItemName" />
+                                    <div style=" min-height: 120px;display: flex; flex-direction: column; justify-content: space-between;padding-bottom:40px;">
+                                        <div>
+                                            <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px">@i.ItemName</FluentLabel>
+                                            @foreach (var item in i.ComboItems)
+                                            {
+                                                <p class="card-title" style="margin: 0;">@item.ProductName</p>
+                                            }
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 10px; padding-top:10px;">
+                                            <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                                @i.BasePrice.ToString("N0") đ
+                                            </FluentLabel>
+                                            @if (i.BasePrice > priceEndown)
+                                            {
+                                                var discountPercent = Math.Round(((i.BasePrice - priceEndown) / i.BasePrice) * 100);
+                                                <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                                    -@discountPercent%
+                                                </FluentLabel>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                                        <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                                            @priceEndown.ToString("N0") đ
+                                        </FluentLabel>
+                                        <FluentButton BackgroundColor="#ff5b6a"
+                                        Color="white"
+                                        Title="Thêm combo"
+                                        Style="padding: 0; margin-left: auto;"
+                                        Type="ButtonType.Submit"
+                                        OnClick="()=>OpenModalComboAdd(i.ItemId)"
+                                        Disabled=!item.IsDangKM>
+                                            +
+                                        </FluentButton>
+                                    </div>
+                                </FluentCard>
+                            </div>
+                        }
+
+
+                    }
+                </div>
+            </section>
+
+        }
+    }
+
+    @if (topProducts.Any())
+    {
+        <section class="py-4">
+            <h2 class="mb-3 fw-bold text-center text-uppercase">🔥 TOP SẢN PHẨM BÁN CHẠY</h2>
+            <hr>
             <div class="row">
-                @foreach (var i in item.PromotionItems)
+                @if (topProducts == null || !topProducts.Any())
                 {
-
-                    decimal priceEndown = i.BasePrice;
-                    if (item.PromotionType == PromotionType.Amount)
-                    {
-                        priceEndown = i.BasePrice - item.PromotionValue;
-                    }
-                    else if (item.PromotionType == PromotionType.FixedPrice)
-                    {
-                        priceEndown = item.PromotionValue;
-                    }
-
-                    @if (i.ItemType == ItemType.Product)
+                    <p class="text-center text-muted">Chưa có dữ liệu.</p>
+                }
+                else
+                {
+                    @foreach (var p in topProducts)
                     {
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                            <FluentCard class="h-100 position-relative" style="min-height: 380px;">
-                                <img src="@i.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@i.ItemName" />
-                                <div style="padding: 0; min-height: 100px; display: flex; flex-direction: column; justify-content: space-between;">
-                                    <div>
-                                        <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px;">@i.ItemName</FluentLabel>
-                                        @if (!string.IsNullOrEmpty(i.SizeName))
-                                        {
-                                            <p class="card-title" style="margin: 0;padding:0px;padding-bottom:20px;">@i.SizeName</p>
-                                        }
-                                        else if (!string.IsNullOrEmpty(i.CategoryName))
-                                        {
-                                            <p class="card-title" style="margin: 0;padding:0px;">@i.CategoryName</p>
+                            <FluentCard class="h-100 position-relative shadow-sm product-card"
+                                        style="min-height: 360px; border-radius: 12px; overflow: hidden;">
 
+                                <!-- Hình ảnh -->
+                                <img src="@p.ImageUrl"
+                                     style="height: 180px; object-fit: cover; width: 100%;"
+                                     alt="@p.ProductName" />
+
+                                <div style="padding: 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px;">
+                                    <div>
+                                        <!-- Tên sản phẩm -->
+                                        <FluentLabel Typo="Typography.H6" class="fw-bold">@p.ProductName</FluentLabel>
+
+                                        <!-- Size -->
+                                        @if (!string.IsNullOrEmpty(p.SizeName))
+                                        {
+                                            <p class="card-title" style="margin: 0; padding:0; font-size: 14px; color: #555;">
+                                                @p.SizeName
+                                            </p>
+                                        }
+
+                                        <!-- Số lượng bán -->
+                                        <p class="text-muted my-3" style="font-size: 13px;">
+                                            Đã bán: <b>@p.TotalQuantity</b>
+                                        </p>
+
+                                        <!-- Giá gốc + % giảm -->
+                                        @if (p.BasePrice > p.PriceEndown)
+                                        {
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                                    @p.BasePrice.ToString("N0") đ
+                                                </FluentLabel>
+                                                <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                                    -@Math.Round(p.DiscountPercent, 0)%
+                                                </FluentLabel>
+                                            </div>
                                         }
                                     </div>
 
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
-                                            @i.BasePrice.ToString("N0") đ
+                                    <!-- Giá cuối + nút thêm -->
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-top: auto;">
+                                        <FluentLabel Typo="Typography.H5" Style="color: red; font-weight: bold;">
+                                            @p.PriceEndown.ToString("N0") đ
                                         </FluentLabel>
 
-                                        @if (i.BasePrice > priceEndown)
-                                        {
-                                            var discountPercent = Math.Round(((i.BasePrice - priceEndown) / i.BasePrice) * 100);
-                                            <FluentLabel Typo="Typography.H6" Style="color: green;">
-                                                -@discountPercent%
-                                            </FluentLabel>
-                                        }
+                                        <FluentButton BackgroundColor="#ff5b6a"
+                                                      Color="white"
+                                                      Title="Thêm sản phẩm"
+                                                      Style="padding: 0; margin-left: auto;"
+                                                      Type="ButtonType.Submit"
+                                                      OnClick="()=>HandleClick(p.Id, p.SizeName)">
+                                            +
+                                        </FluentButton>
                                     </div>
-                                </div>
-                                <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
-                                    <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
-                                        @priceEndown.ToString("N0") đ
-                                    </FluentLabel>
-                                    <FluentButton BackgroundColor="#ff5b6a"
-                                                  Color="white"
-                                                  Title="Thêm sản phẩm"
-                                                  Style="padding: 0; margin-left: auto;"
-                                                  Type="ButtonType.Submit" OnClick="()=>HandleClick(i.ItemId,i.SizeName)"
-                                                  Disabled=!item.IsDangKM>
-                                        +
-                                    </FluentButton>
                                 </div>
                             </FluentCard>
                         </div>
                     }
-                    else if (i.ItemType == ItemType.Combo)
-                    {
-                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                            <FluentCard class="h-100 position-relative" style="min-height: 400px;">
-                                <img src="@i.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@i.ItemName" />
-                                <div style=" min-height: 120px;display: flex; flex-direction: column; justify-content: space-between;padding-bottom:40px;">
-                                    <div>
-                                        <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px">@i.ItemName</FluentLabel>
-                                        @foreach (var item in i.ComboItems)
-                                        {
-                                            <p class="card-title" style="margin: 0;">@item.ProductName</p>
-                                        }
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 10px; padding-top:10px;">
-                                        <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
-                                            @i.BasePrice.ToString("N0") đ
-                                        </FluentLabel>
-                                        @if (i.BasePrice > priceEndown)
-                                        {
-                                            var discountPercent = Math.Round(((i.BasePrice - priceEndown) / i.BasePrice) * 100);
-                                            <FluentLabel Typo="Typography.H6" Style="color: green;">
-                                                -@discountPercent%
-                                            </FluentLabel>
-                                        }
-                                    </div>
-                                </div>
-                                <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
-                                    <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
-                                        @priceEndown.ToString("N0") đ
-                                    </FluentLabel>
-                                    <FluentButton BackgroundColor="#ff5b6a"
-                                                  Color="white"
-                                                  Title="Thêm combo"
-                                                  Style="padding: 0; margin-left: auto;"
-                                                  Type="ButtonType.Submit"
-                                                  OnClick="()=>OpenModalComboAdd(i.ItemId)"
-                                                  Disabled=!item.IsDangKM>
-                                        +
-                                    </FluentButton>
-                                </div>
-                            </FluentCard>
-                        </div>
-                    }
-
-
                 }
             </div>
         </section>
-
     }
+
+    
+
+    if (topCombos.Any())
+    {
+        <section class="py-4">
+            <h2 class="mb-3 fw-bold text-center text-uppercase">🔥 TOP COMBO BÁN CHẠY</h2>
+            <hr>
+            <div class="row">
+                @if (topCombos == null || !topCombos.Any())
+                {
+                    <p class="text-center text-muted">Chưa có dữ liệu.</p>
+                }
+                else
+                {
+                    @foreach (var c in topCombos)
+                    {
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <FluentCard class="h-100 position-relative shadow-sm product-card"
+                                        style="min-height: 380px; border-radius: 12px; overflow: hidden;">
+
+                                <!-- Hình ảnh -->
+                                <img src="@c.ImageUrl"
+                                     style="height: 180px; object-fit: cover; width: 100%;"
+                                     alt="@c.ProductName" />
+
+                                <div style="padding: 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px;">
+                                    <div>
+                                        <!-- Tên combo -->
+                                        <FluentLabel Typo="Typography.H6" class="fw-bold">@c.ProductName</FluentLabel>
+
+                                        <!-- Danh sách sản phẩm trong combo -->
+                                        <ul class="mb-2" style="padding-left: 0; margin-bottom: 8px; list-style-type: none;">
+                                            @foreach (var item in c.Items)
+                                            {
+                                                <li style="font-size: 14px;">
+                                                    @item.Quantity @item.ProductName
+                                                </li>
+                                            }
+                                        </ul>
+
+                                        <!-- Số lượng bán -->
+                                        <p class="text-muted  my-3" style="font-size: 13px;">
+                                            Đã bán: <b>@c.TotalQuantity</b>
+                                        </p>
+
+                                        <!-- Giá gốc + % giảm -->
+                                        @if (c.BasePrice > c.PriceEndown)
+                                        {
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                                    @c.BasePrice.ToString("N0") đ
+                                                </FluentLabel>
+                                                <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                                    -@Math.Round(c.DiscountPercent, 0)%
+                                                </FluentLabel>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- Giá cuối + nút thêm -->
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-top: auto;">
+                                        <FluentLabel Typo="Typography.H5" Style="color: red; font-weight: bold;">
+                                            @c.PriceEndown.ToString("N0") đ
+                                        </FluentLabel>
+
+                                        <FluentButton BackgroundColor="#ff5b6a"
+                                                      Color="white"
+                                                      Title="Thêm combo"
+                                                      Style="padding: 0; margin-left: auto;"
+                                                      Type="ButtonType.Submit"
+                                                      OnClick="()=>OpenModalComboAdd(c.Id)">
+                                            +
+                                        </FluentButton>
+                                    </div>
+                                </div>
+                            </FluentCard>
+                        </div>
+                    }
+                }
+            </div>
+        </section>
+    }
+    
 }
+
 <section class="py-4">
     <h2 class="mb-3 fw-bold text-center text-uppercase">🔥 TOP 5 SẢN PHẨM BÁN CHẠY</h2>
     <div class="row">
@@ -365,7 +535,7 @@ else
             ToastService.ShowError("Không thể tải thông tin khuyến mãi.");
         }
     }
-    
+
     private async Task GetTopSelling()
     {
         try

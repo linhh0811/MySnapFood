@@ -1,0 +1,216 @@
+﻿
+@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Cart
+@using Service.SnapFood.Manage.Dto.ProductDto
+@using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
+@using Service.SnapFood.Share.Query
+@using Service.SnapFood.Share.Query.Grid
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Authorization
+
+
+@foreach (var product in ProductDto)
+{
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <FluentCard class="h-100 position-relative" style="min-height: 380px;">
+            <img src="@product.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@product.ProductName" />
+            <div style="padding: 0; min-height: 100px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px;">@product.ProductName</FluentLabel>
+                    @if (!string.IsNullOrEmpty(product.SizeName))
+                    {
+                        <p class="card-title" style="margin: 0;padding:0px;padding-bottom:20px;">@product.SizeName</p>
+                    }
+                    else if (!string.IsNullOrEmpty(product.CategoryName))
+                    {
+                        <p class="card-title" style="margin: 0;padding:0px;">@product.CategoryName</p>
+
+                    }
+                </div>
+                @if (product.PriceEndown > 0)
+                {
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                            @product.BasePrice.ToString("N0") đ
+                        </FluentLabel>
+
+                        @if (product.BasePrice > product.PriceEndown)
+                        {
+                            var discountPercent = Math.Round(((product.BasePrice - product.PriceEndown) / product.BasePrice) * 100);
+                            <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                -@discountPercent%
+                            </FluentLabel>
+                        }
+                    </div>
+                }
+
+            </div>
+            <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                    @if (product.PriceEndown > 0)
+                    {
+                        <span>@product.PriceEndown.ToString("N0") đ</span>
+                    }
+                    else
+                    {
+                        <span>@product.BasePrice.ToString("N0") đ</span>
+
+                    }
+
+                </FluentLabel>
+                <FluentButton BackgroundColor="#ff5b6a"
+                Color="white"
+                Title="Thêm sản phẩm"
+                Style="padding: 0; margin-left: auto;"
+                Type="ButtonType.Submit"
+                OnClick="()=>HandleClick(product.Id,product.SizeId)">
+                    +
+                </FluentButton>
+            </div>
+        </FluentCard>
+    </div>
+}
+@code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
+    [Parameter] public string SearchKeyword { get; set; } = string.Empty;
+    [Parameter] public Guid CartId { get; set; } 
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IToastService ToastService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+    private List<ProductDto> ProductDto = new List<ProductDto>();
+    [Parameter] public ViewParameters Content { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProduct();
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+
+        await LoadProduct();
+    }
+    private async Task LoadProduct()
+    {
+
+        try
+        {
+            var baseQuery = new BaseQuery
+                {
+                    SearchIn = new List<string> { "ProductName" },
+                    Keyword = SearchKeyword,
+
+                    gridRequest = new GridRequest
+                    {
+                        page = 1,
+                        pageSize = int.MaxValue,
+
+                    }
+                };
+            requestRestAPI.Endpoint = "api/Product/GetPaged";
+
+            ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
+            if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
+            {
+                var items = JsonSerializer.Deserialize<List<ProductDto>>(dataTable.Data.GetRawText(),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ProductDto>();
+
+
+                ProductDto = items.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
+
+            }
+            StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách sản phẩm: {ex.Message}");
+        }
+    }
+
+    private async Task OpenModalAdd(Guid id)
+    {
+        try
+        {
+            var parameters = new ViewParameters
+            {
+                Id = id,               
+                CartId=CartId
+            };
+            var dialog = await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
+            {
+                Title = "Thêm sản phẩm",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = true,
+                Modal = true,
+                Width = "800px",
+                ShowTitle = false,
+                ShowDismiss = false
+
+            });
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
+        }
+    }
+
+    private async Task HandleClick(Guid productId, string? sizeId)
+    {
+        if (CartId == Guid.Empty)
+        {
+            ToastService.ShowError($"Vui lòng tạo giỏ hàng");
+
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(sizeId))
+            {
+                await OpenModalAdd(productId);
+            }
+            else
+            {
+                await AddProductToCart(productId);
+            }
+        }
+      
+    }
+    private async Task AddProductToCart(Guid productId)
+    {
+        try
+        {        
+            requestRestAPI.Endpoint = "api/Cart/AddProductToCart";
+
+            AddProductToCartDto AddProductToCartDto = new AddProductToCartDto
+                {
+                    ProductId = productId,
+                    CartId=CartId,
+                    Quantity = 1
+                };
+            var result = await CallApi.Post<object>(requestRestAPI, AddProductToCartDto);
+
+            // Xử lý kết quả từ API
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Đã thêm sản phẩm vào giỏ hàng.");
+
+            }
+            else
+            {
+                ToastService.ShowError($"Không thể thêm sản phẩm: {result.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi: {ex.Message}");
+        }
+    }
+
+  
+}

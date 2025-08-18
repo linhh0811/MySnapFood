@@ -2,6 +2,7 @@
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Domain.Query;
+using Service.SnapFood.Share.Query;
 
 namespace Service.SnapFood.Api.Controllers
 {
@@ -37,7 +38,14 @@ namespace Service.SnapFood.Api.Controllers
             return Ok(result);
         }
 
-        [HttpPost()]
+        [HttpPost("GetPageProductCombo")]
+        public IActionResult GetPageProductCombo(BaseQuery query)
+        {
+            var result = _productService.GetProductAndCombo(query);
+            return Ok(result);
+        }
+
+            [HttpPost()]
         public async Task<IActionResult> Create([FromBody] ProductDto item)
         {
             var result = await _productService.CreateAsync(item);

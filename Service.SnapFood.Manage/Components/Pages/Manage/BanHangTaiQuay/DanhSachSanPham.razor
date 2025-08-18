@@ -1,0 +1,65 @@
+﻿@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Share.Interface.Extentions
+@inherits ComponentBase
+@implements IDialogContentComponent<EditOrUpdateParameters>
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.Info())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogBody>
+    <div class="container ">
+        <FluentStack Orientation="Orientation.Horizontal"
+                     Style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+            </FluentStack>
+            <FluentSearch @bind-Value="SearchKeyword" Placeholder="Nhập vào từ khóa" />
+        </FluentStack>
+
+        <div class=" row" style="height:800px; overflow-y:auto; padding-right:5px;">
+            <Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Product.Index SearchKeyword="@SearchKeyword" CartId="@Content.Id">
+            </Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Product.Index>
+
+            <Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Combo.Index SearchKeyword="@SearchKeyword" CartId="@Content.Id">
+            </Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Combo.Index>
+        </div>
+    </div>
+    
+</FluentDialogBody>
+
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="CancelAsync" Loading="@IsCancelling" Disabled="@IsCancelling">
+        Đóng
+    </FluentButton>
+</FluentDialogFooter>
+
+@code {
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    [Parameter]
+    public EditOrUpdateParameters Content { get; set; } = new();
+
+    [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    protected string SearchKeyword { get; set; } = string.Empty;
+
+    private bool IsCancelling { get; set; }
+    private string? ErrorMessage { get; set; }
+
+    private async Task CancelAsync()
+    {
+        if (Content?.OnRefresh.HasDelegate ?? false)
+        {
+            await Content.OnRefresh.InvokeAsync();
+        }
+        await Dialog.CancelAsync();
+
+    }
+}

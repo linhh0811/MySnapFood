@@ -32,12 +32,14 @@ namespace Service.SnapFood.Domain.Interfaces.UnitOfWork
         IPromotionItemsRepository PromotionItemsRepository { get; }
         IComboProductItemRepository ComboProductItemRepository { get; }
         IThongTinGiaoHangRepository ThongTinGiaoHangRepository { get; }
-
-
-        //
         IDiscountCodeRepository DiscountCodeRepo { get; }
         IDiscountCodeUsageRepository DiscountCodeUsageRepo { get; }
-        
+
+        IOtpConfirmRepository OtpConfirmRepository { get; }
+
+
+
+
 
 
 

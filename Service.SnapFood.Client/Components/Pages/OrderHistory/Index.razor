@@ -37,7 +37,8 @@
     }
     else
     {
-        <div class="mt-3">
+
+        <div class="mt-3" style="max-height: 700px; overflow-y: auto; padding-right: 5px;">
             <FluentGridItem Style="width:100%;">
                 <FluentDataGrid TGridItem="BillDto" Items="FilteredBills.AsQueryable()"
                                 ResizableColumns="false"
@@ -121,22 +122,29 @@
     private string GetStatusColor(StatusOrder status) => status switch
     {
         StatusOrder.Pending => "#ff9800",
-        StatusOrder.Confirmed => "#2196f3",
+        StatusOrder.DangChuanBi => "#2196f3",
+        StatusOrder.ChoLayHang => "#2196f3",
         StatusOrder.Shipping => "#00bcd4",
         StatusOrder.Completed => "#4caf50",
         StatusOrder.Cancelled => "#f44336",
         _ => "#000000"
     };
 
-    private string GetStatusText(StatusOrder status) => status switch
+    private string GetStatusText(StatusOrder status)
     {
-        StatusOrder.Pending => "Chờ xác nhận",
-        StatusOrder.Confirmed => "Đã xác nhận",
-        StatusOrder.Shipping => "Đang giao",
-        StatusOrder.Completed => "Hoàn thành",
-        StatusOrder.Cancelled => "Đã huỷ",
-        _ => "Không rõ"
-    };
+        return status switch
+        {
+            StatusOrder.Pending => "Chờ xác nhận",
+            // StatusOrder.Confirmed => "Đã xác nhận",
+            StatusOrder.DangChuanBi => "Đang chuẩn bị",
+            StatusOrder.ChoLayHang => "Chờ lấy hàng",
+            StatusOrder.Shipping => "Đang giao hàng",
+            StatusOrder.Completed => "Đã giao thành công",
+            StatusOrder.Cancelled => "Đã hủy",
+
+            _ => "Không xác định"
+        };
+    }
 
     private async Task LoadBillData()
     {

@@ -215,7 +215,7 @@
                 {
                     ProductId = ProductModel.Id,
                     UserId = CurrentUser.UserId,
-                    Quantity = 1,
+                    Quantity = Quantity,
                     SizeId = SelectedSizeId
                 };
             var result = await CallApi.Post<object>(requestRestAPI, AddProductToCartDto);

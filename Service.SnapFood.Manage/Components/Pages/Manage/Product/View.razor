@@ -77,7 +77,7 @@
                 <FluentGridItem md="12">
                     <div class="row-info">
                         <label>Ngày tạo:</label>
-                        <div>@ProductDto.Created</div>
+                        <div>@ProductDto.Created.ToString("dd/MM/yyyy HH:mm:ss")</div>
                     </div>
                 </FluentGridItem>
             }
@@ -93,7 +93,7 @@
                 <FluentGridItem md="12">
                     <div class="row-info">
                         <label>Ngày sửa gần nhất:</label>
-                        <div>@ProductDto.LastModified</div>
+                        <div>@ProductDto.LastModified.ToString("dd/MM/yyyy HH:mm:ss")</div>
                     </div>
                 </FluentGridItem>
             }

@@ -10,18 +10,27 @@ namespace Service.SnapFood.Manage.Enums
         [Description("Chờ xác nhận")]
         Pending = 0,
 
-        [Description("Đã xác nhận")]
-        Confirmed = 1,
+        //[Description("Đã xác nhận")]
+        //Confirmed = 1,
+
+        [Description("Đang chuẩn bị")]
+        DangChuanBi = 2,
 
         [Description("Đang giao hàng")]
-        Shipping = 2,
+        Shipping = 3,      
 
-        [Description("Đã giao thành công")]
-        Completed = 3,
+        [Description("Chờ lấy hàng")]
+        ChoLayHang = 4,
+
+        
+
+
+
+        [Description("Thành công")]
+        Completed = 9,
 
         [Description("Đã hủy")]
-        Cancelled = 4,
+        Cancelled = 10,
 
-     
     }
 }
