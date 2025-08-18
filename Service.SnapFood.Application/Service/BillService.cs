@@ -649,38 +649,48 @@ namespace Service.SnapFood.Application.Service
 
         public async Task<List<TopSellingItemDto>> GetTop5SellingProductsAsync(int top = 5)
         {
+
             var now = DateTime.Now;
-            // Step 1: Top 5 sản phẩm
+
+            // 1️⃣ Lấy top sản phẩm bán chạy
             var rawData = await (from bd in _unitOfWork.BillDetailsRepo.Query()
                                  join p in _unitOfWork.ProductRepo.Query() on bd.ItemId equals p.Id
-                                 join s in _unitOfWork.SizesRepo.Query() on p.SizeId equals s.Id into sizeGroup
-                                 from s in sizeGroup.DefaultIfEmpty()
                                  where bd.ItemType == ItemType.Product
                                        && bd.Bill != null
                                        && bd.Bill.Status == StatusOrder.Completed
-                                 group new { bd, p, s } by new
-                                 {
-                                     bd.ItemId,
-                                     p.ProductName,
-                                     p.ImageUrl,
-                                     p.BasePrice,
-                                     SizeName = (s != null ? s.SizeName : "Tiêu chuẩn")
-                                 } into g
+                                 group bd by bd.ItemId into g
                                  select new
                                  {
-                                     Id = g.Key.ItemId,
-                                     g.Key.ProductName,
-                                     g.Key.ImageUrl,
-                                     g.Key.BasePrice,
-                                     g.Key.SizeName,
-                                     TotalQuantity = g.Sum(x => x.bd.Quantity)
+                                     ProductId = g.Key,
+                                     TotalQuantity = g.Sum(x => x.Quantity)
                                  })
-                                .OrderByDescending(x => x.TotalQuantity)
-                                .Take(5)
-                                .ToListAsync();
+                                 .OrderByDescending(x => x.TotalQuantity)
+                                 .Take(top)
+                                 .ToListAsync();
 
-            // Step 2: Lấy promotion hợp lệ cho top 5 sản phẩm
-            var productIds = rawData.Select(x => x.Id).ToList();
+            var productIds = rawData.Select(x => x.ProductId).ToList();
+
+            // 2️⃣ Lấy sản phẩm + size + category
+            var products = await (from p in _unitOfWork.ProductRepo.Query()
+                                  where productIds.Contains(p.Id)
+                                  join s in _unitOfWork.SizesRepo.Query() on p.SizeId equals s.Id into sizeGroup
+                                  from s in sizeGroup.DefaultIfEmpty()
+                                  join c in _unitOfWork.CategoriesRepo.Query() on p.CategoryId equals c.Id into catGroup
+                                  from c in catGroup.DefaultIfEmpty()
+                                  select new
+                                  {
+                                      p.Id,
+                                      p.ProductName,
+                                      p.ImageUrl,
+                                      p.BasePrice,
+                                      SizeId = s != null ? s.Id : Guid.Empty,
+                                      SizeName = s != null ? s.SizeName : null,
+                                      ParentSizeId = s != null ? s.ParentId : null,
+                                      CategoryName = c != null ? c.CategoryName : "",
+                                      CategoryId = p.CategoryId
+                                  }).ToListAsync();
+
+            // 3️⃣ Lấy khuyến mãi
             var promos = await (from pi in _unitOfWork.PromotionItemsRepository.Query()
                                 where pi.ProductId != null && productIds.Contains(pi.ProductId.Value)
                                 join pr in _unitOfWork.PromotionRepository.Query()
@@ -689,52 +699,73 @@ namespace Service.SnapFood.Application.Service
                                 where pr == null || (pr.StartDate <= now && pr.EndDate >= now)
                                 select new
                                 {
-                                    ProductId = pi.ProductId.Value,  // ép về Guid
+                                    ProductId = pi.ProductId.Value,
                                     pr.PromotionType,
                                     pr.PromotionValue
                                 }).ToListAsync();
 
+            // 4️⃣ Lấy danh sách size để gộp theo ParentId
+            var allSizes = await _unitOfWork.SizesRepo.GetAllAsync();
+            var sizeGroups = allSizes
+                .Where(s => s.ParentId != null)
+                .GroupBy(s => s.ParentId.Value)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.OrderBy(x => x.DisplayOrder).Select(x => x.SizeName).ToList()
+                );
 
-            // Step 3: Map promotion
-            var result = rawData.Select(x =>
+            // 5️⃣ Map vào DTO
+            var result = products.Select(p =>
             {
-                var promo = promos.FirstOrDefault(p => p.ProductId == x.Id);
+                var promo = promos.FirstOrDefault(pr => pr.ProductId == p.Id);
 
-                decimal priceEndown = x.BasePrice;
+                decimal priceEndown = p.BasePrice;
                 decimal discountPercent = 0;
 
                 if (promo != null)
                 {
                     if (promo.PromotionType == PromotionType.Amount)
                     {
-                        priceEndown = x.BasePrice - promo.PromotionValue;
-                        discountPercent = (promo.PromotionValue / x.BasePrice) * 100;
+                        priceEndown = p.BasePrice - promo.PromotionValue;
+                        discountPercent = (promo.PromotionValue / p.BasePrice) * 100;
                     }
                     else if (promo.PromotionType == PromotionType.FixedPrice)
                     {
                         priceEndown = promo.PromotionValue;
-                        discountPercent = ((x.BasePrice - promo.PromotionValue) / x.BasePrice) * 100;
+                        discountPercent = ((p.BasePrice - promo.PromotionValue) / p.BasePrice) * 100;
                     }
                 }
+                // ✅ Gộp size theo ParentId
+                var sizeNames = p.SizeId != Guid.Empty && sizeGroups.ContainsKey(p.SizeId)
+                    ? sizeGroups[p.SizeId]
+                    : new List<string>();
+
+                var sizeDisplay = sizeNames.Any()
+                    ? $"({string.Join(", ", sizeNames)})"
+                    : p.SizeName ?? "";
 
                 return new TopSellingItemDto
                 {
-                    Id = x.Id,
-                    ProductName = x.ProductName,
-                    ImageUrl = x.ImageUrl ?? "/images/default.png",
-                    BasePrice = x.BasePrice,
-                    SizeName = x.SizeName,
-                    TotalQuantity = x.TotalQuantity,
+                    Id = p.Id,
+                    ProductName = p.ProductName,
+                    ImageUrl = p.ImageUrl ?? "/images/default.png",
+                    BasePrice = p.BasePrice,
                     PriceEndown = priceEndown,
-                    DiscountPercent = discountPercent,
-                    IsDangKM = promo != null
+                    DiscountPercent = Math.Round(discountPercent, 1),
+                    CategoryName = p.CategoryName,
+                    SizeName = sizeDisplay,
+                    TotalQuantity = rawData.FirstOrDefault(x => x.ProductId == p.Id)?.TotalQuantity ?? 0,
+                    IsDangKM = promo != null,
+                    DisplayCategory = $"{p.CategoryName}{sizeDisplay}",
+
                 };
-            }).ToList();
+
+            })
+            .OrderByDescending(x => x.TotalQuantity)
+            .ToList();
 
             return result;
-
-
-        }
+            }
 
         public async Task<List<TopSellingItemDto>> GetTop5SellingCombosAsync(int top = 5)
         {
