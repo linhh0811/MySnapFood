@@ -207,6 +207,7 @@
         _loadedIconCart = false;
 
         Navigation.LocationChanged += OnLocationChanged;
+        CurrentUser = await UserService.GetCurrentUserAsync();
 
         // Kiểm tra URL ngay khi khởi tạo
         CheckAndSetMenuState();

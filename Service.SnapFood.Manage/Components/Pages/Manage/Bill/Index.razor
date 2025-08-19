@@ -1,4 +1,6 @@
-﻿@page "/Quan-Ly/Bill"
+﻿@page "/Quan-Ly/Bill/{userId:guid}"
+@page "/Quan-Ly/Bill"
+
 
 @using Service.SnapFood.Manage.Dto
 @using Service.SnapFood.Manage.Dto.BillDto
@@ -123,7 +125,8 @@ else
 }
 @code {
     [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
-
+    [Parameter]
+    public Guid userId { get; set; }
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -147,6 +150,7 @@ else
                 var baseQuery = new BillQuery
                 {
                     SearchIn = new List<string> { "BillCode" },
+                    UserId = userId,
                     Keyword = SearchKeyword,
                     Status = parsedStatus,
                     gridRequest = new GridRequest

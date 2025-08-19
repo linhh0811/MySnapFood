@@ -38,12 +38,40 @@ namespace Service.SnapFood.Api.Controllers
             }
         }
 
+        [HttpGet("view/{userId}")]
+        public async Task<IActionResult> GetCartView(Guid userId)
+        {
+            try
+            {
+                var cart = await _cartService.GetCartByIdUserAsyncView(userId);
+                return Ok(cart);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("CartId/{cartId}")]
         public async Task<IActionResult> GetCartByCartId(Guid cartId)
         {
             try
             {
                 var cart = await _cartService.GetCartByCartIdAsync(cartId);
+                return Ok(cart);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("CartId/View/{cartId}")]
+        public async Task<IActionResult> GetCartByCartIdView(Guid cartId)
+        {
+            try
+            {
+                var cart = await _cartService.GetCartByCartIdAsyncView(cartId);
                 return Ok(cart);
             }
             catch (Exception ex)

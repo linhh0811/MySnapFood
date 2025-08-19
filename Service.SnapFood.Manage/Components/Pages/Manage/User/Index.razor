@@ -4,7 +4,7 @@
 @using Microsoft.FluentUI.AspNetCore.Components.Icons
 @using Service.SnapFood.Manage.Dto.User
 @using Service.SnapFood.Share.Model.Enum
-
+@inject NavigationManager Navigation
 @if (CurrentUser.UserId == Guid.Empty)
 {
     <p>Bạn chưa đăng nhập!</p>
@@ -46,7 +46,7 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contain
                 </TemplateColumn>
                 <TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:100px">
                     <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
-                        <FluentButton Title="Xem chi tiết" Appearance="Appearance.Outline">
+                        <FluentButton Title="Xem chi tiết" Appearance="Appearance.Outline" OnClick="()=>XemDonHang(context.Id)">
                             <FluentIcon Value="@(new Icons.Regular.Size16.Eye())" />
                         </FluentButton>
                     </FluentStack>

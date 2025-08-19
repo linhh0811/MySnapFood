@@ -59,26 +59,35 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
 
         protected override async Task OnInitializedAsync()
         {
-            if (CurrentUser.UserId == Guid.Empty)
+            try
             {
-                Navigation.NavigateTo("/");
-            }
-            else
-            {
-                isLoading = true;
                 if (CurrentUser.UserId == Guid.Empty)
                 {
-                    ToastService.ShowError("Vui lòng đăng nhập để thanh toán.");
                     Navigation.NavigateTo("/");
-                    return;
                 }
-                await LoadCart();
-                await LoadAddress();
-                await LoadStores();
-                await LoadThongTinGiaoHang();
+                else
+                {
+                    isLoading = true;
+                    if (CurrentUser.UserId == Guid.Empty)
+                    {
+                        ToastService.ShowError("Vui lòng đăng nhập để thanh toán.");
+                        Navigation.NavigateTo("/");
+                        return;
+                    }
+                    await LoadCart();
+                    await LoadAddress();
+                    await LoadStores();
+                    await LoadThongTinGiaoHang();
 
-                isLoading = false;
+                    isLoading = false;
+                }
             }
+            catch (Exception)
+            {
+                isLoading = false;
+
+            }
+
         }
 
         protected async Task LoadThongTinGiaoHang()
@@ -352,11 +361,35 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
 
         protected async Task HandleCheckOut2()
         {
-            if (string.IsNullOrEmpty(Address.NumberPhone))
+            if (Store.Status==Status.InActivity)
             {
-                ToastService.ShowError("Vui lòng thêm địa chỉ nhận hàng.");
+                ToastService.ShowError("Cửa hàng đang ngừng hoạt động.");
                 return;
             }
+
+            if (Store.ThoiGianBatDauHoatDong>DateTime.Now||Store.ThoiGianNgungHoatDong<=DateTime.Now)
+            {
+                ToastService.ShowError($"Cửa hàng hoạt động từ {Store.ThoiGianBatDauHoatDong:HH\\:mm} tới {Store.ThoiGianNgungHoatDong:HH\\:mm}.");
+
+                return;
+            }
+            if (PhuongThucNhanHang == "Nhan-Tai-Quay")
+            {
+                if (string.IsNullOrEmpty(ReceiverPhone)||string.IsNullOrEmpty(ReceiverName) )
+                {
+                    ToastService.ShowError("Vui lòng nhập đầy đủ thông tin.");
+                    return;
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(Address.NumberPhone))
+                {
+                    ToastService.ShowError("Vui lòng thêm địa chỉ nhận hàng.");
+                    return;
+                }
+            }
+                
 
             if ((totalPrice - totalPriceEndown + PhiVanChuyen - DiscountCodeValue) < ThongTinGiaoHang.DonHangToiThieu)
             {
@@ -369,6 +402,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 ToastService.ShowError($"Khoảng cách giao hàng vượt quá bán kính giao hàng({ThongTinGiaoHang.BanKinhGiaoHang} km).");
                 return;
             }
+         
 
             if (SelectedPaymentMethod == PaymentType.BankTransfer)
             {

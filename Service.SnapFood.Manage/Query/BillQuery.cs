@@ -11,5 +11,6 @@ namespace Service.SnapFood.Manage.Query
       
        public StatusOrder Status {  get; set; }
         public bool IsBanHang { get; set; } = false;
+        public Guid UserId { get; set; }
     }
 }

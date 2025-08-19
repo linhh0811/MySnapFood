@@ -54,14 +54,14 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
             {
                 if (CartSelect != Guid.Empty)
                 {
-                    var request = new ApiRequestModel { Endpoint = $"api/Cart/CartId/{CartSelect}" };
+                    var request = new ApiRequestModel { Endpoint = $"api/Cart/CartId/View/{CartSelect}" };
                     var result = await CallApi.Get<CartDto>(request);
                     if (result.Status == StatusCode.OK && result.Data != null)
                     {
                         CartModel = (CartDto)result.Data;
 
-                        totalPrice = CartModel.CartItems.Sum(p => p.BasePrice * p.Quantity);
-                        totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0).Sum(p => p.BasePrice * p.Quantity - p.PriceEndown * p.Quantity);
+                        totalPrice = CartModel.CartItems.Where(x=>x.ModerationStatus==ModerationStatus.Approved).Sum(p => p.BasePrice * p.Quantity);
+                        totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0 &&x.ModerationStatus==ModerationStatus.Approved).Sum(p => p.BasePrice * p.Quantity - p.PriceEndown * p.Quantity);
                         StateHasChanged();
                     }
                     else
@@ -185,7 +185,8 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
 
             try
             {
-
+                totalPrice = 0;
+                totalPriceEndown = 0;
                 var request = new ApiRequestModel { Endpoint = $"api/Cart/ListCart/{CurrentUser.UserId}" };
                 var result = await CallApi.Get<List<CartDto>>(request);
                 if (result.Status == StatusCode.OK && result.Data != null)
@@ -291,7 +292,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
                 ToastService.ShowWarning($"Chưa có đơn hàng");
 
             }
-            else if (CartModel.CartItems.Count() == 0)
+            else if (CartModel.CartItems.Count() == 0|| totalPrice==0)
             {
                 ToastService.ShowWarning($"Đơn hàng trống");
 

@@ -306,6 +306,7 @@ namespace Service.SnapFood.Application.Service
                         ImageUrl = product.ImageUrl,
                         ItemType = ItemType.Product,
                         Created = item.Created,
+                        ModerationStatus = product.ModerationStatus
 
                     });
                 }
@@ -349,6 +350,98 @@ namespace Service.SnapFood.Application.Service
                                     SizeName = GetSizeName(item.Id, x.ProductId)
                                 }).ToList(),
                         Created = item.Created,
+                        ModerationStatus = combo.ModerationStatus
+
+                    });
+                }
+            }
+            cartDto.CartItems = CartItems.OrderByDescending(x => x.Created).ToList();
+
+            return cartDto;
+        }
+
+        public async Task<CartDto> GetCartByCartIdAsyncView(Guid cartId)
+        {
+
+            var cart = await _unitOfWork.CartRepo.GetByIdAsync(cartId);
+            if (cart is null)
+            {
+                throw new Exception("Không lấy được thông tin giỏ hàng");
+
+            }
+
+            var cartDto = new CartDto
+            {
+                Id = cartId,
+                UserId = cart.UserId,
+            };
+
+            var CartProductItem = _unitOfWork.CartItemRepo.FindWhere(x => x.CartId == cart.Id);
+            var CartComboItem = _unitOfWork.CartComboItemRepo.FindWhere(x => x.CartId == cart.Id);
+
+            List<CartItemDto> CartItems = new List<CartItemDto>();
+            foreach (var item in CartProductItem)
+            {
+                var product = await _unitOfWork.ProductRepo.GetByIdAsync(item.ProductId);
+                if (product != null/* && product.ModerationStatus == ModerationStatus.Approved*/)
+                {
+                    var size = await _unitOfWork.SizesRepo.GetByIdAsync(item.SizeId ?? Guid.Empty);
+                    CartItems.Add(new CartItemDto
+                    {
+                        Id = item.Id,
+                        ItemId = item.ProductId,
+                        ItemName = product.ProductName,
+                        SizeName = size?.SizeName ?? "Tiêu chuẩn",
+                        BasePrice = product.BasePrice + (size?.AdditionalPrice ?? 0),
+                        PriceEndown = GetProductPriceEndown(item.ProductId, product.BasePrice, (size?.AdditionalPrice ?? 0)),
+                        Quantity = item.Quantity,
+                        ImageUrl = product.ImageUrl,
+                        ItemType = ItemType.Product,
+                        Created = item.Created,
+                        ModerationStatus=product.ModerationStatus
+                    });
+                }
+            }
+
+            foreach (var item in CartComboItem)
+            {
+                var ComboProductItem = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == item.Id);
+
+                var combo = await _unitOfWork.ComboRepo.GetByIdAsync(item.ComboId);
+                if (combo != null /*&& combo.ModerationStatus == ModerationStatus.Approved*/)
+                {
+                    decimal priceSize = 0;
+                    foreach (var c in ComboProductItem)
+                    {
+                        var size = await _unitOfWork.SizesRepo.GetByIdAsync(c.SizeId ?? Guid.Empty);
+                        if (size is not null)
+                        {
+                            priceSize += size.AdditionalPrice;
+                        }
+
+                    }
+
+                    CartItems.Add(new CartItemDto
+                    {
+                        Id = item.Id,
+                        ItemId = item.ComboId,
+                        ItemName = combo.ComboName,
+                        BasePrice = combo.BasePrice + priceSize,
+                        PriceEndown = GetComboPriceEndown(item.ComboId, combo.BasePrice, priceSize),
+                        Quantity = item.Quantity,
+                        ImageUrl = combo.ImageUrl,
+                        ItemType = ItemType.Combo,
+                        ComboItems = _unitOfWork.ProductComboRepo
+                                .FindWhere(x => x.ComboId == item.ComboId)
+                                .Select(x => new ComboProductDto
+                                {
+                                    ProductId = x.ProductId,
+                                    Quantity = x.Quantity,
+                                    ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
+                                    SizeName = GetSizeName(item.Id, x.ProductId)
+                                }).ToList(),
+                        Created = item.Created,
+                        ModerationStatus = combo.ModerationStatus
 
                     });
                 }
@@ -395,6 +488,7 @@ namespace Service.SnapFood.Application.Service
                         ImageUrl = product.ImageUrl,
                         ItemType = ItemType.Product,
                         Created = item.Created,
+                        ModerationStatus=product.ModerationStatus
 
                     });
                 }
@@ -438,6 +532,7 @@ namespace Service.SnapFood.Application.Service
                                     SizeName = GetSizeName(item.Id, x.ProductId)
                                 }).ToList(),
                         Created = item.Created,
+                        ModerationStatus=combo.ModerationStatus
 
                     });
                 }
@@ -447,6 +542,97 @@ namespace Service.SnapFood.Application.Service
             return cartDto;
         }
 
+        public async Task<CartDto> GetCartByIdUserAsyncView(Guid userId)
+        {
+            var cart = _unitOfWork.CartRepo.FirstOrDefault(x => x.UserId == userId);
+            if (cart == null)
+            {
+                cart = new Cart { UserId = userId, CartProductItems = new List<CartProductItem>(), CartComboItems = new List<CartComboItem>() };
+                await _unitOfWork.CartRepo.AddAsync(cart);
+                await _unitOfWork.CompleteAsync();
+            }
+
+            var cartDto = new CartDto
+            {
+                Id = cart.Id,
+                UserId = cart.UserId,
+            };
+
+            var CartProductItem = _unitOfWork.CartItemRepo.FindWhere(x => x.CartId == cart.Id);
+            var CartComboItem = _unitOfWork.CartComboItemRepo.FindWhere(x => x.CartId == cart.Id);
+
+            List<CartItemDto> CartItems = new List<CartItemDto>();
+            foreach (var item in CartProductItem)
+            {
+                var product = await _unitOfWork.ProductRepo.GetByIdAsync(item.ProductId);
+                if (product != null /*&& product.ModerationStatus == ModerationStatus.Approved*/)
+                {
+                    var size = await _unitOfWork.SizesRepo.GetByIdAsync(item.SizeId ?? Guid.Empty);
+                    CartItems.Add(new CartItemDto
+                    {
+                        Id = item.Id,
+                        ItemId = item.ProductId,
+                        ItemName = product.ProductName,
+                        SizeName = size?.SizeName ?? "Tiêu chuẩn",
+                        BasePrice = product.BasePrice + (size?.AdditionalPrice ?? 0),
+                        PriceEndown = GetProductPriceEndown(item.ProductId, product.BasePrice, (size?.AdditionalPrice ?? 0)),
+                        Quantity = item.Quantity,
+                        ImageUrl = product.ImageUrl,
+                        ItemType = ItemType.Product,
+                        Created = item.Created,
+                        ModerationStatus = product.ModerationStatus
+
+                    });
+                }
+            }
+
+            foreach (var item in CartComboItem)
+            {
+                var ComboProductItem = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == item.Id);
+
+                var combo = await _unitOfWork.ComboRepo.GetByIdAsync(item.ComboId);
+                if (combo != null /*&& combo.ModerationStatus == ModerationStatus.Approved*/)
+                {
+                    decimal priceSize = 0;
+                    foreach (var c in ComboProductItem)
+                    {
+                        var size = await _unitOfWork.SizesRepo.GetByIdAsync(c.SizeId ?? Guid.Empty);
+                        if (size is not null)
+                        {
+                            priceSize += size.AdditionalPrice;
+                        }
+
+                    }
+
+                    CartItems.Add(new CartItemDto
+                    {
+                        Id = item.Id,
+                        ItemId = item.ComboId,
+                        ItemName = combo.ComboName,
+                        BasePrice = combo.BasePrice + priceSize,
+                        PriceEndown = GetComboPriceEndown(item.ComboId, combo.BasePrice, priceSize),
+                        Quantity = item.Quantity,
+                        ImageUrl = combo.ImageUrl,
+                        ItemType = ItemType.Combo,
+                        ComboItems = _unitOfWork.ProductComboRepo
+                                .FindWhere(x => x.ComboId == item.ComboId)
+                                .Select(x => new ComboProductDto
+                                {
+                                    ProductId = x.ProductId,
+                                    Quantity = x.Quantity,
+                                    ProductName = x.Quantity + " " + _unitOfWork.ProductRepo.GetById(x.ProductId)?.ProductName,
+                                    SizeName = GetSizeName(item.Id, x.ProductId)
+                                }).ToList(),
+                        Created = item.Created,
+                        ModerationStatus = combo.ModerationStatus
+
+                    });
+                }
+            }
+            cartDto.CartItems = CartItems.OrderByDescending(x => x.Created).ToList();
+
+            return cartDto;
+        }
         private string GetSizeName(Guid CartComboId, Guid ProductId)
         {
             var sizeId = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == CartComboId && x.ProductId == ProductId).First().SizeId;
@@ -549,6 +735,31 @@ namespace Service.SnapFood.Application.Service
                     {
                         throw new Exception("Giỏ hàng trống");
                     }
+
+                    bool isCoSPHoatDong = false;
+                    foreach (var p in cartProductItems)
+                    {
+                        var product = await _unitOfWork.ProductRepo.GetByIdAsync(p.ProductId);
+
+                        if (product is not null && product.ModerationStatus==ModerationStatus.Approved)
+                        {
+                            isCoSPHoatDong = true;
+                        }
+
+                    }
+                    foreach (var c in cartComboItems)
+                    {
+                        var combo = await _unitOfWork.ComboRepo.GetByIdAsync(c.ComboId);
+
+                        if (combo is not null && combo.ModerationStatus == ModerationStatus.Approved)
+                        {
+                            isCoSPHoatDong = true;
+                        }
+                    }
+                    if (!isCoSPHoatDong)
+                    {
+                        throw new Exception("Giỏ hàng trống");
+                    }
                     var store = _unitOfWork.StoresRepo.FirstOrDefault(x => x.Status == Status.Activity);
                     if (store is not null)
                     {
@@ -572,84 +783,92 @@ namespace Service.SnapFood.Application.Service
                         foreach (var cartItem in cartProductItems)
                         {
                             var product = await _unitOfWork.ProductRepo.GetByIdAsync(cartItem.ProductId);
+                           
                             var size = _unitOfWork.SizesRepo.GetById(cartItem.SizeId ?? Guid.Empty);
                             var sizeName = size?.SizeName ?? "Tiêu chuẩn";
                             if (product == null) continue;
-
-                            bill.TotalAmount += product.BasePrice * cartItem.Quantity;
-
-                            var billDetail = new BillDetails
+                            if (product.ModerationStatus == ModerationStatus.Approved)
                             {
-                                BillId = bill.Id,
-                                ItemId=product.Id,
-                                ItemType = ItemType.Product,
-                                ItemsName = product.ProductName + " " + "(Size: " + sizeName + ")",
-                                ImageUrl = product.ImageUrl,
-                                Quantity = cartItem.Quantity,
-                                Price = product.BasePrice + (size?.AdditionalPrice ?? 0),
-                                PriceEndow = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0),
-                            };
-                            bill.BillDetails.Add(billDetail);
-                            _unitOfWork.BillDetailsRepo.Add(billDetail);
-                            await _unitOfWork.CompleteAsync();
+                                bill.TotalAmount += product.BasePrice * cartItem.Quantity;
+
+                                var billDetail = new BillDetails
+                                {
+                                    BillId = bill.Id,
+                                    ItemId = product.Id,
+                                    ItemType = ItemType.Product,
+                                    ItemsName = product.ProductName + " " + "(Size: " + sizeName + ")",
+                                    ImageUrl = product.ImageUrl,
+                                    Quantity = cartItem.Quantity,
+                                    Price = product.BasePrice + (size?.AdditionalPrice ?? 0),
+                                    PriceEndow = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0),
+                                };
+                                bill.BillDetails.Add(billDetail);
+                                _unitOfWork.BillDetailsRepo.Add(billDetail);
+                                await _unitOfWork.CompleteAsync();
+                            }
+                           
                         }
 
                         foreach (var cartItem in cartComboItems)
                         {
                             var combo = await _unitOfWork.ComboRepo.GetByIdAsync(cartItem.ComboId);
                             if (combo == null) continue;
-                            decimal priceSize = 0;
-                            var comboItems = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == cartItem.Id).ToList();
-
-                            foreach (var c in comboItems)
+                            if (combo.ModerationStatus==ModerationStatus.Approved)
                             {
-                                var size = await _unitOfWork.SizesRepo.GetByIdAsync(c.SizeId ?? Guid.Empty);
-                                if (size is not null)
+                                decimal priceSize = 0;
+                                var comboItems = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == cartItem.Id).ToList();
+
+                                foreach (var c in comboItems)
                                 {
-                                    priceSize += size.AdditionalPrice;
-                                }
-
-                            }
-
-                            bill.TotalAmount += combo.BasePrice * cartItem.Quantity;
-
-                            var billDetail = new BillDetails
-                            {
-                                BillId = bill.Id,
-                                ItemId=combo.Id,
-                                ItemType = ItemType.Combo,
-                                ItemsName = combo.ComboName,
-                                ImageUrl = combo.ImageUrl,
-                                Quantity = cartItem.Quantity,
-                                Price = combo.BasePrice + priceSize,
-                                PriceEndow = GetPriceEndown(cartItem.ComboId, combo.BasePrice, priceSize),
-                            };
-                            bill.BillDetails.Add(billDetail);
-                            _unitOfWork.BillDetailsRepo.Add(billDetail);
-                            await _unitOfWork.CompleteAsync();
-
-                            foreach (var i in comboItems)
-                            {
-                                var product = await _unitOfWork.ProductRepo.GetByIdAsync(i.ProductId);
-                                var sizeName = _unitOfWork.SizesRepo.GetById(i.SizeId ?? Guid.Empty)?.SizeName ?? "Tiêu chuẩn";
-                                if (product is not null)
-                                {
-                                    ComboItemsArchive ComboItemsArchive = new ComboItemsArchive()
+                                    var size = await _unitOfWork.SizesRepo.GetByIdAsync(c.SizeId ?? Guid.Empty);
+                                    if (size is not null)
                                     {
-                                        BillDetailsId = billDetail.Id,
-                                        ProductId=product.Id,
-                                        ProductName = product.ProductName + " " + "(Size: " + sizeName + ")",
-                                        Quantity = i.Quantity,
-                                        ImageUrl = product.ImageUrl,
-                                        Price = product.BasePrice,
-                                    };
-                                    _unitOfWork.ComboItemsArchiveRepo.Add(ComboItemsArchive);
-                                    await _unitOfWork.CompleteAsync();
+                                        priceSize += size.AdditionalPrice;
+                                    }
+
                                 }
 
+                                bill.TotalAmount += combo.BasePrice * cartItem.Quantity;
+
+                                var billDetail = new BillDetails
+                                {
+                                    BillId = bill.Id,
+                                    ItemId = combo.Id,
+                                    ItemType = ItemType.Combo,
+                                    ItemsName = combo.ComboName,
+                                    ImageUrl = combo.ImageUrl,
+                                    Quantity = cartItem.Quantity,
+                                    Price = combo.BasePrice + priceSize,
+                                    PriceEndow = GetPriceEndown(cartItem.ComboId, combo.BasePrice, priceSize),
+                                };
+                                bill.BillDetails.Add(billDetail);
+                                _unitOfWork.BillDetailsRepo.Add(billDetail);
+                                await _unitOfWork.CompleteAsync();
+
+                                foreach (var i in comboItems)
+                                {
+                                    var product = await _unitOfWork.ProductRepo.GetByIdAsync(i.ProductId);
+                                    var sizeName = _unitOfWork.SizesRepo.GetById(i.SizeId ?? Guid.Empty)?.SizeName ?? "Tiêu chuẩn";
+                                    if (product is not null)
+                                    {
+                                        ComboItemsArchive ComboItemsArchive = new ComboItemsArchive()
+                                        {
+                                            BillDetailsId = billDetail.Id,
+                                            ProductId = product.Id,
+                                            ProductName = product.ProductName + " " + "(Size: " + sizeName + ")",
+                                            Quantity = i.Quantity,
+                                            ImageUrl = product.ImageUrl,
+                                            Price = product.BasePrice,
+                                        };
+                                        _unitOfWork.ComboItemsArchiveRepo.Add(ComboItemsArchive);
+                                        await _unitOfWork.CompleteAsync();
+                                    }
 
 
+
+                                }
                             }
+                           
                         }
                        
                         
@@ -808,6 +1027,32 @@ namespace Service.SnapFood.Application.Service
                     {
                         throw new Exception("Giỏ hàng trống");
                     }
+
+                    bool isCoSPHoatDong = false;
+                    foreach (var p in cartProductItems)
+                    {
+                        var product = await _unitOfWork.ProductRepo.GetByIdAsync(p.ProductId);
+
+                        if (product is not null && product.ModerationStatus == ModerationStatus.Approved)
+                        {
+                            isCoSPHoatDong = true;
+                        }
+
+                    }
+                    foreach (var c in cartComboItems)
+                    {
+                        var combo = await _unitOfWork.ComboRepo.GetByIdAsync(c.ComboId);
+
+                        if (combo is not null && combo.ModerationStatus == ModerationStatus.Approved)
+                        {
+                            isCoSPHoatDong = true;
+                        }
+                    }
+                    if (!isCoSPHoatDong)
+                    {
+                        throw new Exception("Giỏ hàng trống");
+                    }
+
                     var store = _unitOfWork.StoresRepo.FirstOrDefault(x => x.Status == Status.Activity);
                     if (store is not null)
                     {
@@ -831,84 +1076,93 @@ namespace Service.SnapFood.Application.Service
                         foreach (var cartItem in cartProductItems)
                         {
                             var product = await _unitOfWork.ProductRepo.GetByIdAsync(cartItem.ProductId);
-                            var size = _unitOfWork.SizesRepo.GetById(cartItem.SizeId ?? Guid.Empty);
-                            var sizeName = size?.SizeName ?? "Tiêu chuẩn";
                             if (product == null) continue;
-
-                            bill.TotalAmount += product.BasePrice * cartItem.Quantity;
-
-                            var billDetail = new BillDetails
+                            if (product.ModerationStatus==ModerationStatus.Approved)
                             {
-                                BillId = bill.Id,
-                                ItemId = product.Id,
-                                ItemType = ItemType.Product,
-                                ItemsName = product.ProductName + " " + "(Size: " + sizeName + ")",
-                                ImageUrl = product.ImageUrl,
-                                Quantity = cartItem.Quantity,
-                                Price = product.BasePrice + (size?.AdditionalPrice ?? 0),
-                                PriceEndow = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0),
-                            };
-                            bill.BillDetails.Add(billDetail);
-                            _unitOfWork.BillDetailsRepo.Add(billDetail);
-                            await _unitOfWork.CompleteAsync();
+                                var size = _unitOfWork.SizesRepo.GetById(cartItem.SizeId ?? Guid.Empty);
+                                var sizeName = size?.SizeName ?? "Tiêu chuẩn";
+
+
+                                bill.TotalAmount += product.BasePrice * cartItem.Quantity;
+
+                                var billDetail = new BillDetails
+                                {
+                                    BillId = bill.Id,
+                                    ItemId = product.Id,
+                                    ItemType = ItemType.Product,
+                                    ItemsName = product.ProductName + " " + "(Size: " + sizeName + ")",
+                                    ImageUrl = product.ImageUrl,
+                                    Quantity = cartItem.Quantity,
+                                    Price = product.BasePrice + (size?.AdditionalPrice ?? 0),
+                                    PriceEndow = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0),
+                                };
+                                bill.BillDetails.Add(billDetail);
+                                _unitOfWork.BillDetailsRepo.Add(billDetail);
+                                await _unitOfWork.CompleteAsync();
+                            }
+                           
                         }
 
                         foreach (var cartItem in cartComboItems)
                         {
                             var combo = await _unitOfWork.ComboRepo.GetByIdAsync(cartItem.ComboId);
                             if (combo == null) continue;
-                            decimal priceSize = 0;
-                            var comboItems = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == cartItem.Id).ToList();
-
-                            foreach (var c in comboItems)
+                            if (combo.ModerationStatus==ModerationStatus.Approved)
                             {
-                                var size = await _unitOfWork.SizesRepo.GetByIdAsync(c.SizeId ?? Guid.Empty);
-                                if (size is not null)
+                                decimal priceSize = 0;
+                                var comboItems = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == cartItem.Id).ToList();
+
+                                foreach (var c in comboItems)
                                 {
-                                    priceSize += size.AdditionalPrice;
-                                }
-
-                            }
-
-                            bill.TotalAmount += combo.BasePrice * cartItem.Quantity;
-
-                            var billDetail = new BillDetails
-                            {
-                                BillId = bill.Id,
-                                ItemId = combo.Id,
-                                ItemType = ItemType.Combo,
-                                ItemsName = combo.ComboName,
-                                ImageUrl = combo.ImageUrl,
-                                Quantity = cartItem.Quantity,
-                                Price = combo.BasePrice + priceSize,
-                                PriceEndow = GetPriceEndown(cartItem.ComboId, combo.BasePrice, priceSize),
-                            };
-                            bill.BillDetails.Add(billDetail);
-                            _unitOfWork.BillDetailsRepo.Add(billDetail);
-                            await _unitOfWork.CompleteAsync();
-
-                            foreach (var i in comboItems)
-                            {
-                                var product = await _unitOfWork.ProductRepo.GetByIdAsync(i.ProductId);
-                                var sizeName = _unitOfWork.SizesRepo.GetById(i.SizeId ?? Guid.Empty)?.SizeName ?? "Tiêu chuẩn";
-                                if (product is not null)
-                                {
-                                    ComboItemsArchive ComboItemsArchive = new ComboItemsArchive()
+                                    var size = await _unitOfWork.SizesRepo.GetByIdAsync(c.SizeId ?? Guid.Empty);
+                                    if (size is not null)
                                     {
-                                        BillDetailsId = billDetail.Id,
-                                        ProductId = product.Id,
-                                        ProductName = product.ProductName + " " + "(Size: " + sizeName + ")",
-                                        Quantity = i.Quantity,
-                                        ImageUrl = product.ImageUrl,
-                                        Price = product.BasePrice,
-                                    };
-                                    _unitOfWork.ComboItemsArchiveRepo.Add(ComboItemsArchive);
-                                    await _unitOfWork.CompleteAsync();
+                                        priceSize += size.AdditionalPrice;
+                                    }
+
                                 }
 
+                                bill.TotalAmount += combo.BasePrice * cartItem.Quantity;
+
+                                var billDetail = new BillDetails
+                                {
+                                    BillId = bill.Id,
+                                    ItemId = combo.Id,
+                                    ItemType = ItemType.Combo,
+                                    ItemsName = combo.ComboName,
+                                    ImageUrl = combo.ImageUrl,
+                                    Quantity = cartItem.Quantity,
+                                    Price = combo.BasePrice + priceSize,
+                                    PriceEndow = GetPriceEndown(cartItem.ComboId, combo.BasePrice, priceSize),
+                                };
+                                bill.BillDetails.Add(billDetail);
+                                _unitOfWork.BillDetailsRepo.Add(billDetail);
+                                await _unitOfWork.CompleteAsync();
+
+                                foreach (var i in comboItems)
+                                {
+                                    var product = await _unitOfWork.ProductRepo.GetByIdAsync(i.ProductId);
+                                    var sizeName = _unitOfWork.SizesRepo.GetById(i.SizeId ?? Guid.Empty)?.SizeName ?? "Tiêu chuẩn";
+                                    if (product is not null)
+                                    {
+                                        ComboItemsArchive ComboItemsArchive = new ComboItemsArchive()
+                                        {
+                                            BillDetailsId = billDetail.Id,
+                                            ProductId = product.Id,
+                                            ProductName = product.ProductName + " " + "(Size: " + sizeName + ")",
+                                            Quantity = i.Quantity,
+                                            ImageUrl = product.ImageUrl,
+                                            Price = product.BasePrice,
+                                        };
+                                        _unitOfWork.ComboItemsArchiveRepo.Add(ComboItemsArchive);
+                                        await _unitOfWork.CompleteAsync();
+                                    }
 
 
+
+                                }
                             }
+                           
                         }
 
 
