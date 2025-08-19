@@ -85,7 +85,12 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.CuaHang
             try
             {
                 isSavingStore = true;
+                if (Store.ThoiGianBatDauHoatDong>=Store.ThoiGianNgungHoatDong)
+                {
+                    ToastService.ShowError("Thời gian bắt đầu nhỏ hơn thời gian kết thúc."); ;
 
+                    return;
+                }
                 ApiRequestModel requestRestAPI = new ApiRequestModel();
                 requestRestAPI.Endpoint = $"api/Store/{Store.Id}";
                 Store.Status = (Status)Enum.Parse(typeof(Status), SelectedTrangThai);

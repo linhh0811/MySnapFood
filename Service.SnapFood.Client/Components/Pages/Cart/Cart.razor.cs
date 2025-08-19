@@ -9,6 +9,7 @@ using Service.SnapFood.Client.Components.Layout;
 using Service.SnapFood.Client.Enums;
 using System.Threading.Tasks;
 using Service.SnapFood.Client.Infrastructure.Service;
+using Service.SnapFood.Share.Model.SQL;
 
 
 namespace Service.SnapFood.Client.Components.Pages.Cart
@@ -31,20 +32,30 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
 
         protected override async Task OnInitializedAsync()
         {
-            if (CurrentUser.UserId == Guid.Empty)
+            try
             {
-                Navigation.NavigateTo("/");
-            }
-            else
-            {
-                isLoading = true;
                 if (CurrentUser.UserId == Guid.Empty)
                 {
-                    return;
+                    Navigation.NavigateTo("/");
                 }
-                await LoadCart();
-                isLoading = false;
+                else
+                {
+                    isLoading = true;
+                    if (CurrentUser.UserId == Guid.Empty)
+                    {
+                        return;
+                    }
+                    await LoadCart();
+                    isLoading = false;
+                }
             }
+            catch (Exception)
+            {
+
+                isLoading = false;
+
+            }
+
         }
 
         protected void NavigateToOrderHome()
@@ -58,14 +69,14 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             try
             {
 
-                var request = new ApiRequestModel { Endpoint = $"api/Cart/{CurrentUser.UserId}" };
+                var request = new ApiRequestModel { Endpoint = $"api/Cart/view/{CurrentUser.UserId}" };
                 var result = await CallApi.Get<CartDto>(request);
                 if (result.Status == StatusCode.OK && result.Data != null)
                 {
                     CartModel = (CartDto)result.Data;
 
-                    totalPrice = CartModel.CartItems.Sum(p => p.BasePrice*p.Quantity);
-                    totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0).Sum(p => p.BasePrice*p.Quantity - p.PriceEndown*p.Quantity);
+                    totalPrice = CartModel.CartItems.Where(x=>x.ModerationStatus== ModerationStatus.Approved).Sum(p => p.BasePrice*p.Quantity);
+                    totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0&& x.ModerationStatus == ModerationStatus.Approved).Sum(p => p.BasePrice*p.Quantity - p.PriceEndown*p.Quantity);
                     StateHasChanged();
                     await SharedService.TriggerUpdateAsync();
                 }
@@ -109,7 +120,16 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
 
         protected void CheckOut()
         {
-            Navigation.NavigateTo($"/Thanh-Toan/{PhuongThucNhanHang}");
+            if (totalPrice ==0)
+            {
+                ToastService.ShowWarning($"Giỏ hàng trống, vui lòng tiếp tục mua sắm");
+
+            }
+            else
+            {
+                Navigation.NavigateTo($"/Thanh-Toan/{PhuongThucNhanHang}");
+            }
+                
         }
 
         protected async Task ClearCart()

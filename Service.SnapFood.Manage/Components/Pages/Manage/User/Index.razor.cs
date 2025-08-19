@@ -122,5 +122,9 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.User
                 ToastService.ShowError($"Lỗi khi mở modal chi tiết: {ex.Message}");
             }
         }
+        protected void XemDonHang(Guid userId)
+        {
+            Navigation.NavigateTo($"/Quan-Ly/Bill/{userId}");
+        } 
     }
 }

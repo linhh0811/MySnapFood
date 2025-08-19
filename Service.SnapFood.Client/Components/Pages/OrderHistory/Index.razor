@@ -126,14 +126,26 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (CurrentUser.UserId == Guid.Empty)
+        try
         {
-            Navigation.NavigateTo("/");
+            if (CurrentUser.UserId == Guid.Empty)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                await LoadBillData();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await LoadBillData();
+            ErrorMessage = "Lỗi khi tải thông tin: " + ex.Message;
         }
+        finally
+        {
+            IsLoading = false;
+        }
+        
     }
     private string GetStatusColor(StatusOrder status) => status switch
     {

@@ -23,5 +23,7 @@ namespace Service.SnapFood.Application.Interfaces
         int GetCartQuantity(Guid userId);
         Task UpdateQuantity(QuantityInCartDto QuantityInCartDto);
         AddressDto GetAddressCheckout(Guid userId);
+        Task<CartDto> GetCartByIdUserAsyncView(Guid userId);
+        Task<CartDto> GetCartByCartIdAsyncView(Guid cartId);
     }
 }
