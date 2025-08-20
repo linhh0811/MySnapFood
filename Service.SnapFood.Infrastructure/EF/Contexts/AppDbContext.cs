@@ -682,6 +682,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                    Password = BCrypt.Net.BCrypt.HashPassword("admin"),
                    Email = "admin@gmail.com",
                    UserType = UserType.Store,
+                   IsHeThong = true
 
                },
                new User
@@ -694,13 +695,13 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                    UserType = UserType.Store,
                }
 
-               );
+               );       
             builder.Entity<UserRole>().HasData(
                 new UserRole
                 {
                     Id = Guid.Parse("a3b4c5d6-7e8f-9a0b-1c2d-3e4f5a6b7c8d"),
                     UserId = Guid.Parse("8a2e5d21-5f5b-4a7c-9d5e-3f6c8b2a1d5e"),
-                    RoleId = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"),
+                    RoleId = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d2e"),
                 },
                 new UserRole
                 {
@@ -712,7 +713,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                  {
                      Id = Guid.Parse("c5d6e7f8-9a0b-1c2d-3e4f-5a6b7c8d9e0f"),
                      UserId = Guid.Parse("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d4e"),
-                     RoleId = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d3e"),
+                     RoleId = Guid.Parse("8a2e5d21-5f6b-4a7c-9d5e-3f6c8b2a1d1e"),
                  });
             builder.Entity<ThongTinGiaoHang>().HasData(
               new ThongTinGiaoHang

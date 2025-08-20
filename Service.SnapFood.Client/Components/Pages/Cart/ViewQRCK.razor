@@ -52,7 +52,7 @@
     protected override void OnInitialized()
     {
         IsLoading = true;
-        QrUrl = $"https://img.vietqr.io/image/BIDV-V3CASSSNAPFOOD-compact2.png?amount={Content.GiaTriDonHang}&addInfo={Content.NoiDungChuyenKhoan}";
+        QrUrl = $"https://img.vietqr.io/image/MB-0923511224-compact2.png?amount={Content.GiaTriDonHang}&addInfo={Content.NoiDungChuyenKhoan}";
         IsLoading = false;
 
         // Khởi tạo timer gọi kiểm tra mỗi 10 giây
@@ -69,7 +69,7 @@
         {
             if (!autoCheck) isSaving = true;
 
-            var url = "https://script.google.com/macros/s/AKfycbwUF6St5RfPCqxl856vPC_7QbqxGhbUK-xtZKZphMht11H735nfu5RliAyiduP4sWP4/exec";
+            var url = "https://script.google.com/macros/s/AKfycbyHyWV-sI2FEh2sSJP36oSU2kd7oxG_nLYBLMrGf-OgFd0puo6mdF-fgx4ceinCLK86/exec";
             var response = await Http.GetFromJsonAsync<PaymentResponse>(url);
 
             if (response is { error: false } && response.data != null)

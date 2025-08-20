@@ -101,9 +101,9 @@ namespace Service.SnapFood.Manage.Infrastructure.Services
                 else
                 {
                     ResponseErrorAPI? error = JsonSerializer.Deserialize<ResponseErrorAPI>(content, options);
-                    string? detailError = error?.Errors?.Id != null ? string.Join(", ", error.Errors.Id) : "Lỗi không xác định.";
+                    string? detailError = error?.Errors?.Id != null ? string.Join(" ", error.Errors.Id) : "Lỗi không xác định.";
 
-                    resultAPI.Message = $"Lỗi: {detailError}";
+                    resultAPI.Message = $"{detailError}";
                     resultAPI.Status = StatusCode.InternalServerError;
                     resultAPI.Data = error;
                 }

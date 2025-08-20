@@ -316,8 +316,8 @@ namespace Service.SnapFood.Application.Service
             var user = new User
             {
                 Id = userId,
-                FullName = item.FullName,
-                Email = item.Email,
+                FullName = item.FullName.ToLower(),
+                Email = item.Email.ToLower(),
                 Password = BCrypt.Net.BCrypt.HashPassword(item.Password),
                 UserType = UserType.User 
             };
@@ -357,7 +357,7 @@ namespace Service.SnapFood.Application.Service
             
             if (string.IsNullOrWhiteSpace(item.Email))
                 throw new ArgumentException("Email không được để trống");
-            if (!IsValidEmail(item.Email))
+            if (!IsValidEmail(item.Email.ToLower()))
                 throw new ArgumentException("Email không hợp lệ");
             if (string.IsNullOrWhiteSpace(item.Password))
                 throw new ArgumentException("Mật khẩu không được để trống");
