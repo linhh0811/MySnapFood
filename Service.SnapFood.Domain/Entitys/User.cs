@@ -18,6 +18,7 @@ namespace Service.SnapFood.Domain.Entitys
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public UserType UserType { get; set; }
+        public bool IsHeThong { get; set; } = false;
         public virtual List<Cart> Carts { get; set; } = null!;
         public virtual Store? Store { get; set; }
 

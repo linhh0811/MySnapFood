@@ -21,6 +21,8 @@ namespace Service.SnapFood.Manage.Dto.User
         public string PasswordMoi { get; set; } = string.Empty;
         public string PasswordConfirmMoi { get; set; } = string.Empty;
         public bool IsThayDoiMatKhau { get; set; } = false;
+        public bool IsHeThong { get; set; } = false;
+
 
     }
 }

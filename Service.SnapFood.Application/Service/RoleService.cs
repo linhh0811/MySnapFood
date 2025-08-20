@@ -34,7 +34,7 @@ namespace Service.SnapFood.Application.Service
 
             int totalRecords = 0;
             var dataQuery = _unitOfWork.UserRepo.FilterData(
-                q => q.Where(u => u.UserType == UserType.Store), // Chỉ lấy tài khoản Store
+                q => q.Where(u => u.UserType == UserType.Store&&u.IsHeThong==false), // Chỉ lấy tài khoản Store
                 query.gridRequest,
                 ref totalRecords
             );
@@ -111,7 +111,8 @@ namespace Service.SnapFood.Application.Service
                     Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
                     Id = u.Id,
                     FullName = u.FullName,
-                    Email = u.Email
+                    Email = u.Email,
+                    IsHeThong=u.IsHeThong
                 });
 
             return new DataTableJson(data, query.draw, totalRecords);

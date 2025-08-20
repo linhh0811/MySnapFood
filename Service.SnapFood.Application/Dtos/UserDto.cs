@@ -19,6 +19,8 @@ namespace Service.SnapFood.Application.Dtos
         public string PasswordMoi { get; set; } = string.Empty;
         public string PasswordConfirmMoi { get; set; } = string.Empty;
 
+        public bool IsHeThong { get; set; } = false;
+
         public UserType UserType { get; set; }
         public bool IsInRole { get; set; }
         public ModerationStatus ModerationStatus { get; set; }

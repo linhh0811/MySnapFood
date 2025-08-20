@@ -39,7 +39,7 @@ namespace Service.SnapFood.Api.AppStart
                 var errorResponse = new SiResponse<DefaultClass>
                 {
                     Success = false,
-                    Message = "Thao tác thất bại",
+                    Message = "",
                     BuildQuery = null,
                     Data = null,
                     Errors = new Error
@@ -68,14 +68,14 @@ namespace Service.SnapFood.Api.AppStart
                 var errorResponse = new SiResponse<DefaultClass>
                 {
                     Success = false,
-                    Message = "Thao tác thất bại",
+                    Message = "",
                     BuildQuery = null,
                     Data = null,
                     Errors = new Error
                     {
                         Id = new[]
                         {
-                            "Thao tác thất bại!",
+                            "",
                             ex.Message
                         }
                     },
