@@ -717,6 +717,7 @@ namespace Service.SnapFood.Application.Service
             await _unitOfWork.CompleteAsync();
         }
 
+   
         public async Task CheckOut(CheckOutDto item)
         {
 
@@ -730,6 +731,38 @@ namespace Service.SnapFood.Application.Service
                     _unitOfWork.BeginTransaction();
                     var cartProductItems = _unitOfWork.CartItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
                     var cartComboItems = _unitOfWork.CartComboItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
+
+                    var ProductIds = cartProductItems.Select(x => x.ProductId).ToList();
+                    var ComboIds = cartComboItems.Select(x => x.ComboId).ToList();
+
+                    foreach (var p in ProductIds)
+                    {
+                        var productCheck = _unitOfWork.ProductRepo.FindWhere(x => x.Id == p&&x.ModerationStatus==ModerationStatus.Rejected);
+                        if(productCheck.Count()>0)
+                        {
+                            throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                        }
+                    }
+
+                    foreach (var c in ComboIds)
+                    {
+                        var comboCheck = _unitOfWork.ComboRepo.FindWhere(x => x.Id == c && x.ModerationStatus == ModerationStatus.Rejected);
+                        if (comboCheck.Count() > 0)
+                        {
+                            throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                        }
+                    }
+
+                    if (item.DiscountCodeId != Guid.Empty)
+                    {
+                        var discount = _unitOfWork.DiscountCodeRepo.FindWhere(x => x.Id == item.DiscountCodeId && x.ModerationStatus == ModerationStatus.Rejected);
+                        if (discount.Count() > 0)
+                        {
+                            throw new Exception("Mã giảm giá không hoạt động, vui lòng tải lại trang");
+
+                        }
+                    }
+
 
                     if (!cartProductItems.Any() && !cartComboItems.Any())
                     {
@@ -756,6 +789,9 @@ namespace Service.SnapFood.Application.Service
                             isCoSPHoatDong = true;
                         }
                     }
+
+                    
+
                     if (!isCoSPHoatDong)
                     {
                         throw new Exception("Giỏ hàng trống");
@@ -980,9 +1016,14 @@ namespace Service.SnapFood.Application.Service
                             billUpdate.TotalAmount = billDetails.Sum(x => x.Price * x.Quantity);
                             billUpdate.TotalAmountEndow = billDetails.Where(x => x.PriceEndow > 0).Sum(p => p.Price * p.Quantity - p.PriceEndow * p.Quantity);
 
+                            if (item.TongTienKhuyenMai != billUpdate.TotalAmountEndow)
+                            {
+                                throw new Exception("Khuyến mãi đã có sự thay đổi");
+                            }
                             _unitOfWork.BillRepo.Update(billUpdate);
                         }
 
+                    
 
                         _unitOfWork.CartItemRepo.DeleteRange(cartProductItems);
                         _unitOfWork.CartComboItemRepo.DeleteRange(cartComboItems);
@@ -1009,6 +1050,132 @@ namespace Service.SnapFood.Application.Service
 
         }
 
+        public async Task CheckOutValidateOnly(CheckOutDto item)
+        {
+            var cart = _unitOfWork.CartRepo.FirstOrDefault(x => x.UserId == item.UserId);
+            if (cart is null)
+                throw new Exception("Không tìm thấy giỏ hàng");
+
+            var cartProductItems = _unitOfWork.CartItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
+            var cartComboItems = _unitOfWork.CartComboItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
+
+            if (!cartProductItems.Any() && !cartComboItems.Any())
+                throw new Exception("Giỏ hàng trống");
+
+            // Kiểm tra sản phẩm bị từ chối
+            var rejectedProduct = _unitOfWork.ProductRepo.FindWhere(x =>
+                cartProductItems.Select(i => i.ProductId).Contains(x.Id)
+                && x.ModerationStatus == ModerationStatus.Rejected
+            );
+
+            if (rejectedProduct.Any())
+                throw new Exception("Đơn hàng đã có sự thay đổi (sản phẩm bị từ chối), vui lòng tải lại trang");
+
+            // Kiểm tra combo bị từ chối
+            var rejectedCombo = _unitOfWork.ComboRepo.FindWhere(x =>
+                cartComboItems.Select(i => i.ComboId).Contains(x.Id)
+                && x.ModerationStatus == ModerationStatus.Rejected
+            );
+
+            if (rejectedCombo.Any())
+                throw new Exception("Đơn hàng đã có sự thay đổi (combo bị từ chối), vui lòng tải lại trang");
+
+            // Kiểm tra mã giảm giá bị từ chối
+            if (item.DiscountCodeId != Guid.Empty)
+            {
+                var discount = _unitOfWork.DiscountCodeRepo.FindWhere(x =>
+                    x.Id == item.DiscountCodeId &&
+                    x.ModerationStatus == ModerationStatus.Rejected
+                );
+
+                if (discount.Any())
+                    throw new Exception("Mã giảm giá không hoạt động, vui lòng tải lại trang");
+            }
+
+            // Kiểm tra có ít nhất 1 sản phẩm hoạt động
+            bool isCoSPHoatDong = false;
+
+            foreach (var p in cartProductItems)
+            {
+                var product = await _unitOfWork.ProductRepo.GetByIdAsync(p.ProductId);
+                if (product?.ModerationStatus == ModerationStatus.Approved)
+                {
+                    isCoSPHoatDong = true;
+                    break;
+                }
+            }
+
+            foreach (var c in cartComboItems)
+            {
+                var combo = await _unitOfWork.ComboRepo.GetByIdAsync(c.ComboId);
+                if (combo?.ModerationStatus == ModerationStatus.Approved)
+                {
+                    isCoSPHoatDong = true;
+                    break;
+                }
+            }
+
+            if (!isCoSPHoatDong)
+                throw new Exception("Giỏ hàng trống (không có sản phẩm nào đang hoạt động)");
+
+            // Kiểm tra khuyến mãi
+            if (item.TongTienKhuyenMai > 0)
+            {
+                var comboItems = _unitOfWork.ComboProductItemRepository
+                    .FindWhere(x => cartComboItems.Select(c => c.Id).Contains(x.CartComboId))
+                    .ToList();
+
+                decimal tongEndow = 0;
+
+                foreach (var cartItem in cartProductItems)
+                {
+                    var product = await _unitOfWork.ProductRepo.GetByIdAsync(cartItem.ProductId);
+                    var size = _unitOfWork.SizesRepo.GetById(cartItem.SizeId ?? Guid.Empty);
+                    if (product?.ModerationStatus == ModerationStatus.Approved)
+                    {
+                        var gia = product.BasePrice + (size?.AdditionalPrice ?? 0);
+                        var priceEndow = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0);
+                        tongEndow += (gia - priceEndow) * cartItem.Quantity;
+                    }
+                }
+
+                foreach (var cartItem in cartComboItems)
+                {
+                    var combo = await _unitOfWork.ComboRepo.GetByIdAsync(cartItem.ComboId);
+                    if (combo?.ModerationStatus == ModerationStatus.Approved)
+                    {
+                        decimal priceSize = comboItems
+                            .Where(x => x.CartComboId == cartItem.Id)
+                            .Sum(x => _unitOfWork.SizesRepo.GetById(x.SizeId ?? Guid.Empty)?.AdditionalPrice ?? 0);
+
+                        var price = combo.BasePrice + priceSize;
+                        var priceEndow = GetPriceEndown(cartItem.ComboId, combo.BasePrice, priceSize);
+                        tongEndow += (price - priceEndow) * cartItem.Quantity;
+                    }
+                }
+
+                if (item.TongTienKhuyenMai != tongEndow)
+                    throw new Exception("Khuyến mãi đã có sự thay đổi, vui lòng tải lại trang");
+            }
+
+            // Kiểm tra mã giảm giá hết lượt sử dụng
+            if (item.DiscountCodeId != Guid.Empty)
+            {
+                var code = await _unitOfWork.DiscountCodeRepo.GetByIdAsync(item.DiscountCodeId);
+                if (code is not null &&
+                    code.ModerationStatus == ModerationStatus.Approved &&
+                    code.StartDate <= DateTime.Now &&
+                    DateTime.Now <= code.EndDate)
+                {
+                    if (code.UsedCount >= code.UsageLimit)
+                        throw new Exception("Mã giảm giá đã hết lượt sử dụng");
+                }
+            }
+
+            // Nếu không có lỗi → không trả về gì cả
+        }
+
+
         public async Task<Guid> CheckOutDatHangTaiQuay(CheckOutTaiQuayDto item)
         {
 
@@ -1022,6 +1189,29 @@ namespace Service.SnapFood.Application.Service
                     _unitOfWork.BeginTransaction();
                     var cartProductItems = _unitOfWork.CartItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
                     var cartComboItems = _unitOfWork.CartComboItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
+
+                    var ProductIds = cartProductItems.Select(x => x.ProductId).ToList();
+                    var ComboIds = cartComboItems.Select(x => x.ComboId).ToList();
+
+                    foreach (var p in ProductIds)
+                    {
+                        var productCheck = _unitOfWork.ProductRepo.FindWhere(x => x.Id == p && x.ModerationStatus == ModerationStatus.Rejected);
+                        if (productCheck.Count() > 0)
+                        {
+                            throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                        }
+                    }
+
+                    foreach (var c in ComboIds)
+                    {
+                        var comboCheck = _unitOfWork.ComboRepo.FindWhere(x => x.Id == c && x.ModerationStatus == ModerationStatus.Rejected);
+                        if (comboCheck.Count() > 0)
+                        {
+                            throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                        }
+                    }
+
+                   
 
                     if (!cartProductItems.Any() && !cartComboItems.Any())
                     {
@@ -1214,6 +1404,10 @@ namespace Service.SnapFood.Application.Service
                             billUpdate.TotalAmount = billDetails.Sum(x => x.Price * x.Quantity);
                             billUpdate.TotalAmountEndow = billDetails.Where(x => x.PriceEndow > 0).Sum(p => p.Price * p.Quantity - p.PriceEndow * p.Quantity);
 
+                            if (item.TongTienKhuyenMai != billUpdate.TotalAmountEndow)
+                            {
+                                throw new Exception("Khuyến mãi đã có sự thay đổi");
+                            }
                             _unitOfWork.BillRepo.Update(billUpdate);
                         }
 
@@ -1242,6 +1436,114 @@ namespace Service.SnapFood.Application.Service
             }
 
         }
+        public async Task ValidateCheckOutDatHangTaiQuay(CheckOutTaiQuayDto item)
+        {
+            var cart = await _unitOfWork.CartRepo.GetByIdAsync(item.CartId);
+            if (cart == null)
+                throw new Exception("Không tìm thấy giỏ hàng");
+
+            var cartProductItems = _unitOfWork.CartItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
+            var cartComboItems = _unitOfWork.CartComboItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
+
+            if (!cartProductItems.Any() && !cartComboItems.Any())
+                throw new Exception("Giỏ hàng trống");
+
+            // 1. Kiểm tra sản phẩm bị từ chối
+            var rejectedProduct = _unitOfWork.ProductRepo.FindWhere(x =>
+                cartProductItems.Select(i => i.ProductId).Contains(x.Id)
+                && x.ModerationStatus == ModerationStatus.Rejected
+            );
+            if (rejectedProduct.Any())
+                throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang (sản phẩm bị từ chối)");
+
+            // 2. Kiểm tra combo bị từ chối
+            var rejectedCombo = _unitOfWork.ComboRepo.FindWhere(x =>
+                cartComboItems.Select(i => i.ComboId).Contains(x.Id)
+                && x.ModerationStatus == ModerationStatus.Rejected
+            );
+            if (rejectedCombo.Any())
+                throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang (combo bị từ chối)");
+
+            // 3. Kiểm tra có ít nhất 1 sản phẩm hoặc combo đang hoạt động
+            bool isCoSPHoatDong = false;
+
+            foreach (var p in cartProductItems)
+            {
+                var product = await _unitOfWork.ProductRepo.GetByIdAsync(p.ProductId);
+                if (product?.ModerationStatus == ModerationStatus.Approved)
+                {
+                    isCoSPHoatDong = true;
+                    break;
+                }
+            }
+
+            if (!isCoSPHoatDong)
+            {
+                foreach (var c in cartComboItems)
+                {
+                    var combo = await _unitOfWork.ComboRepo.GetByIdAsync(c.ComboId);
+                    if (combo?.ModerationStatus == ModerationStatus.Approved)
+                    {
+                        isCoSPHoatDong = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!isCoSPHoatDong)
+                throw new Exception("Giỏ hàng trống (không có sản phẩm/combo hoạt động)");
+
+            // 4. Kiểm tra tổng tiền khuyến mãi (nếu có)
+            if (item.TongTienKhuyenMai > 0)
+            {
+                decimal tongKhuyenMai = 0;
+
+                foreach (var cartItem in cartProductItems)
+                {
+                    var product = await _unitOfWork.ProductRepo.GetByIdAsync(cartItem.ProductId);
+                    var size = _unitOfWork.SizesRepo.GetById(cartItem.SizeId ?? Guid.Empty);
+                    if (product?.ModerationStatus == ModerationStatus.Approved)
+                    {
+                        var basePrice = product.BasePrice + (size?.AdditionalPrice ?? 0);
+                        var endowPrice = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0);
+                        tongKhuyenMai += (basePrice - endowPrice) * cartItem.Quantity;
+                    }
+                }
+
+                var comboItems = _unitOfWork.ComboProductItemRepository
+                    .FindWhere(x => cartComboItems.Select(c => c.Id).Contains(x.CartComboId)).ToList();
+
+                foreach (var cartItem in cartComboItems)
+                {
+                    var combo = await _unitOfWork.ComboRepo.GetByIdAsync(cartItem.ComboId);
+                    if (combo?.ModerationStatus == ModerationStatus.Approved)
+                    {
+                        decimal priceSize = 0;
+                        var items = comboItems.Where(x => x.CartComboId == cartItem.Id).ToList();
+                        foreach (var i in items)
+                        {
+                            var size = await _unitOfWork.SizesRepo.GetByIdAsync(i.SizeId ?? Guid.Empty);
+                            priceSize += size?.AdditionalPrice ?? 0;
+                        }
+
+                        var basePrice = combo.BasePrice + priceSize;
+                        var endowPrice = GetPriceEndown(combo.Id, combo.BasePrice, priceSize);
+                        tongKhuyenMai += (basePrice - endowPrice) * cartItem.Quantity;
+                    }
+                }
+
+                if (item.TongTienKhuyenMai != tongKhuyenMai)
+                    throw new Exception("Khuyến mãi đã có sự thay đổi");
+            }
+
+            // 5. Kiểm tra cửa hàng còn hoạt động
+            var store = _unitOfWork.StoresRepo.FirstOrDefault(x => x.Status == Status.Activity);
+            if (store == null)
+                throw new Exception("Cửa hàng tạm thời đóng cửa");
+
+            // Nếu tới đây không lỗi → hợp lệ
+        }
+
         public int GetCartQuantity(Guid userId)
         {
             var cart = _unitOfWork.CartRepo.FirstOrDefault(x => x.UserId == userId);

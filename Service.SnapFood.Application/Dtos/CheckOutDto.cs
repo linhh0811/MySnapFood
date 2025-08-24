@@ -20,6 +20,7 @@ namespace Service.SnapFood.Application.Dtos
         public decimal DiscountCodeValue { get; set; }
         public decimal PhiGiaoHang { get; set; }
         public double KhoangCach { get; set; }
+        public decimal TongTienKhuyenMai { get; set; }
 
     }
 }

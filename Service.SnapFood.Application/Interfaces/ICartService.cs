@@ -10,7 +10,9 @@ namespace Service.SnapFood.Application.Interfaces
         Task AddComboToCartAsync(AddComboToCartDto item);
         Task AddProductToCartAsync(AddProductToCartDto item);
         Task CheckOut(CheckOutDto item);
+        Task CheckOutValidateOnly(CheckOutDto item);
         Task<Guid> CheckOutDatHangTaiQuay(CheckOutTaiQuayDto item);
+        Task ValidateCheckOutDatHangTaiQuay(CheckOutTaiQuayDto item);
         //Task ClearCart(Guid cartId);
         List<CartDto> GetListCartByUserId(Guid UserId);
         Task<CartDto> GetCartByIdUserAsync(Guid userId);

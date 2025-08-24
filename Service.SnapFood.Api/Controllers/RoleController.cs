@@ -28,71 +28,46 @@ namespace Service.SnapFood.Api.Controllers
         [HttpPost("Users/GetPaged")]
         public IActionResult GetAllUsersPaged([FromBody] BaseQuery query)
         {
-            try
-            {
-                var result = _roleService.GetAllUsersPaged(query);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            var result = _roleService.GetAllUsersPaged(query);
+            return Ok(result);
+
         }
 
         [HttpPost("{roleId}/Users/GetPaged")]
         public IActionResult GetUsersByRoleId(Guid roleId, [FromBody] BaseQuery query)
         {
-            try
-            {
-                var result = _roleService.GetUsersByRoleIdPaged(roleId, query);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            var result = _roleService.GetUsersByRoleIdPaged(roleId, query);
+            return Ok(result);
+
         }
 
         [HttpPost("{roleId}/GetAllUsersPaged")]
         public IActionResult GetAllUsersPagedForRole(Guid roleId, [FromBody] BaseQuery query)
         {
-            try
-            {
-                var result = _roleService.GetAllUsersPagedForRole(roleId, query);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            var result = _roleService.GetAllUsersPagedForRole(roleId, query);
+            return Ok(result);
+
         }
 
         [HttpPost("{roleId}/AddUser")]
         public async Task<IActionResult> AddUserToRole(Guid roleId, [FromBody] Guid userId)
         {
-            try
-            {
-                var result = await _roleService.AddUserToRoleAsync(userId, roleId);
-                return Ok(new { success = true, message = "Thêm người dùng vào quyền thành công" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+
+            var result = await _roleService.AddUserToRoleAsync(userId, roleId);
+            return Ok(new { success = true, message = "Thêm người dùng vào quyền thành công" });
+
         }
 
         [HttpPost("{roleId}/RemoveUser")]
         public async Task<IActionResult> RemoveUserFromRole(Guid roleId, [FromBody] Guid userId)
         {
-            try
-            {
-                var result = await _roleService.RemoveUserFromRoleAsync(userId, roleId);
-                return Ok(new { success = true, message = "Xóa người dùng khỏi quyền thành công" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+
+            var result = await _roleService.RemoveUserFromRoleAsync(userId, roleId);
+            return Ok(new { success = true, message = "Xóa người dùng khỏi quyền thành công" });
+
         }
     }
 }

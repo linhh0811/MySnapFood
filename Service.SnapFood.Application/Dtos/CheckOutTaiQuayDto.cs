@@ -14,5 +14,7 @@ namespace Service.SnapFood.Application.Dtos
         public Guid CartId { get; set; }
         public PaymentType PhuongThucThanhToan { get; set; }
         public string GhiChu { get; set; } = string.Empty;
+        public decimal TongTienKhuyenMai { get; set; }
+
     }
 }

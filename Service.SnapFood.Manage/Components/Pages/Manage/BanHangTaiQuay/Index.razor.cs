@@ -233,9 +233,12 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
                         {
                             CartSelect = Carts.Last().Id;
                         }
-                        CartSelect = Carts.First().Id;
+                        else
+                        {
+                            CartSelect= Guid.Empty;
+                        }
 
-                        await LoadCart();
+                            await LoadCart();
                         StateHasChanged();
                     }
                     else
@@ -287,12 +290,16 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
 
         private async Task OpenView()
         {
-            if (CartSelect == Guid.Empty)
+            if (CartModel.CartItems.Count(x => x.ModerationStatus == ModerationStatus.Rejected) > 0)
+            {
+                ToastService.ShowWarning($"Vui lòng xóa sản phẩm hết hàng ra khỏi giỏ hàng");
+            }
+            else if (CartSelect == Guid.Empty)
             {
                 ToastService.ShowWarning($"Chưa có đơn hàng");
 
             }
-            else if (CartModel.CartItems.Count() == 0|| totalPrice==0)
+            else if (CartModel.CartItems.Count() == 0 || totalPrice == 0)
             {
                 ToastService.ShowWarning($"Đơn hàng trống");
 
@@ -301,22 +308,41 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
             {
                 try
                 {
-                    var parameters = new ThanhToanParameters
+                    CheckOutTaiQuayDto checkOutTaiQuayDto = new CheckOutTaiQuayDto()
                     {
                         CartId = CartSelect,
                         PhuongThucThanhToan = PhuongThucThanhToan,
-                        OnRefresh = EventCallback.Factory.Create(this, LoadListCart)
+                        TongTienKhuyenMai = totalPriceEndown,
+                        NhanVienId = CurrentUser.UserId
                     };
-                    await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
-                    {
-                        Title = "XÁC NHẬN ĐƠN HÀNG",
-                        PreventDismissOnOverlayClick = true,
-                        PreventScroll = true,
-                        Modal = true,
-                        Width = "600px",
-                        TrapFocus = false
 
-                    });
+                    var request = new ApiRequestModel { Endpoint = "api/Cart/KiemTraCheckoutTaiQuay" };
+                    var result = await CallApi.Post<Guid>(request, checkOutTaiQuayDto);
+                    if (result.Status == StatusCode.OK)
+                    {
+                        var parameters = new ThanhToanParameters
+                        {
+                            CartId = CartSelect,
+                            PhuongThucThanhToan = PhuongThucThanhToan,
+                            OnRefresh = EventCallback.Factory.Create(this, LoadListCart)
+                        };
+                        await DialogService.ShowDialogAsync<View>(parameters, new DialogParameters
+                        {
+                            Title = "XÁC NHẬN ĐƠN HÀNG",
+                            PreventDismissOnOverlayClick = true,
+                            PreventScroll = true,
+                            Modal = true,
+                            Width = "600px",
+                            TrapFocus = false
+
+                        });
+                    }
+                    else
+                    {
+                        ToastService.ShowError("Đặt hàng thất bại." + result.Message);
+                    }
+
+
                 }
                 catch (Exception ex)
                 {
@@ -324,6 +350,11 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
                 }
             }
 
+        }
+
+        protected async Task KiemTraCheckOut()
+        {
+           
         }
 
         public async Task SelectCart(Guid CartId)
