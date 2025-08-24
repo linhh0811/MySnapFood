@@ -711,7 +711,7 @@ namespace Service.SnapFood.Application.Service
                                 join pr in _unitOfWork.PromotionRepository.Query()
                                     on pi.PromotionId equals (Guid?)pr.Id into promoGroup
                                 from pr in promoGroup.DefaultIfEmpty()
-                                where pr == null || (pr.StartDate <= now && pr.EndDate >= now)
+                                where pr == null || (pr.StartDate <= now && pr.EndDate >= now&&pr.ModerationStatus==ModerationStatus.Approved)
                                 select new
                                 {
                                     ProductId = pi.ProductId.Value,
@@ -819,7 +819,7 @@ namespace Service.SnapFood.Application.Service
                                 join pr in _unitOfWork.PromotionRepository.Query()
                                     on pi.PromotionId equals (Guid?)pr.Id into promoGroup
                                 from pr in promoGroup.DefaultIfEmpty()
-                                where pr == null || (pr.StartDate <= now && pr.EndDate >= now)
+                                where pr == null || (pr.StartDate <= now && pr.EndDate >= now && pr.ModerationStatus == ModerationStatus.Approved)
                                 select new
                                 {
                                     ComboId = pi.ComboId.Value,

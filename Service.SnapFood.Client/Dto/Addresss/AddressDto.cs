@@ -13,7 +13,7 @@ namespace Service.SnapFood.Client.Dto.Addresss
 
         public string FullName { get; set; } = string.Empty;
         [Required(ErrorMessage = "Số điện thoại không được để trống")]
-
+        [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Số điện thoại không hợp lệ")]
         public string NumberPhone { get; set; } = string.Empty;
         [Required(ErrorMessage = "Tỉnh/thành phố không được để trống")]
 

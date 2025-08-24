@@ -225,7 +225,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 }
                 checkOutDto.DiscountCodeId = SelectedDiscountCode;
                 checkOutDto.DiscountCodeValue = DiscountCodeValue;
-
+                checkOutDto.TongTienKhuyenMai = totalPriceEndown;
 
                 var request = new ApiRequestModel { Endpoint = "api/Cart/Checkout" };
                 var result = await CallApi.Post<object>(request, checkOutDto);
@@ -246,7 +246,59 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 ToastService.ShowError($"Lỗi khi đặt hàng: {ex.Message}");
             }
         }
-     
+
+        protected async Task<bool> KiemTraCheckOut()
+        {
+            try
+            {
+
+
+                var checkOutDto = new CheckOutDto
+                {
+                    UserId = CurrentUser.UserId,
+                    Description = Notes,
+                };
+                if (PhuongThucNhanHang == "Nhan-Tai-Quay")
+                {
+                    checkOutDto.ReceivingType = ReceivingType.PickUpAtStore;
+                    checkOutDto.PaymentType = SelectedPaymentMethod;
+                    checkOutDto.ReceiverName = ReceiverName;
+                    checkOutDto.ReceiverPhone = ReceiverPhone;
+                }
+                else
+                {
+                    checkOutDto.ReceivingType = ReceivingType.HomeDelivery;
+                    checkOutDto.PaymentType = SelectedPaymentMethod;
+                    checkOutDto.PhiGiaoHang = PhiVanChuyen;
+                    checkOutDto.KhoangCach = KhoangCach;
+
+
+
+                }
+                checkOutDto.DiscountCodeId = SelectedDiscountCode;
+                checkOutDto.DiscountCodeValue = DiscountCodeValue;
+                checkOutDto.TongTienKhuyenMai = totalPriceEndown;
+
+                var request = new ApiRequestModel { Endpoint = "api/Cart/KiemTraCheckout" };
+                var result = await CallApi.Post<object>(request, checkOutDto);
+                if (result.Status == StatusCode.OK)
+                {
+
+                    return true;
+                }
+                else
+                {
+                    ToastService.ShowError("Đặt hàng thất bại." + result.Message);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi đặt hàng: {ex.Message}");
+                return false;
+
+            }
+        }
         protected async Task OpenModalDiscountCode()
         {
             try
@@ -402,16 +454,20 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                 ToastService.ShowError($"Khoảng cách giao hàng vượt quá bán kính giao hàng({ThongTinGiaoHang.BanKinhGiaoHang} km).");
                 return;
             }
-         
 
-            if (SelectedPaymentMethod == PaymentType.BankTransfer)
+            var check = await KiemTraCheckOut();
+            if (check)
             {
-                await OpenModalQrCk();
+                if (SelectedPaymentMethod == PaymentType.BankTransfer)
+                {
+                    await OpenModalQrCk();
+                }
+                else if (SelectedPaymentMethod == PaymentType.Cash)
+                {
+                    await HandleCheckOut();
+                }
             }
-            else if (SelectedPaymentMethod == PaymentType.Cash)
-            {
-                await HandleCheckOut();
-            }
+           
         }
     }
 }

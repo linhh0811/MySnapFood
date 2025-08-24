@@ -120,10 +120,13 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
 
         protected void CheckOut()
         {
-            if (totalPrice ==0)
+             if (CartModel.CartItems.Count(x=>x.ModerationStatus==ModerationStatus.Rejected)>0)
+            {
+                ToastService.ShowWarning($"Vui lòng xóa sản phẩm hết hàng ra khỏi giỏ hàng");
+            }
+            else if(totalPrice == 0)
             {
                 ToastService.ShowWarning($"Giỏ hàng trống, vui lòng tiếp tục mua sắm");
-
             }
             else
             {
