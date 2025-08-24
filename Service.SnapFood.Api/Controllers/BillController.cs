@@ -197,13 +197,13 @@ namespace Service.SnapFood.Api.Controllers
         }
 
         [HttpGet("topproduct")]
-        public async Task<IActionResult> GetTopSelling([FromQuery] int top = 5)
+        public async Task<IActionResult> GetTopSelling([FromQuery] int top = 8)
         {
             var result = await _billService.GetTop5SellingProductsAsync();
             return Ok(result);
         }
         [HttpGet("topcombo")]
-        public async Task<IActionResult> GetTopSellingCombo([FromQuery] int top = 5)
+        public async Task<IActionResult> GetTopSellingCombo([FromQuery] int top = 8)
         {
             var result = await _billService.GetTop5SellingCombosAsync();
             return Ok(result);

@@ -1,7 +1,10 @@
-﻿@using Service.SnapFood.Client.Components.Pages.Auth
+﻿
+@using Service.SnapFood.Client.Components.Pages.Auth
 @using Service.SnapFood.Client.Dto
 @using Service.SnapFood.Client.Dto.Bill
 @using Service.SnapFood.Client.Dto.Cart
+@using Service.SnapFood.Client.Dto.Combo
+@using Service.SnapFood.Client.Dto.Product
 @using Service.SnapFood.Client.Dto.Promotion
 @using Service.SnapFood.Client.Enums
 @using Service.SnapFood.Client.Infrastructure.Service
@@ -10,6 +13,9 @@
 @using Service.SnapFood.Share.Model.SQL
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @using System.Timers
+@using Service.SnapFood.Share.Query
+@using Service.SnapFood.Share.Query.Grid
+@using System.Text.Json
 @inject SharedStateService SharedService
 @if (isLoading)
 {
@@ -142,99 +148,81 @@ else
         }
     }
 
-    @if (topProducts.Any())
+    @if (ProductDto.Any())
     {
         <section class="py-4">
             <h2 class="mb-3 fw-bold text-center text-uppercase">🔥 TOP SẢN PHẨM BÁN CHẠY</h2>
             <div class="row">
-                @if (topProducts == null || !topProducts.Any())
+                @if (ProductDto == null || !ProductDto.Any())
                 {
                     <p class="text-center text-muted">Chưa có dữ liệu.</p>
                 }
                 else
                 {
-                    @foreach (var p in topProducts)
+                    @foreach (var product in ProductDto)
                     {
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                            <FluentCard class="h-100 position-relative shadow-sm product-card"
-                            style="min-height: 280px; border-radius: 12px; overflow: hidden;">
-
-                                <!-- Hình ảnh -->
-                                <img src="@p.ImageUrl"
-                                style="height: 180px; object-fit: cover; width: 100%;"
-                                alt="@p.ProductName" />
-
-                                <div style="padding: 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 100px;">
+                            <FluentCard class="h-100 position-relative" style="min-height: 380px;">
+                                <img src="@product.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@product.ProductName" />
+                                <div style="padding: 0; min-height: 100px; display: flex; flex-direction: column; justify-content: space-between;">
                                     <div>
+                                        <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px;">@product.ProductName</FluentLabel>
+                                        @if (!string.IsNullOrEmpty(product.SizeName))
+                                        {
+                                            <p class="card-title" style="margin: 0;padding:0px;padding-bottom:20px;">@product.SizeName</p>
+                                        }
+                                        else if (!string.IsNullOrEmpty(product.CategoryName))
+                                        {
+                                            <p class="card-title" style="margin: 0;padding:0px;">@product.CategoryName</p>
 
-                                        <FluentLabel Typo="Typography.H6" class="fw-bold">@p.ProductName</FluentLabel>
-                                        <FluentLabel Typo="Typography.H6">
+                                        }
+                                    </div>
+                                    <p class="text-muted mb-1" style="font-size: 13px;">
+                                        Đã bán: <b>@product.Quantity</b>
+                                    </p>
+                                    @if (product.PriceEndown > 0)
+                                    {
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                                @product.BasePrice.ToString("N0") đ
+                                            </FluentLabel>
 
-                                            @if (!string.IsNullOrEmpty(p.DisplayCategory))
+                                            @if (product.BasePrice > product.PriceEndown)
                                             {
-                                                <span class="text-muted" style="font-size: 14px;">@p.DisplayCategory</span>
-                                            }
-
-                                        </FluentLabel>
-
-                                        <!-- Số lượng đã bán -->
-                                        <p class="text-muted mb-1" style="font-size: 13px;">
-                                            Đã bán: <b>@p.TotalQuantity</b>
-                                        </p>
-
-                                        <!-- Giá gốc + % giảm (giữ chỗ ngay cả khi không có giảm) -->
-                                        <div style="display: flex; align-items: center; gap: 10px; min-height: 24px;">
-                                            @if (p.BasePrice > p.PriceEndown)
-                                            {
-                                                <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
-                                                    @p.BasePrice.ToString("N0") đ
-                                                </FluentLabel>
+                                                var discountPercent = Math.Round(((product.BasePrice - product.PriceEndown) / product.BasePrice) * 100);
                                                 <FluentLabel Typo="Typography.H6" Style="color: green;">
-                                                    -@Math.Round(p.DiscountPercent, 0)%
+                                                    -@discountPercent%
                                                 </FluentLabel>
-                                            }
-                                            else
-                                            {
-                                                <!-- chừa chỗ để không bị lệch -->
-                                                <span style="visibility:hidden;">placeholder</span>
                                             }
                                         </div>
-                                    </div>
+                                    }
 
-                                    <!-- Giá cuối + nút thêm ngang hàng -->
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                                        <FluentLabel Typo="Typography.H5" Style="color: red; font-weight: bold;">
-                                            @p.PriceEndown.ToString("N0") đ
-                                        </FluentLabel>
-
-                                        @if (!string.IsNullOrEmpty(p.SizeName))
+                                </div>
+                                <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                                    <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                                        @if (product.PriceEndown > 0)
                                         {
-                                            <!-- Có size => mở modal chọn size -->
-                                            <FluentButton BackgroundColor="#ff5b6a"
-                                            Color="white"
-                                            Title="Chọn kích thước"
-                                            Style="padding: 0; margin-left: auto;"
-                                            Type="ButtonType.Submit"
-                                            OnClick="()=>HandleClick(p.Id, p.SizeName)">
-                                                +
-                                            </FluentButton>
+                                            <span>@product.PriceEndown.ToString("N0") đ</span>
                                         }
                                         else
                                         {
-                                            <!-- Không có size => thêm thẳng -->
-                                            <FluentButton BackgroundColor="#ff5b6a"
-                                            Color="white"
-                                            Title="Thêm sản phẩm"
-                                            Style="padding: 0; margin-left: auto;"
-                                            Type="ButtonType.Submit"
-                                            OnClick="()=>AddProductToCart(p.Id)">
-                                                +
-                                            </FluentButton>
+                                            <span>@product.BasePrice.ToString("N0") đ</span>
+
                                         }
-                                    </div>
+
+                                    </FluentLabel>
+                                    <FluentButton BackgroundColor="#ff5b6a"
+                                    Color="white"
+                                    Title="Thêm sản phẩm"
+                                    Style="padding: 0; margin-left: auto;"
+                                    Type="ButtonType.Submit"
+                                    OnClick="()=>HandleClick(product.Id,product.SizeId)">
+                                        +
+                                    </FluentButton>
                                 </div>
                             </FluentCard>
                         </div>
+
                     }
                 }
             </div>
@@ -245,77 +233,71 @@ else
 
 
 
-    @if (topCombos.Any())
+    @if (ComboDto.Any())
     {
         <section class="py-4">
             <h2 class="mb-3 fw-bold text-center text-uppercase">🔥 TOP COMBO BÁN CHẠY</h2>
             <div class="row">
-                @if (topCombos == null || !topCombos.Any())
+                @if (ComboDto == null || !ComboDto.Any())
                 {
                     <p class="text-center text-muted">Chưa có dữ liệu.</p>
                 }
                 else
                 {
-                    @foreach (var c in topCombos)
+                    @foreach (var combo in ComboDto)
                     {
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                            <FluentCard class="h-100 position-relative shadow-sm product-card"
-                            style="min-height: 380px; border-radius: 12px; overflow: hidden;">
-
-                                <!-- Hình ảnh -->
-                                <img src="@c.ImageUrl"
-                                style="height: 180px; object-fit: cover; width: 100%;"
-                                alt="@c.ProductName" />
-
-                                <div style="padding: 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px;">
+                            <FluentCard class="h-100 position-relative" style="min-height: 400px;">
+                                <img src="@combo.ImageUrl" style="height: 200px; object-fit: cover; width: 100%;" alt="@combo.ComboName" />
+                                <div style=" min-height: 120px;display: flex; flex-direction: column; justify-content: space-between;padding-bottom:40px;">
                                     <div>
-                                        <!-- Tên combo -->
-                                        <FluentLabel Typo="Typography.H6" class="fw-bold">@c.ProductName</FluentLabel>
-
-                                        <!-- Danh sách sản phẩm trong combo -->
-                                        <ul class="mb-2" style="padding-left: 0; margin-bottom: 8px; list-style-type: none;">
-                                            @foreach (var item in c.Items)
-                                            {
-                                                <li style="font-size: 14px;">
-                                                    @item.Quantity @item.ProductName
-                                                </li>
-                                            }
-                                        </ul>
-
-                                        <!-- Số lượng bán -->
-                                        <p class="text-muted mb-1" style="font-size: 13px;">
-                                            Đã bán: <b>@c.TotalQuantity</b>
-                                        </p>
-
-                                        <!-- Giá gốc + % giảm -->
-                                        @if (c.BasePrice > c.PriceEndown)
+                                        <FluentLabel Typo="Typography.H5" Style="padding-bottom:10px">@combo.ComboName</FluentLabel>
+                                        @foreach (var item in combo.ComboItems)
                                         {
-                                            <div style="display: flex; align-items: center; gap: 10px;">
-                                                <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
-                                                    @c.BasePrice.ToString("N0") đ
-                                                </FluentLabel>
-                                                <FluentLabel Typo="Typography.H6" Style="color: green;">
-                                                    -@Math.Round(c.DiscountPercent, 0)%
-                                                </FluentLabel>
-                                            </div>
+                                            <p class="card-title" style="margin: 0;">@item.ProductName</p>
                                         }
                                     </div>
+                                    <p class="text-muted mb-1" style="font-size: 13px;">
+                                        Đã bán: <b>@combo.Quantity</b>
+                                    </p>
+                                    @if (combo.PriceEndown > 0)
+                                    {
+                                        <div style="display: flex; align-items: center; gap: 10px; padding-top:10px;">
+                                            <FluentLabel Typo="Typography.H6" Style="color: red; text-decoration: line-through;">
+                                                @combo.BasePrice.ToString("N0") đ
+                                            </FluentLabel>
+                                            @if (combo.BasePrice > combo.PriceEndown)
+                                            {
+                                                var discountPercent = Math.Round(((combo.BasePrice - combo.PriceEndown) / combo.BasePrice) * 100);
+                                                <FluentLabel Typo="Typography.H6" Style="color: green;">
+                                                    -@discountPercent%
+                                                </FluentLabel>
+                                            }
+                                        </div>
+                                    }
 
-                                    <!-- Giá cuối + nút thêm -->
-                                    <div style="display: flex; align-items: center; gap: 10px; margin-top: auto;">
-                                        <FluentLabel Typo="Typography.H5" Style="color: red; font-weight: bold;">
-                                            @c.PriceEndown.ToString("N0") đ
-                                        </FluentLabel>
+                                </div>
+                                <div style="position: absolute; bottom: 0; left: 0; display: flex; align-items: center; gap: 10px; padding: 20px; width: 100%;">
+                                    <FluentLabel Typo="Typography.H4" Style="color: red; font-weight: bold;">
+                                        @if (combo.PriceEndown > 0)
+                                        {
+                                            <span>@combo.PriceEndown.ToString("N0") đ</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@combo.BasePrice.ToString("N0") đ</span>
 
-                                        <FluentButton BackgroundColor="#ff5b6a"
-                                        Color="white"
-                                        Title="Thêm combo"
-                                        Style="padding: 0; margin-left: auto;"
-                                        Type="ButtonType.Submit"
-                                        OnClick="()=>OpenModalComboAdd(c.Id)">
-                                            +
-                                        </FluentButton>
-                                    </div>
+                                        }
+
+                                    </FluentLabel>
+                                    <FluentButton BackgroundColor="#ff5b6a"
+                                    Color="white"
+                                    Title="Thêm combo"
+                                    Style="padding: 0; margin-left: auto;"
+                                    Type="ButtonType.Submit"
+                                    OnClick="()=>OpenModalComboAdd(combo.Id)">
+                                        +
+                                    </FluentButton>
                                 </div>
                             </FluentCard>
                         </div>
@@ -342,14 +324,17 @@ else
 
     private bool isLoading = true;
     private Timer? Timer;
-    private List<TopSellingItemDTo> topProducts = new();
-    private List<TopSellingItemDTo> topCombos = new();
+    private List<ProductDto> ProductDto = new List<ProductDto>();
+    private List<ComboDto> ComboDto = new List<ComboDto>();
+
 
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
         await GetPromotion();
-        await GetTopSelling();
+        await LoadProduct();
+        await LoadCombo();
+
         isLoading = false;
         Timer = new Timer(1000);
         Timer.Elapsed += UpdateTimer;
@@ -372,6 +357,87 @@ else
         // Hủy Timer khi component bị hủy
         Timer?.Dispose();
     }
+    private async Task LoadProduct()
+    {
+
+        try
+        {
+            var baseQuery = new BaseQuery
+                {
+
+                    gridRequest = new GridRequest
+                    {
+                        page = 1,
+                        pageSize = int.MaxValue,
+
+                    }
+                };
+            requestRestAPI.Endpoint = "api/Product/GetPaged";
+
+            ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
+            if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
+            {
+                var items = JsonSerializer.Deserialize<List<ProductDto>>(dataTable.Data.GetRawText(),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ProductDto>();
+
+                ProductDto = items
+                            .Where(x => x.ModerationStatus == ModerationStatus.Approved&&x.Quantity>=5)
+                            .OrderByDescending(x => x.Quantity)
+                            .Take(8)
+                            .ToList();
+
+            }
+            StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách sản phẩm: {ex.Message}");
+        }
+    }
+
+
+    private async Task LoadCombo()
+    {
+
+        try
+        {
+            var baseQuery = new BaseQuery
+                {
+
+                    gridRequest = new GridRequest
+                    {
+                        page = 1,
+                        pageSize = int.MaxValue,
+
+                    }
+                };
+            requestRestAPI.Endpoint = "api/Combo/GetPaged";
+
+            ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
+            if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
+            {
+                var items = JsonSerializer.Deserialize<List<ComboDto>>(dataTable.Data.GetRawText(),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<ComboDto>();
+
+               
+                ComboDto = items
+                            .Where(x => x.ModerationStatus == ModerationStatus.Approved && x.Quantity >= 5)
+                            .OrderByDescending(x => x.Quantity)
+                            .Take(8)
+                            .ToList();
+
+
+            }
+            StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi tải danh sách sản phẩm: {ex.Message}");
+        }
+    }
+
     private async Task GetPromotion()
     {
         requestRestAPI.Endpoint = $"api/Promotion/Hd";
@@ -386,29 +452,7 @@ else
         }
     }
 
-    private async Task GetTopSelling()
-    {
-        try
-        {
-            requestRestAPI.Endpoint = "api/bill/topproduct";
-            var resultProducts = await CallApi.Get<List<TopSellingItemDTo>>(requestRestAPI);
-            if (resultProducts.Status == StatusCode.OK)
-            {
-                topProducts = resultProducts.Data as List<TopSellingItemDTo> ?? new List<TopSellingItemDTo>();
-            }
-
-            requestRestAPI.Endpoint = "api/bill/topcombo";
-            var resultCombos = await CallApi.Get<List<TopSellingItemDTo>>(requestRestAPI);
-            if (resultCombos.Status == StatusCode.OK)
-            {
-                topCombos = resultCombos.Data as List<TopSellingItemDTo> ?? new List<TopSellingItemDTo>();
-            }
-        }
-        catch (Exception ex)
-        {
-            ToastService.ShowError($"Lỗi khi tải top bán chạy: {ex.Message}");
-        }
-    }
+ 
 
 
     private async Task OpenModalComboAdd(Guid id)
