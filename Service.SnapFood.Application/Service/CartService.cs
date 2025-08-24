@@ -473,7 +473,7 @@ namespace Service.SnapFood.Application.Service
             foreach (var item in CartProductItem)
             {
                 var product = await _unitOfWork.ProductRepo.GetByIdAsync(item.ProductId);
-                if (product != null && product.ModerationStatus == ModerationStatus.Approved)
+                if (product != null )
                 {
                     var size = await _unitOfWork.SizesRepo.GetByIdAsync(item.SizeId ?? Guid.Empty);
                     CartItems.Add(new CartItemDto
@@ -1069,7 +1069,7 @@ namespace Service.SnapFood.Application.Service
             );
 
             if (rejectedProduct.Any())
-                throw new Exception("Đơn hàng đã có sự thay đổi (sản phẩm bị từ chối), vui lòng tải lại trang");
+                throw new Exception("Đơn hàng đã có sự thay đổi (sản phẩm hết hàng), vui lòng tải lại trang");
 
             // Kiểm tra combo bị từ chối
             var rejectedCombo = _unitOfWork.ComboRepo.FindWhere(x =>
@@ -1078,7 +1078,7 @@ namespace Service.SnapFood.Application.Service
             );
 
             if (rejectedCombo.Any())
-                throw new Exception("Đơn hàng đã có sự thay đổi (combo bị từ chối), vui lòng tải lại trang");
+                throw new Exception("Đơn hàng đã có sự thay đổi (combo hết hàng), vui lòng tải lại trang");
 
             // Kiểm tra mã giảm giá bị từ chối
             if (item.DiscountCodeId != Guid.Empty)
@@ -1135,7 +1135,7 @@ namespace Service.SnapFood.Application.Service
                     {
                         var gia = product.BasePrice + (size?.AdditionalPrice ?? 0);
                         var priceEndow = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0);
-                        tongEndow += (gia - priceEndow) * cartItem.Quantity;
+                        tongEndow +=(gia- priceEndow) * cartItem.Quantity;
                     }
                 }
 
@@ -1150,7 +1150,7 @@ namespace Service.SnapFood.Application.Service
 
                         var price = combo.BasePrice + priceSize;
                         var priceEndow = GetPriceEndown(cartItem.ComboId, combo.BasePrice, priceSize);
-                        tongEndow += (price - priceEndow) * cartItem.Quantity;
+                        tongEndow += (price-priceEndow )* cartItem.Quantity;
                     }
                 }
 
@@ -1454,7 +1454,7 @@ namespace Service.SnapFood.Application.Service
                 && x.ModerationStatus == ModerationStatus.Rejected
             );
             if (rejectedProduct.Any())
-                throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang (sản phẩm bị từ chối)");
+                throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang (sản phẩm hết hàng)");
 
             // 2. Kiểm tra combo bị từ chối
             var rejectedCombo = _unitOfWork.ComboRepo.FindWhere(x =>
@@ -1462,7 +1462,7 @@ namespace Service.SnapFood.Application.Service
                 && x.ModerationStatus == ModerationStatus.Rejected
             );
             if (rejectedCombo.Any())
-                throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang (combo bị từ chối)");
+                throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang (combo hết hàng)");
 
             // 3. Kiểm tra có ít nhất 1 sản phẩm hoặc combo đang hoạt động
             bool isCoSPHoatDong = false;
@@ -1506,7 +1506,7 @@ namespace Service.SnapFood.Application.Service
                     {
                         var basePrice = product.BasePrice + (size?.AdditionalPrice ?? 0);
                         var endowPrice = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0);
-                        tongKhuyenMai += (basePrice - endowPrice) * cartItem.Quantity;
+                        tongKhuyenMai += endowPrice * cartItem.Quantity;
                     }
                 }
 
@@ -1528,7 +1528,7 @@ namespace Service.SnapFood.Application.Service
 
                         var basePrice = combo.BasePrice + priceSize;
                         var endowPrice = GetPriceEndown(combo.Id, combo.BasePrice, priceSize);
-                        tongKhuyenMai += (basePrice - endowPrice) * cartItem.Quantity;
+                        tongKhuyenMai += endowPrice * cartItem.Quantity;
                     }
                 }
 

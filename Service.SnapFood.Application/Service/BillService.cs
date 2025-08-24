@@ -662,7 +662,7 @@ namespace Service.SnapFood.Application.Service
             return BillDangXuLyDto;
         }
 
-        public async Task<List<TopSellingItemDto>> GetTop5SellingProductsAsync(int top = 5)
+        public async Task<List<TopSellingItemDto>> GetTop5SellingProductsAsync(int top = 8)
         {
 
             var now = DateTime.Now;
@@ -687,7 +687,7 @@ namespace Service.SnapFood.Application.Service
 
             // 2️⃣ Lấy sản phẩm + size + category
             var products = await (from p in _unitOfWork.ProductRepo.Query()
-                                  where productIds.Contains(p.Id)
+                                  where (productIds.Contains(p.Id)&&p.ModerationStatus==ModerationStatus.Approved)
                                   join s in _unitOfWork.SizesRepo.Query() on p.SizeId equals s.Id into sizeGroup
                                   from s in sizeGroup.DefaultIfEmpty()
                                   join c in _unitOfWork.CategoriesRepo.Query() on p.CategoryId equals c.Id into catGroup
@@ -782,7 +782,7 @@ namespace Service.SnapFood.Application.Service
             return result;
             }
 
-        public async Task<List<TopSellingItemDto>> GetTop5SellingCombosAsync(int top = 5)
+        public async Task<List<TopSellingItemDto>> GetTop5SellingCombosAsync(int top = 8)
         {
 
             var now = DateTime.Now;
@@ -798,7 +798,8 @@ namespace Service.SnapFood.Application.Service
                                      bd.ItemId,
                                      c.ComboName,
                                      c.ImageUrl,
-                                     c.BasePrice
+                                     c.BasePrice,
+                                     c.ModerationStatus
                                  } into g
                                  select new
                                  {
@@ -806,7 +807,8 @@ namespace Service.SnapFood.Application.Service
                                      g.Key.ComboName,
                                      g.Key.ImageUrl,
                                      g.Key.BasePrice,
-                                     TotalQuantity = g.Sum(x => x.bd.Quantity)
+                                     TotalQuantity = g.Sum(x => x.bd.Quantity),
+                                     ModerationStatus=g.Key.ModerationStatus
                                  })
                                 .OrderByDescending(x => x.TotalQuantity)
                                 .Take(top)
@@ -871,7 +873,7 @@ namespace Service.SnapFood.Application.Service
                     PriceEndown = priceEndown,
                     DiscountPercent = discountPercent,
                     IsDangKM = promo != null,
-
+                    ModerationStatus=x.ModerationStatus,
                     // lấy list sản phẩm của combo
                     Items = comboProducts.Where(cp => cp.ComboId == x.Id)
                                          .Select(cp => new ComboProductDto
@@ -882,7 +884,7 @@ namespace Service.SnapFood.Application.Service
                 };
             }).ToList();
 
-            return result;
+            return result.Where(x=>x.ModerationStatus==ModerationStatus.Approved).ToList();
         }
     }
 

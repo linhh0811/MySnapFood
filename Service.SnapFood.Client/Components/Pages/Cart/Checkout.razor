@@ -3,6 +3,7 @@
 @using Service.SnapFood.Client.Dto.Cart
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Service.SnapFood.Client.Enums
+@using Service.SnapFood.Share.Model.SQL
 @if (isLoading)
 {
     <div class="loading-center">
@@ -45,9 +46,15 @@ else
                                 <div class="row align-items-center border-bottom pb-2">
                                     <div class="col-2">
                                         <img style="max-width:70px;max-height:60px;" src="@item.ImageUrl" alt="@item.ItemName" class="img-fluid rounded" />
+                                        
                                     </div>
                                     <div class="col-10">
-                                        <p class="my-1 fw-bold">@item.ItemName</p>
+                                        <p class="my-1 fw-bold" style="@(item.ModerationStatus == ModerationStatus.Rejected ? "color: #999; text-decoration: line-through;" : "")">@item.ItemName</p>
+
+                                        @if (item.ModerationStatus == ModerationStatus.Rejected)
+                                        {
+                                            <span style="color: red; font-weight: bold; margin-left: 8px;">(HẾT HÀNG)</span>
+                                        }
                                         @if (item.ItemType == ItemType.Product)
                                         {
                                             <div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; color: gray;padding-left:20px;">

@@ -317,7 +317,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
                     };
 
                     var request = new ApiRequestModel { Endpoint = "api/Cart/KiemTraCheckoutTaiQuay" };
-                    var result = await CallApi.Post<Guid>(request, checkOutTaiQuayDto);
+                    var result = await CallApi.Post<CheckOutTaiQuayDto>(request, checkOutTaiQuayDto);
                     if (result.Status == StatusCode.OK)
                     {
                         var parameters = new ThanhToanParameters

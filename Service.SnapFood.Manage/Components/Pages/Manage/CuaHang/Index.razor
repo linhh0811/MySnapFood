@@ -24,37 +24,43 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin))
                     <FluentCard Style="height: 100%; min-height: 400px; display: flex; flex-direction: column;">
                         <h4>Thông tin cơ bản</h4>
                         <hr />
-                        <FluentStack Orientation="Orientation.Vertical" Gap="15" Style="flex-grow: 1;">
-                            <FluentTextField Label="Tên cửa hàng:" @bind-Value="Store.StoreName" Style="width:100%;" />
-                            <FluentTextField Label="Số điện thoại:" @bind-Value="Store.NumberPhone" Style="width:100%;" />
-                            <FluentLabel>Thời gian hoạt động:</FluentLabel>
-                            <FluentStack Orientation="Orientation.Horizontal" Gap="10px">
-                                <FluentTimePicker @bind-Value="Store.ThoiGianBatDauHoatDong" Style="width:50%"></FluentTimePicker>
-                                <FluentTimePicker @bind-Value="Store.ThoiGianNgungHoatDong" Style="width:50%"></FluentTimePicker>
-                            </FluentStack>
-                            <FluentSelect Items="TrangThaiCuaHangOptions"
-                                          Label="Trạng thái bán trên website:"
-                                          @bind-Value="SelectedTrangThai"
-                                          OptionText="@(x => x.Value)"
-                                          OptionValue="@(x => x.Key)"
-                                          Style="width:100%"
-                                          Position="SelectPosition.Below">
-                            </FluentSelect>
+                        <EditForm Model="Store" OnValidSubmit="UpdateStore">
+                            <DataAnnotationsValidator />
+                            <FluentStack Orientation="Orientation.Vertical" Gap="15" Style="flex-grow: 1;">
+                                <FluentTextField Label="Tên cửa hàng:" @bind-Value="Store.StoreName" Style="width:100%;" />
+                                <ValidationMessage style="color:red" For="@(() => Store.StoreName)" />
+                                <FluentTextField Label="Số điện thoại:" @bind-Value="Store.NumberPhone" Style="width:100%;" />
+                                <ValidationMessage style="color:red" For="@(() => Store.NumberPhone)" />
+                                <FluentLabel>Thời gian hoạt động:</FluentLabel>
+                                <FluentStack Orientation="Orientation.Horizontal" Gap="10px">
+                                    <FluentTimePicker @bind-Value="Store.ThoiGianBatDauHoatDong" Style="width:50%"></FluentTimePicker>
+                                    <FluentTimePicker @bind-Value="Store.ThoiGianNgungHoatDong" Style="width:50%"></FluentTimePicker>
+                                </FluentStack>
+                                <FluentSelect Items="TrangThaiCuaHangOptions"
+                                              Label="Trạng thái bán trên website:"
+                                              @bind-Value="SelectedTrangThai"
+                                              OptionText="@(x => x.Value)"
+                                              OptionValue="@(x => x.Key)"
+                                              Style="width:100%"
+                                              Position="SelectPosition.Below">
+                                </FluentSelect>
 
-                        </FluentStack>
-                        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" Style="margin-top: auto; padding-top: 10px;">
-                            <hr />
-                            <FluentButton Appearance="Appearance.Accent" Onclick="UpdateStore" Disabled=isSavingStore>
-                                @if (isSavingStore)
-                                {
-                                    <span>Đang cập nhật...</span>
-                                }
-                                else
-                                {
-                                    <span>Cập nhật</span>
-                                }
-                            </FluentButton>
-                        </FluentStack>
+                            </FluentStack>
+                            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" Style="margin-top: auto; padding-top: 10px;">
+                                <hr />
+                                <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled=isSavingStore>
+                                    @if (isSavingStore)
+                                    {
+                                        <span>Đang cập nhật...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Cập nhật</span>
+                                    }
+                                </FluentButton>
+                            </FluentStack>
+                        </EditForm>
+                        
                     </FluentCard>
                 </FluentStack>
 
@@ -114,25 +120,32 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin))
                     <FluentCard Style="height: 100%; min-height: 400px; display: flex; flex-direction: column;">
                         <h4>Thông tin giao hàng</h4>
                         <hr />
-                        <FluentStack Orientation="Orientation.Vertical" Gap="15" Style="flex-grow: 1;">
-                            <FluentNumberField @bind-Value=ThongTinGiaoHang.BanKinhGiaoHang Label="Bán kính giao hàng (km):" Style="width:100%;" />
-                            <FluentNumberField @bind-Value=ThongTinGiaoHang.PhiGiaoHang Label="Phí giao hàng (/km):" Style="width:100%;" />
-                            <FluentNumberField @bind-Value=ThongTinGiaoHang.DonHangToiThieu Label="Đơn hàng tối thiểu (đ):" Style="width:100%;" />
-                        </FluentStack>
-                        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" Style="margin-top: auto; padding-top: 10px;">
-                            <hr />
-                            <FluentButton Appearance="Appearance.Accent" OnClick="UpdateThongTinGiaoHang">
-                                @if (isSavingTTGiaoHang)
-                                {
-                                    <span>Đang cập nhật...</span>
-                                }
-                                else
-                                {
-                                    <span>Cập nhật</span>
-                                }
+                        <EditForm Model="ThongTinGiaoHang" OnValidSubmit="UpdateThongTinGiaoHang">
+                            <DataAnnotationsValidator />
+                            <FluentStack Orientation="Orientation.Vertical" Gap="15" Style="flex-grow: 1;">
+                                <FluentNumberField @bind-Value=ThongTinGiaoHang.BanKinhGiaoHang Label="Bán kính giao hàng (km):" Style="width:100%;" />
+                                <ValidationMessage style="color:red" For="@(() => ThongTinGiaoHang.BanKinhGiaoHang)" />
+                                <FluentNumberField @bind-Value=ThongTinGiaoHang.PhiGiaoHang Label="Phí giao hàng (/km):" Style="width:100%;" />
+                                <ValidationMessage style="color:red" For="@(() => ThongTinGiaoHang.PhiGiaoHang)" />
+                                <FluentNumberField @bind-Value=ThongTinGiaoHang.DonHangToiThieu Label="Đơn hàng tối thiểu (đ):" Style="width:100%;" />
+                                <ValidationMessage style="color:red" For="@(() => ThongTinGiaoHang.DonHangToiThieu)" />
+                            </FluentStack>
+                            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" Style="margin-top: auto; padding-top: 10px;">
+                                <hr />
+                                <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit">
+                                    @if (isSavingTTGiaoHang)
+                                    {
+                                        <span>Đang cập nhật...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Cập nhật</span>
+                                    }
 
-                            </FluentButton>
-                        </FluentStack>
+                                </FluentButton>
+                            </FluentStack>
+                        </EditForm>
+                       
                     </FluentCard>
                 </FluentStack>
             </FluentStack>

@@ -15,6 +15,7 @@ using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.Momo;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
+using Service.SnapFood.Share.Model.SQL;
 using System.Text.Json;
 using static Service.SnapFood.Client.Infrastructure.Service.AddressService;
 
@@ -452,6 +453,12 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
             if (KhoangCach > ThongTinGiaoHang.BanKinhGiaoHang && PhuongThucNhanHang == "Giao-Tan-Noi")
             {
                 ToastService.ShowError($"Khoảng cách giao hàng vượt quá bán kính giao hàng({ThongTinGiaoHang.BanKinhGiaoHang} km).");
+                return;
+            }
+
+            if (CartModel.CartItems.Count(x=>x.ModerationStatus==ModerationStatus.Rejected)>0)
+            {
+                ToastService.ShowWarning($"Vui lòng xóa sản phẩm hết hàng ra khỏi giỏ hàng");
                 return;
             }
 

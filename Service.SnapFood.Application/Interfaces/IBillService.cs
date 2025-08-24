@@ -43,8 +43,8 @@ namespace Service.SnapFood.Application.Interfaces
         Task<int> GetCancelledOrdersCountAsync();
         BillDangXuLyDto GetBillDangXuLy();
 
-        Task<List<TopSellingItemDto>> GetTop5SellingProductsAsync( int top = 5);
-        Task<List<TopSellingItemDto>> GetTop5SellingCombosAsync( int top =5);
+        Task<List<TopSellingItemDto>> GetTop5SellingProductsAsync( int top = 8);
+        Task<List<TopSellingItemDto>> GetTop5SellingCombosAsync( int top =8);
 
     }
 }

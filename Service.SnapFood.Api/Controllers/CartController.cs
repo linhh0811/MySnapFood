@@ -175,7 +175,7 @@ namespace Service.SnapFood.Api.Controllers
         public async Task<IActionResult> KiemTraCheckoutTaiQuay([FromBody] CheckOutTaiQuayDto item)
         {
 
-            await _cartService.CheckOutDatHangTaiQuay(item);
+            await _cartService.ValidateCheckOutDatHangTaiQuay(item);
             return Ok(item);
 
         }
