@@ -73,7 +73,8 @@ namespace Service.SnapFood.Application.Service
                     FullName = m.FullName,
                     Email = m.Email,
                     Numberphone = m.Numberphone ?? string.Empty,
-                    ModerationStatus = m.ModerationStatus
+                    ModerationStatus = m.ModerationStatus,
+                    IsHeThong=m.IsHeThong,
                 });
 
             return new DataTableJson(data, query.draw, totalRecords);
@@ -89,8 +90,11 @@ namespace Service.SnapFood.Application.Service
             ValidateStaffInput(item);
 
             var users = await _unitOfWork.UserRepo.GetAllAsync();
-            if (users.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
+            if (users.Any(u => u.Email.Trim().ToLower() == item.Email.Trim().ToLower()))
                 throw new Exception("Email đã tồn tại");
+
+            if (users.Any(u => u.Numberphone?.Trim().ToLower() == item.Numberphone?.Trim().ToLower()))
+                throw new Exception("Số điện thoại đã tồn tại");
 
             string password = GenerateRandomPassword();
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
@@ -157,12 +161,15 @@ namespace Service.SnapFood.Application.Service
             if (user == null)
                 throw new Exception("Không tìm thấy người dùng");
 
-            if (user.Email.ToLowerInvariant() != item.Email.ToLowerInvariant())
-            {
+            
                 var existingUsers = await _unitOfWork.UserRepo.GetAllAsync();
-                if (existingUsers.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
+                if (existingUsers.Any(u => u.Email.Trim().ToLower() == item.Email.Trim().ToLower()&&u.Id!=user.Id))
                     throw new Exception("Email đã tồn tại");
-            }     
+                if (existingUsers.Any(u => u.Numberphone?.Trim().ToLower() == item.Numberphone?.Trim().ToLower() && u.Id != user.Id))
+                    throw new Exception("Số điện thoại đã tồn tại");
+   
+
+
 
             user.FullName = item.FullName;
             user.Email = item.Email;
@@ -255,7 +262,7 @@ namespace Service.SnapFood.Application.Service
                 throw new ArgumentException("Họ tên không được để trống");
             if (string.IsNullOrWhiteSpace(item.Email))
                 throw new ArgumentException("Email không được để trống");
-            if (!IsValidEmail(item.Email))
+            if (!IsValidEmail(item.Email.Trim()))
                 throw new ArgumentException("Email không hợp lệ");
         }
 

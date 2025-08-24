@@ -40,8 +40,35 @@
 
             <FluentGridItem md="12">
                 <div class="row-info">
+                    <label>Ghi chú:</label>
+                    @if (!string.IsNullOrEmpty(ProductDto.Description))
+                    {
+                        <div>
+                            @ProductDto.Description
+                        </div>
+                    }else{
+                        <div>
+                            Trống
+                        </div>
+                    }
+                   
+                </div>
+            </FluentGridItem>
+
+            <FluentGridItem md="12">
+                <div class="row-info">
                     <label>Size:</label>
-                    <div>@ProductDto.SizeName</div>
+                    @if (!string.IsNullOrEmpty(ProductDto.SizeName))
+                    {
+                        <div>@ProductDto.SizeName</div>
+                    }
+                    else
+                    {
+                        <div>
+                            Không có size
+                        </div>
+                    }
+                    
                 </div>
             </FluentGridItem>
 

@@ -39,7 +39,7 @@
                 {
                     var timeRemainingStart = item.StartDate - DateTime.Now;
                     var timeRemainingEnd = item.EndDate - DateTime.Now;
-                    var disable = (timeRemainingStart > TimeSpan.Zero || item.MinOrderAmount>Content.Price) ? true : false;
+                    var disable = (timeRemainingStart > TimeSpan.Zero || item.MinOrderAmount > Content.Price || @item.UsedCount == @item.UsageLimit) ? true : false;
 
 
                     if (item.DiscountCodeType == DiscountCodeType.Money)

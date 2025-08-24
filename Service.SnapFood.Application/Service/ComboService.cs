@@ -285,14 +285,22 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Ảnh trống");
                 }
-                if (item.BasePrice <= 0)
-                {
-                    throw new Exception("Giá nhỏ hơn 0");
-                }
                 if (item.ComboItems is null || !item.ComboItems.Any())
                 {
                     throw new Exception("Sản phẩm trống");
                 }
+                if (item.BasePrice <= 0)
+                {
+                    throw new Exception("Giá không hợp lệ");
+                }
+
+                var comboCheck =await _unitOfWork.ComboRepo.CountAsync(x => x.ComboName.Trim() == item.ComboName.Trim());
+                if (comboCheck>0)
+                {
+                    throw new Exception("Tên combo đã tồn tại");
+
+                }
+
                 Combo combo = new Combo
                 {
                     CategoryId = item.CategoryId,
@@ -367,13 +375,21 @@ namespace Service.SnapFood.Application.Service
                 {
                     throw new Exception("Ảnh trống");
                 }
-                if (item.BasePrice <= 0)
-                {
-                    throw new Exception("Giá nhỏ hơn 0");
-                }
+               
                 if (item.ComboItems is null || !item.ComboItems.Any())
                 {
                     throw new Exception("Sản phẩm trống");
+                }
+
+                if (item.BasePrice <= 0)
+                {
+                    throw new Exception("Giá không hợp lệ");
+                }
+                var comboCheck = await _unitOfWork.ComboRepo.CountAsync(x => x.ComboName.Trim() == item.ComboName.Trim()&&x.Id!=id);
+                if (comboCheck > 0)
+                {
+                    throw new Exception("Tên combo đã tồn tại");
+
                 }
 
                 combo.CategoryId = item.CategoryId;

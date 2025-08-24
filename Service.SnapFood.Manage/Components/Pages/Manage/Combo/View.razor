@@ -47,6 +47,24 @@
                     </div>
                 </div>
             </FluentGridItem>
+            <FluentGridItem md="12">
+                <div class="row-info">
+                    <label>Ghi chú:</label>
+                    @if (!string.IsNullOrEmpty(ComboDto.Description))
+                    {
+                        <div>
+                            @ComboDto.Description
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            Trống
+                        </div>
+                    }
+
+                </div>
+            </FluentGridItem>
 
             <FluentGridItem md="12">
                 <div class="row-info">

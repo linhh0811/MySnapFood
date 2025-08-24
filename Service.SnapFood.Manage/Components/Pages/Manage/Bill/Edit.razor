@@ -97,7 +97,7 @@ else if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiWeb && Item.Recei
         }
         else if (Item.Status == StatusOrder.ChoLayHang)
         {
-            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" >Khách hàng đã nhận hàng</FluentButton>
+            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Khách hàng đã nhận hàng</FluentButton>
             <FluentButton BackgroundColor="Red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
         }
     </div>
