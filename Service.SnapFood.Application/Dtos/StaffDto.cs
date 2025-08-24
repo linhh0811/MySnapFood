@@ -19,5 +19,6 @@ namespace Service.SnapFood.Application.Dtos
         public DateTime LastModified { get; set; }
         public string CreatedByName { get; set; } = string.Empty;
         public string LastModifiedByName { get; set; } = string.Empty;
+        public bool IsHeThong { get; set; } = false;
     }
 }

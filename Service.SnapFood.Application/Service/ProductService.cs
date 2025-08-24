@@ -365,11 +365,17 @@ namespace Service.SnapFood.Application.Service
                     throw new Exception("Ảnh sản phẩm trống");
                 }
 
+                var productCheck = await _unitOfWork.ProductRepo.CountAsync(x => (x.ProductName == item.ProductName && x.SizeId == item.SizeId && x.CategoryId == item.CategoryId));
+                if (productCheck>0)
+                {
+                    throw new Exception("Sản phẩm đã tồn tại");
+
+                }
+
 
                 Product product = new Product
                 {
                     CategoryId = item.CategoryId,
-                    SizeId = item.SizeId,
                     ImageUrl = item.ImageUrl,
                     ProductName = item.ProductName,
                     Description = item.Description,
@@ -379,7 +385,16 @@ namespace Service.SnapFood.Application.Service
                     ModerationStatus = ModerationStatus.Rejected,
 
                 };
-                _unitOfWork.ProductRepo.Add(product);
+
+                if (item.SizeId != Guid.Empty)
+                {
+                    product.SizeId = item.SizeId;
+                }
+                else
+                {
+                    product.SizeId = null;
+                }
+                    _unitOfWork.ProductRepo.Add(product);
                 await _unitOfWork.CommitAsync();
                 return product.Id;
             }
@@ -424,18 +439,35 @@ namespace Service.SnapFood.Application.Service
                     throw new Exception("Ảnh sản phẩm trống");
                 }
 
+                var productCheck = await _unitOfWork.ProductRepo.CountAsync(x => (x.ProductName == item.ProductName && x.SizeId == item.SizeId && x.CategoryId == item.CategoryId&&x.Id!=id));
+                if (productCheck > 0)
+                {
+                    throw new Exception("Sản phẩm đã tồn tại");
+
+                }
+
                 var product = await _unitOfWork.ProductRepo.GetByIdAsync(id);
                 if (product is null)
                 {
                     throw new Exception("Không tìm thấy sản phẩm");
                 }
 
+
+
                 product.CategoryId = item.CategoryId;
-                product.SizeId = item.SizeId;
                 product.ProductName = item.ProductName;
                 product.ImageUrl = item.ImageUrl;
                 product.Description = item.Description;
                 product.BasePrice = item.BasePrice;
+
+                if (item.SizeId != Guid.Empty)
+                {
+                    product.SizeId = item.SizeId;
+                }
+                else
+                {
+                    product.SizeId = null;
+                }
 
                 _unitOfWork.ProductRepo.Update(product);
                 await _unitOfWork.CompleteAsync();

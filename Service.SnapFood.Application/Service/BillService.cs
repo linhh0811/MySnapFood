@@ -411,8 +411,8 @@ namespace Service.SnapFood.Application.Service
                 var dataQuery = _unitOfWork.BillRepo.FilterData(
                      q => q.Where(x =>
                          (query.Status == StatusOrder.None || x.Status == query.Status) &&
-                         (!query.IsBanHang || (x.Status != StatusOrder.Completed && x.Status != StatusOrder.Cancelled)
-                         &&(query.UserId==Guid.Empty||x.UserId==query.UserId))
+                         (!query.IsBanHang || (x.Status != StatusOrder.Completed && x.Status != StatusOrder.Cancelled))
+                         &&(query.UserId==Guid.Empty||x.UserId==query.UserId)
                      ),
                      query.gridRequest,
                      ref totalRecords

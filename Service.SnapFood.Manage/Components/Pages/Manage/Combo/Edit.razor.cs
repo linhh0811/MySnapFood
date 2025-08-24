@@ -70,7 +70,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
             if (result.Status == StatusCode.OK)
             {
                 CategoryList = result.Data as List<CategoryDto> ?? new List<CategoryDto>();
-                ComboModel.CategoryId = CategoryList.First().Id??string.Empty;
+                ComboModel.CategoryId = CategoryList.First(x=>x.ModerationStatus==ModerationStatus.Approved).Id??string.Empty;
             }
         }
         private async Task GetCombo()
@@ -143,7 +143,16 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                     ProductId = p.Id,
                     Quantity = p.Quantity
                 }).ToList();
-                createRequest.BasePrice = TotalPrice;   
+                createRequest.BasePrice = TotalPrice;
+
+                if (createRequest.ComboItems.Count == 0)
+                {
+                    ToastService.ShowWarning("Combo đang không tồn tại sản phẩm");
+                    isSaving = false;
+
+                    return false;
+                }
+
                 requestRestAPI.Endpoint = "api/Combo";
                 ResultAPI result = await CallApi.Post<ComboDto>(requestRestAPI, createRequest);
                 if (result.Status == StatusCode.OK)
@@ -186,6 +195,13 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Combo
                     ProductId = p.Id,
                     Quantity = p.Quantity
                 }).ToList();
+
+                if (updateRequest.ComboItems.Count == 0)
+                {
+                    ToastService.ShowWarning("Combo đang không tồn tại sản phẩm");
+                    isSaving = false;
+                    return false;
+                }
 
                 updateRequest.BasePrice = TotalPrice;
 

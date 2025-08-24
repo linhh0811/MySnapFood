@@ -88,7 +88,7 @@
                                 <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
                                     <h4>Danh sách sản phẩm</h4>
                                 </FluentStack>
-                                <FluentSearch Placeholder="Nhập vào từ khóa" />
+                                <FluentSearch @bind-Value="SearchKeywordProduct" @bind-Value:after=RefreshDataProductAsync Placeholder="Nhập vào từ khóa" />
                             </FluentStack>
                             <FluentGridItem Style="width:100%;">
                                 <FluentDataGrid @ref="ProductGrid"
@@ -140,7 +140,7 @@
                                 <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
                                     <h4>Danh sách combo</h4>
                                 </FluentStack>
-                                <FluentSearch Placeholder="Nhập vào từ khóa" />
+                                <FluentSearch @bind-Value="SearchKeywordCombo" @bind-Value:after=RefreshDataCombotAsync Placeholder="Nhập vào từ khóa" />
                             </FluentStack>
 
                             <FluentGridItem Style="width:100%; max-height:340px;overflow-y: auto; overflow-x: hidden;">
@@ -211,7 +211,7 @@
                                 <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
                                     <h4>Danh sách đã chọn</h4>
                                 </FluentStack>
-                                <FluentSearch Placeholder="Nhập vào từ khóa" />
+                                <FluentSearch @bind-Value="SearchKeywordSelected" @bind-Value:after=RefreshDataSelectedAsync Placeholder="Nhập vào từ khóa" />
                             </FluentStack>
 
                             <FluentGridItem Style="width:100%; max-height:340px;overflow-y: auto; overflow-x: hidden;">
@@ -336,6 +336,7 @@
 
 
 
+
     private void HandleOnTabChange(FluentTab tab)
     {
         changedto = tab;
@@ -438,7 +439,7 @@
                 }
 
             }
-           
+
 
             requestRestAPI.Endpoint = "api/Promotion";
             createRequest.PromotionType = promotionType;
@@ -463,6 +464,10 @@
             isSaving = false;
             ErrorMessage = "Thêm khuyến mãi thất bại: " + ex.Message;
             return false;
+        }
+        finally
+        {
+            isSaving = false;
         }
     }
     private async Task<bool> UpdatePromotion(Guid id, PromotionDto updateRequest)
@@ -523,6 +528,10 @@
             isSaving = false;
             ErrorMessage = "Sửa khuyến mãi thất bại: " + ex.Message;
             return false;
+        }
+        finally
+        {
+            isSaving = false;
         }
     }
     private void GetPromotionType()
@@ -819,7 +828,7 @@
             var items = string.IsNullOrEmpty(SearchKeywordSelected)
                 ? PromotionModel.PromotionItems
                 : PromotionModel.PromotionItems
-                    .Where(x => x.ItemName.Contains(SearchKeywordSelected, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => x.ItemName.Contains(SearchKeywordSelected.Trim(), StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
             // Áp dụng phân trang

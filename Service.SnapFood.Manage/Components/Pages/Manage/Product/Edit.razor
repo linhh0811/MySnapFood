@@ -161,7 +161,7 @@
         if (result.Status == StatusCode.OK)
         {
             CategoryList = result.Data as List<CategoryDto> ?? new List<CategoryDto>();
-            ProductModel.CategoryId = CategoryList.First().Id??string.Empty;
+            ProductModel.CategoryId = CategoryList.First(x=>x.ModerationStatus==ModerationStatus.Approved).Id??string.Empty;
         }
     }
     private async Task GetSize()
@@ -175,7 +175,7 @@
         }
         SizeList.Insert(0, new SizeDto
             {
-                Id="",
+                Id=Convert.ToString(Guid.Empty),
                 SizeName = "Không có kích cỡ"
 
             });
