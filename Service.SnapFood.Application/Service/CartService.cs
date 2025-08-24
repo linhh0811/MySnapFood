@@ -386,6 +386,11 @@ namespace Service.SnapFood.Application.Service
                 if (product != null/* && product.ModerationStatus == ModerationStatus.Approved*/)
                 {
                     var size = await _unitOfWork.SizesRepo.GetByIdAsync(item.SizeId ?? Guid.Empty);
+                    ModerationStatus ModerationStatus = product.ModerationStatus;
+                    if (size?.ModerationStatus == ModerationStatus.Rejected)
+                    {
+                        ModerationStatus = ModerationStatus.Rejected;
+                    }
                     CartItems.Add(new CartItemDto
                     {
                         Id = item.Id,
@@ -398,7 +403,7 @@ namespace Service.SnapFood.Application.Service
                         ImageUrl = product.ImageUrl,
                         ItemType = ItemType.Product,
                         Created = item.Created,
-                        ModerationStatus=product.ModerationStatus
+                        ModerationStatus= ModerationStatus
                     });
                 }
             }
@@ -441,7 +446,7 @@ namespace Service.SnapFood.Application.Service
                                     SizeName = GetSizeName(item.Id, x.ProductId)
                                 }).ToList(),
                         Created = item.Created,
-                        ModerationStatus = combo.ModerationStatus
+                        ModerationStatus = GetModerationStatus(item.Id, combo.ModerationStatus)
 
                     });
                 }
@@ -476,6 +481,11 @@ namespace Service.SnapFood.Application.Service
                 if (product != null )
                 {
                     var size = await _unitOfWork.SizesRepo.GetByIdAsync(item.SizeId ?? Guid.Empty);
+                    ModerationStatus ModerationStatus = product.ModerationStatus;
+                    if (size?.ModerationStatus == ModerationStatus.Rejected)
+                    {
+                        ModerationStatus = ModerationStatus.Rejected;
+                    }
                     CartItems.Add(new CartItemDto
                     {
                         Id = item.Id,
@@ -488,7 +498,7 @@ namespace Service.SnapFood.Application.Service
                         ImageUrl = product.ImageUrl,
                         ItemType = ItemType.Product,
                         Created = item.Created,
-                        ModerationStatus=product.ModerationStatus
+                        ModerationStatus= ModerationStatus
 
                     });
                 }
@@ -532,7 +542,7 @@ namespace Service.SnapFood.Application.Service
                                     SizeName = GetSizeName(item.Id, x.ProductId)
                                 }).ToList(),
                         Created = item.Created,
-                        ModerationStatus=combo.ModerationStatus
+                        ModerationStatus = GetModerationStatus(item.Id, combo.ModerationStatus)
 
                     });
                 }
@@ -568,7 +578,12 @@ namespace Service.SnapFood.Application.Service
                 if (product != null /*&& product.ModerationStatus == ModerationStatus.Approved*/)
                 {
                     var size = await _unitOfWork.SizesRepo.GetByIdAsync(item.SizeId ?? Guid.Empty);
-                    CartItems.Add(new CartItemDto
+                    ModerationStatus ModerationStatus = product.ModerationStatus;
+                    if (size?.ModerationStatus==ModerationStatus.Rejected)
+                    {
+                        ModerationStatus = ModerationStatus.Rejected;
+                    }
+                    CartItems.Add(new CartItemDto 
                     {
                         Id = item.Id,
                         ItemId = item.ProductId,
@@ -580,7 +595,7 @@ namespace Service.SnapFood.Application.Service
                         ImageUrl = product.ImageUrl,
                         ItemType = ItemType.Product,
                         Created = item.Created,
-                        ModerationStatus = product.ModerationStatus
+                        ModerationStatus = ModerationStatus
 
                     });
                 }
@@ -624,7 +639,7 @@ namespace Service.SnapFood.Application.Service
                                     SizeName = GetSizeName(item.Id, x.ProductId)
                                 }).ToList(),
                         Created = item.Created,
-                        ModerationStatus = combo.ModerationStatus
+                        ModerationStatus = GetModerationStatus(item.Id, combo.ModerationStatus)
 
                     });
                 }
@@ -641,6 +656,20 @@ namespace Service.SnapFood.Application.Service
 
         }
 
+        private ModerationStatus GetModerationStatus(Guid CartComboId,  ModerationStatus ComboModerationStatus)
+        {
+            var sizeIds = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == CartComboId).Select(x=>x.SizeId);
+            foreach (var item in sizeIds)
+            {
+                var size = _unitOfWork.SizesRepo.FirstOrDefault(x => x.Id == item && x.ModerationStatus == ModerationStatus.Rejected);
+                if (size is not null)
+                {
+                    return ModerationStatus.Rejected;
+                }
+            }
+            return ComboModerationStatus;
+
+        }
         public async Task RemoveCartAsync(Guid Id)
         {
             var cart = await _unitOfWork.CartRepo.GetByIdAsync(Id);
@@ -1068,6 +1097,29 @@ namespace Service.SnapFood.Application.Service
                 && x.ModerationStatus == ModerationStatus.Rejected
             );
 
+            foreach (var cp in cartProductItems)
+            {
+                var size = _unitOfWork.SizesRepo.FirstOrDefault(x => x.Id == cp.SizeId && x.ModerationStatus == ModerationStatus.Rejected);
+                if (size is not null)
+                {
+                    throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                }
+            }
+
+            foreach (var cp in cartComboItems)
+            {
+                var comboProductItem = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == cp.Id);
+                foreach (var cpi in comboProductItem)
+                {
+                    var size = _unitOfWork.SizesRepo.FirstOrDefault(x => x.Id == cpi.SizeId && x.ModerationStatus == ModerationStatus.Rejected);
+                    if (size is not null)
+                    {
+                        throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                    }
+                }
+                
+            }
+
             if (rejectedProduct.Any())
                 throw new Exception("Đơn hàng đã có sự thay đổi (sản phẩm hết hàng), vui lòng tải lại trang");
 
@@ -1192,6 +1244,29 @@ namespace Service.SnapFood.Application.Service
 
                     var ProductIds = cartProductItems.Select(x => x.ProductId).ToList();
                     var ComboIds = cartComboItems.Select(x => x.ComboId).ToList();
+
+                    foreach (var cp in cartProductItems)
+                    {
+                        var size = _unitOfWork.SizesRepo.FirstOrDefault(x => x.Id == cp.SizeId && x.ModerationStatus == ModerationStatus.Rejected);
+                        if (size is not null)
+                        {
+                            throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                        }
+                    }
+
+                    foreach (var cp in cartComboItems)
+                    {
+                        var comboProductItem = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == cp.Id);
+                        foreach (var cpi in comboProductItem)
+                        {
+                            var size = _unitOfWork.SizesRepo.FirstOrDefault(x => x.Id == cpi.SizeId && x.ModerationStatus == ModerationStatus.Rejected);
+                            if (size is not null)
+                            {
+                                throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                            }
+                        }
+
+                    }
 
                     foreach (var p in ProductIds)
                     {
@@ -1448,6 +1523,29 @@ namespace Service.SnapFood.Application.Service
             if (!cartProductItems.Any() && !cartComboItems.Any())
                 throw new Exception("Giỏ hàng trống");
 
+            foreach (var cp in cartProductItems)
+            {
+                var size = _unitOfWork.SizesRepo.FirstOrDefault(x => x.Id == cp.SizeId && x.ModerationStatus == ModerationStatus.Rejected);
+                if (size is not null)
+                {
+                    throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                }
+            }
+
+            foreach (var cp in cartComboItems)
+            {
+                var comboProductItem = _unitOfWork.ComboProductItemRepository.FindWhere(x => x.CartComboId == cp.Id);
+                foreach (var cpi in comboProductItem)
+                {
+                    var size = _unitOfWork.SizesRepo.FirstOrDefault(x => x.Id == cpi.SizeId && x.ModerationStatus == ModerationStatus.Rejected);
+                    if (size is not null)
+                    {
+                        throw new Exception("Đơn hàng đã có sự thay đổi, vui lòng tải lại trang");
+                    }
+                }
+
+            }
+
             // 1. Kiểm tra sản phẩm bị từ chối
             var rejectedProduct = _unitOfWork.ProductRepo.FindWhere(x =>
                 cartProductItems.Select(i => i.ProductId).Contains(x.Id)
@@ -1506,7 +1604,7 @@ namespace Service.SnapFood.Application.Service
                     {
                         var basePrice = product.BasePrice + (size?.AdditionalPrice ?? 0);
                         var endowPrice = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0);
-                        tongKhuyenMai += endowPrice * cartItem.Quantity;
+                        tongKhuyenMai +=( basePrice- endowPrice )* cartItem.Quantity;
                     }
                 }
 
@@ -1528,7 +1626,7 @@ namespace Service.SnapFood.Application.Service
 
                         var basePrice = combo.BasePrice + priceSize;
                         var endowPrice = GetPriceEndown(combo.Id, combo.BasePrice, priceSize);
-                        tongKhuyenMai += endowPrice * cartItem.Quantity;
+                        tongKhuyenMai +=(basePrice- endowPrice )* cartItem.Quantity;
                     }
                 }
 
