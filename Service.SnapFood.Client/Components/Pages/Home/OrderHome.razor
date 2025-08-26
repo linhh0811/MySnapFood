@@ -29,29 +29,44 @@
     private bool IsLoading = true;
     protected override void OnAfterRender(bool firstRender)
     {
-        base.OnAfterRender(firstRender);
+        if (firstRender)
+        {
+            IsLoading = true;
+            if (!string.IsNullOrEmpty(Id))
+            {
+                categorySelected = new CategoryDto()
+                    {
+                        Id = Id
+                    };
+
+                OnCategorySelected(categorySelected);
+            }
+            IsLoading = false;
+            StateHasChanged();
+        }
+       
     }
     protected override void OnInitialized()
     {
-        IsLoading = true;
-        if (!string.IsNullOrEmpty(Id))
-        {
-            categorySelected = new CategoryDto()
-            {
-                Id=Id
-            };
+        // IsLoading = true;
+        // if (!string.IsNullOrEmpty(Id))
+        // {
+        //     categorySelected = new CategoryDto()
+        //     {
+        //         Id=Id
+        //     };
 
-            OnCategorySelected(categorySelected);
-        }
-        IsLoading = false;
+        //     OnCategorySelected(categorySelected);
+        // }
+        // IsLoading = false;
     }
 
     private void OnCategorySelected(CategoryDto category)
     {
-        if (string.IsNullOrEmpty(Id))
-        {
+        // if (string.IsNullOrEmpty(Id))
+        // {
             categorySelected = category;
-        }
+        // }
     }
     protected string SearchKeyword { get; set; } = string.Empty;
 

@@ -254,7 +254,7 @@ namespace Service.SnapFood.Application.Service
                                 var promotionItem = _unitOfWork.PromotionItemsRepository.FirstOrDefault(x => (x.PromotionId == promotion.Id) && (x.ItemId == item.ItemId));
                                 if (promotionItem is not null)
                                 {
-                                    promotionItem.Quantity++;
+                                    promotionItem.Quantity+=item.Quantity;
                                     _unitOfWork.PromotionItemsRepository.Update(promotionItem);
                                     await _unitOfWork.CompleteAsync();
                                 }

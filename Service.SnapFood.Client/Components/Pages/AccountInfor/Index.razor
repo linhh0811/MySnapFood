@@ -216,6 +216,9 @@
             if (result.Status == StatusCode.OK)
             {
                 ToastService.ShowSuccess("Cập nhật thông tin thành công!");
+                CheckPassword  = string.Empty;
+                CheckPasswordMoi  = string.Empty;
+                CheckPasswordConfirm  = string.Empty;
             }
             else
             {

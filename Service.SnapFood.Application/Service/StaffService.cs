@@ -40,7 +40,7 @@ namespace Service.SnapFood.Application.Service
             return users.ToList();
         }
 
-        public async Task<User> GetByIdAsync(Guid id)
+        public async Task<StaffDto> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("ID không hợp lệ");
@@ -49,7 +49,32 @@ namespace Service.SnapFood.Application.Service
             if (user == null)
                 throw new Exception("Không tìm thấy người dùng");
 
-            return user;
+            var allRoles = _unitOfWork.RolesRepo.GetAll();
+            var userRoles = _unitOfWork.UserRoleRepo.GetAll()
+                            .Where(ur => ur.UserId == user.Id)
+                            .ToList();
+
+            var roleQuanLys = allRoles
+                .Where(x => x.EnumRole == EnumRole.Admin || x.EnumRole == EnumRole.Manager)
+                .ToList();
+            StaffDto StaffDto = new StaffDto();
+
+            StaffDto.Id = user.Id.ToString();
+            StaffDto.FullName = user.FullName;
+            StaffDto.Email = user.Email;
+            StaffDto.Numberphone = user.Numberphone??string.Empty;
+            StaffDto.IsHeThong = user.IsHeThong;
+
+        // ✅ Danh sách tất cả EnumRole của user
+            StaffDto.Role = (from ur in userRoles
+                             join r in allRoles on ur.RoleId equals r.Id
+                             select r.EnumRole).ToList();
+
+            StaffDto.Created = user.Created;
+            StaffDto.LastModified = user.LastModified;
+
+
+            return StaffDto;
         }
 
         public DataTableJson GetPaged(BaseQuery query)
@@ -64,7 +89,11 @@ namespace Service.SnapFood.Application.Service
                 ref totalRecords
 
             );
-
+            var allRoles = _unitOfWork.RolesRepo.GetAll();
+            var roleQuanLys = allRoles
+                .Where(x => x.EnumRole == EnumRole.Admin || x.EnumRole == EnumRole.Manager)
+                .ToList();
+            var userRoles = _unitOfWork.UserRoleRepo.GetAll();
             var data = dataQuery.AsEnumerable()
                 .Select((m, i) => new StaffDto
                 {
@@ -75,6 +104,10 @@ namespace Service.SnapFood.Application.Service
                     Numberphone = m.Numberphone ?? string.Empty,
                     ModerationStatus = m.ModerationStatus,
                     IsHeThong=m.IsHeThong,
+                    Role = (from ur in userRoles
+                            join r in allRoles on ur.RoleId equals r.Id
+                            where ur.UserId == m.Id
+                            select r.EnumRole).ToList()
                 });
 
             return new DataTableJson(data, query.draw, totalRecords);
@@ -89,7 +122,7 @@ namespace Service.SnapFood.Application.Service
 
             ValidateStaffInput(item);
 
-            var users = await _unitOfWork.UserRepo.GetAllAsync();
+            var users =  _unitOfWork.UserRepo.FindWhere(x=>x.UserType== UserType.Store);
             if (users.Any(u => u.Email.Trim().ToLower() == item.Email.Trim().ToLower()))
                 throw new Exception("Email đã tồn tại");
 
@@ -111,7 +144,6 @@ namespace Service.SnapFood.Application.Service
 
             _unitOfWork.UserRepo.Add(user);
             await _unitOfWork.CompleteAsync();
-            
             string subject = "Thông tin tài khoản nhân viên";
             string body = $@"
                 <p>Xin chào <strong>{item.FullName}</strong>,</p>
@@ -124,16 +156,7 @@ namespace Service.SnapFood.Application.Service
 
                 <p style='color: red;'><b>Lưu ý:</b> Vui lòng đổi mật khẩu sau khi đăng nhập.</p>
                 <p>Trân trọng,<br>Hệ thống quản lý</p>
-                <p>-----------------------------------------------------------------</p>
-                <p>
-                    <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/> 
-                </p>
-                <p>
-                    <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3> <br>
-                    <strong>Address:</strong> 13, Trinh Van Bo, Nam Tu Liem, Ha noi <br>
-                    <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
-                    <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
-                </p>
+                <p>-----------------------------------------------------------------</p>              
             ";
 
             await _emailService.SendEmailAsync(item.Email, subject, body);
@@ -162,7 +185,7 @@ namespace Service.SnapFood.Application.Service
                 throw new Exception("Không tìm thấy người dùng");
 
             
-                var existingUsers = await _unitOfWork.UserRepo.GetAllAsync();
+                var existingUsers = _unitOfWork.UserRepo.FindWhere(x=>x.UserType== UserType.Store);
                 if (existingUsers.Any(u => u.Email.Trim().ToLower() == item.Email.Trim().ToLower()&&u.Id!=user.Id))
                     throw new Exception("Email đã tồn tại");
                 if (existingUsers.Any(u => u.Numberphone?.Trim().ToLower() == item.Numberphone?.Trim().ToLower() && u.Id != user.Id))
@@ -175,7 +198,6 @@ namespace Service.SnapFood.Application.Service
             user.Email = item.Email;
             user.Numberphone = item.Numberphone;
             user.FillDataForUpdate(Guid.NewGuid());
-
             string subject = "Cập nhật thông tin tài khoản";
             string body = $@"
                 <p>Xin chào <strong>{item.FullName}</strong>,</p>
@@ -191,15 +213,6 @@ namespace Service.SnapFood.Application.Service
                 <p>Nếu bạn không yêu cầu cập nhật này, vui lòng liên hệ quản trị viên.</p>
                 <p>Trân trọng,<br>Hệ thống quản lý</p>
                 <p>-----------------------------------------------------------------</p>
-                <p>
-                    <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/>
-                </p>
-                <p>
-                    <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>
-                    <strong>Address:</strong> 13, Trinh Van Bo, Nam Tu Liem, Ha noi <br>
-                    <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
-                    <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
-                </p>
             ";
             await _emailService.SendEmailAsync(item.Email, subject, body);
 

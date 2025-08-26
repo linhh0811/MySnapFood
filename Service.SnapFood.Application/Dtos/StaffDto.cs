@@ -1,4 +1,5 @@
-﻿using Service.SnapFood.Share.Model.SQL;
+﻿using Service.SnapFood.Domain.Enums;
+using Service.SnapFood.Share.Model.SQL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,5 +21,7 @@ namespace Service.SnapFood.Application.Dtos
         public string CreatedByName { get; set; } = string.Empty;
         public string LastModifiedByName { get; set; } = string.Empty;
         public bool IsHeThong { get; set; } = false;
+        public List<EnumRole> Role { get; set; } = new List<EnumRole>();
+
     }
 }

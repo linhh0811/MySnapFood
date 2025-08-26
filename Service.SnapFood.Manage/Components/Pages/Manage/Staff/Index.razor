@@ -67,33 +67,93 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contain
 					<FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
 						@if (!context.IsHeThong)
 						{
-							@if (context.ModerationStatus != 0)
+							if (CurrentUser.Roles.Contains(EnumRole.Manager) && !CurrentUser.Roles.Contains(EnumRole.Admin))
 							{
-								<FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(()=> OpenModalUpdate(context.Id??string.Empty))">
-									<FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
-								</FluentButton>
-							}
+								@if (context.Role.Contains(EnumRole.Manager) && !context.Role.Contains(EnumRole.Admin) && !StaffDto.IsHeThong)
+								{
+									<FluentBadge Appearance="Appearance.Accent">
+										Tk quản lý
+									</FluentBadge>
+								}
+								else if (context.Role.Contains(EnumRole.Admin) && !StaffDto.IsHeThong)
+								{
+									<FluentBadge Appearance="Appearance.Accent">
+										Tk quản trị
+									</FluentBadge>
+								}
+								else
+								{
+									@if (context.ModerationStatus != 0)
+									{
+										<FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(()=> OpenModalUpdate(context.Id??string.Empty))">
+											<FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
+										</FluentButton>
+									}
 
-							@if (context.ModerationStatus == 0)
-							{
-								<FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id??string.Empty))">
-									<FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
-								</FluentButton>
-							}
-							else
-							{
-								<FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id??string.Empty))">
-									<FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
-								</FluentButton>
-							}
-							@if (context.ModerationStatus != 0)
-							{
-								<FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteAsync(context.Id ??string.Empty))">
-									<FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
-								</FluentButton>
+									@if (context.ModerationStatus == 0)
+									{
+										<FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id??string.Empty))">
+											<FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
+										</FluentButton>
+									}
+									else
+									{
+										<FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id??string.Empty))">
+											<FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
+										</FluentButton>
+									}
+									@if (context.ModerationStatus != 0)
+									{
+										<FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteAsync(context.Id ??string.Empty))">
+											<FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+										</FluentButton>
 
 
+									}
+								}
+								
 							}
+							else if (CurrentUser.Roles.Contains(EnumRole.Admin))
+							{
+								@if (context.Role.Contains(EnumRole.Admin) && !StaffDto.IsHeThong)
+								{
+									<FluentBadge Appearance="Appearance.Accent">
+										Tk quản trị
+									</FluentBadge>
+								}
+								else
+								{
+									@if (context.ModerationStatus != 0)
+									{
+										<FluentButton Title="Sửa" Appearance="Appearance.Outline" OnClick="@(()=> OpenModalUpdate(context.Id??string.Empty))">
+											<FluentIcon Value="@(new Icons.Regular.Size16.Edit())" />
+										</FluentButton>
+									}
+
+									@if (context.ModerationStatus == 0)
+									{
+										<FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id??string.Empty))">
+											<FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
+										</FluentButton>
+									}
+									else
+									{
+										<FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id??string.Empty))">
+											<FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
+										</FluentButton>
+									}
+									@if (context.ModerationStatus != 0)
+									{
+										<FluentButton Title="Xóa" Appearance="Appearance.Outline" OnClick="@(() => DeleteAsync(context.Id ??string.Empty))">
+											<FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+										</FluentButton>
+
+
+									}
+								}
+							}
+							
+							
 						}
 						else
 						{

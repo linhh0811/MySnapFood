@@ -1187,7 +1187,11 @@ namespace Service.SnapFood.Application.Service
                     {
                         var gia = product.BasePrice + (size?.AdditionalPrice ?? 0);
                         var priceEndow = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0);
-                        tongEndow +=(gia- priceEndow) * cartItem.Quantity;
+                        if (priceEndow>0)
+                        {
+                            tongEndow += (gia - priceEndow) * cartItem.Quantity;
+                        }
+                        
                     }
                 }
 
@@ -1202,7 +1206,11 @@ namespace Service.SnapFood.Application.Service
 
                         var price = combo.BasePrice + priceSize;
                         var priceEndow = GetPriceEndown(cartItem.ComboId, combo.BasePrice, priceSize);
-                        tongEndow += (price-priceEndow )* cartItem.Quantity;
+                        if (priceEndow>0)
+                        {
+                            tongEndow += (price - priceEndow) * cartItem.Quantity;
+                        }
+                        
                     }
                 }
 
@@ -1604,7 +1612,11 @@ namespace Service.SnapFood.Application.Service
                     {
                         var basePrice = product.BasePrice + (size?.AdditionalPrice ?? 0);
                         var endowPrice = GetPriceEndown(cartItem.ProductId, product.BasePrice, size?.AdditionalPrice ?? 0);
-                        tongKhuyenMai +=( basePrice- endowPrice )* cartItem.Quantity;
+                        if (endowPrice>0)
+                        {
+                            tongKhuyenMai += (basePrice - endowPrice) * cartItem.Quantity;
+                        }
+                       
                     }
                 }
 
@@ -1626,7 +1638,11 @@ namespace Service.SnapFood.Application.Service
 
                         var basePrice = combo.BasePrice + priceSize;
                         var endowPrice = GetPriceEndown(combo.Id, combo.BasePrice, priceSize);
-                        tongKhuyenMai +=(basePrice- endowPrice )* cartItem.Quantity;
+                        if (endowPrice>0)
+                        {
+                            tongKhuyenMai += (basePrice - endowPrice) * cartItem.Quantity;
+
+                        }
                     }
                 }
 
