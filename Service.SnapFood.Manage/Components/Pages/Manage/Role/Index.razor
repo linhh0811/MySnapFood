@@ -40,7 +40,11 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin))
                     <hr />
                     <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between">
                         <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
-                            <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAddUserToRole" Disabled="isLoading">Thêm người dùng vào quyền</FluentButton>
+                            @if (StaffDto.IsHeThong)
+                            {
+                                <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size20.AddCircle())" OnClick="OpenModalAddUserToRole" Disabled="isLoading">Thêm người dùng vào quyền</FluentButton>
+                            }
+                           
                         </FluentStack>
                         <FluentSearch @bind-Value="KeySearchUser" @bind-Value:after="RefreshDataAsync" Placeholder="Nhập vào từ ..." />
                     </FluentStack>
@@ -71,9 +75,13 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin))
                             <TemplateColumn Title="Hành động" Style="display: flex; align-items: center;">
                                 @if (!context.IsHeThong)
                                 {
-                                    <FluentButton Title="Xóa khỏi quyền" Appearance="Appearance.Outline" OnClick="@(() => DeleteUserFromRole(context.Id))">
-                                        <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
-                                    </FluentButton>
+                                    @if (StaffDto.IsHeThong)
+                                    {
+                                        <FluentButton Title="Xóa khỏi quyền" Appearance="Appearance.Outline" OnClick="@(() => DeleteUserFromRole(context.Id))">
+                                            <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+                                        </FluentButton>
+                                    }
+                                   
                                 }
                                
                             </TemplateColumn>

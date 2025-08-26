@@ -3,6 +3,7 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Dto.Role;
+using Service.SnapFood.Manage.Dto.StaffDto;
 using Service.SnapFood.Manage.Dto.TreeView;
 using Service.SnapFood.Manage.Dto.User;
 using Service.SnapFood.Share.Interface.Extentions;
@@ -33,6 +34,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Role
         private string KeySearchUser { get; set; } = string.Empty;
         private FluentDataGrid<UserDto> UserGrid { get; set; } = default!;
         private bool isLoading = false;
+        private StaffDto StaffDto { get; set; } = new StaffDto();
 
         protected override async Task OnInitializedAsync()
         {
@@ -46,6 +48,41 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Role
             isLoading = false;
         }
 
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                if (CurrentUser.UserId != Guid.Empty)
+                {
+                    await GetUserById(CurrentUser.UserId);
+                    await RefreshDataAsync();
+                }
+
+            }
+        }
+
+        private async Task GetUserById(Guid id)
+        {
+            try
+            {
+                ApiRequestModel requestRestAPI = new ApiRequestModel();
+                requestRestAPI.Endpoint = $"api/Staff/{id}";
+                ResultAPI result = await CallApi.Get<StaffDto>(requestRestAPI);
+                if (result.Status == StatusCode.OK)
+                {
+                    StaffDto = result.Data as StaffDto ?? new StaffDto();
+                }
+                else
+                {
+                    ToastService.ShowError(result.Message ?? "Lỗi khi lấy thông tin.");
+
+                }
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi làm mới dữ liệu: {ex.Message}");
+            }
+        }
         private async Task GetRoles()
         {
             requestRestAPI.Endpoint = "api/Role";
