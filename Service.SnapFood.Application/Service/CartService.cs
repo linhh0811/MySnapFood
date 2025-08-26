@@ -217,7 +217,7 @@ namespace Service.SnapFood.Application.Service
                 }
                 else
                 {
-                    var cartProductItemIsExist = _unitOfWork.CartItemRepo.FirstOrDefault(x => x.ProductId == item.ProductId && x.SizeId == item.SizeId);
+                    var cartProductItemIsExist = _unitOfWork.CartItemRepo.FirstOrDefault(x => x.ProductId == item.ProductId && x.SizeId == item.SizeId && x.CartId == cartId);
                     if (cartProductItemIsExist is not null)
                     {
                         cartProductItemIsExist.Quantity = cartProductItemIsExist.Quantity + item.Quantity;
