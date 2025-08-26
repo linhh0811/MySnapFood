@@ -321,6 +321,7 @@ namespace Service.SnapFood.Application.Service
                         Name = m.ComboName,
                         ImageUrl = m.ImageUrl,
                         Price = m.BasePrice,
+                        PriceEndown = GetPriceEndown(m.Id, m.BasePrice),
                         ItemType = ItemType.Combo,
                         ComboItems = allComboItems.TryGetValue(m.Id, out var items) ? items : new List<ComboProductDto>()
                     })

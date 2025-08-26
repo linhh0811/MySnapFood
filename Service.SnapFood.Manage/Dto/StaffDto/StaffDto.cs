@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Service.SnapFood.Share.Model.Enum;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Service.SnapFood.Manage.Dto.StaffDto
@@ -21,5 +22,7 @@ namespace Service.SnapFood.Manage.Dto.StaffDto
         public string CreatedByName { get; set; } = string.Empty;
         public string LastModifiedByName { get; set; } = string.Empty;
         public bool IsHeThong { get; set; } = false;
+        public List<EnumRole> Role { get; set; } = new List<EnumRole>();
+
     }
 }

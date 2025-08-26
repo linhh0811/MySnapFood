@@ -177,7 +177,7 @@ namespace Service.SnapFood.Application.Service
             // Kiểm tra email trùng
             if (user.Email.ToLowerInvariant() != item.Email.ToLowerInvariant())
             {
-                var existingUsers = await _unitOfWork.UserRepo.GetAllAsync();
+                var existingUsers = _unitOfWork.UserRepo.FindWhere(x=>x.UserType==UserType.User);
                 if (existingUsers.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
                     throw new Exception("Email đã tồn tại");
             }
@@ -223,15 +223,6 @@ namespace Service.SnapFood.Application.Service
                     </ul>
                     <p>Trân trọng,<br>Hệ thống quản lý</p>
                     <p>-----------------------------------------------------------------</p>
-                    <p>
-                        <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/>
-                    </p>
-                    <p>
-                        <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>
-                        <strong>Địa chỉ:</strong> 13, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội <br>
-                        <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
-                        <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
-                    </p>
                 ";
             }
             else
@@ -248,15 +239,6 @@ namespace Service.SnapFood.Application.Service
                     </ul>
                     <p>Trân trọng,<br>Hệ thống quản lý</p>
                     <p>-----------------------------------------------------------------</p>
-                    <p>
-                        <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/>
-                    </p>
-                    <p>
-                        <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>
-                        <strong>Địa chỉ:</strong> 13, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội <br>
-                        <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
-                        <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
-                    </p>
                 ";
             }
 
@@ -409,16 +391,7 @@ namespace Service.SnapFood.Application.Service
                     </ul>
                     <p>Vui lòng không cung cấp mã xác nhận cho người lạ.</p>
                     <p>Trân trọng,<br>Hệ thống quản lý</p>
-                    <p>-----------------------------------------------------------------</p>
-                    <p>
-                        <img src='https://iili.io/FbbYFJR.jpg' alt='Logo' width='285px' height='195px'/>
-                    </p>
-                    <p>
-                        <h3><strong>SnapFood - Hệ thống quản lý cửa hàng</strong></h3>
-                        <strong>Địa chỉ:</strong> 13, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội <br>
-                        <strong>Mobile | Zalo:</strong> +84(0) 98 954 7555 <br>
-                        <strong>Email:</strong> snapfoodvn@gmail.com | snapfoodadmin03@gmail.com
-                    </p>
+                    <p>-----------------------------------------------------------------</p>                   
                 ";
 
             await _emailService.SendEmailAsync(user.Email, subject, body);

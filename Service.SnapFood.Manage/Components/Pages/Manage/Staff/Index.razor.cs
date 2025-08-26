@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿    using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Service.SnapFood.Manage.Components.Pages.Manage.SizeCategory;
 using Service.SnapFood.Manage.Components.Share;
 using Service.SnapFood.Manage.Dto;
 using Service.SnapFood.Manage.Dto.StaffDto;
+using Service.SnapFood.Manage.Dto.User;
 using Service.SnapFood.Share.Interface.Extentions;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.ServiceCustomHttpClient;
@@ -23,6 +24,43 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.Staff
         protected FluentDataGrid<StaffDto> StaffGrid { get; set; } = default!;
         protected string SearchKeyword { get; set; } = string.Empty;
         private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+        private StaffDto StaffDto { get; set; } = new StaffDto();
+
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                if (CurrentUser.UserId != Guid.Empty)
+                {
+                    await GetUserById(CurrentUser.UserId);
+                    await RefreshDataAsync();
+                }
+
+            }
+        }
+        private async Task GetUserById(Guid id)
+        {
+            try
+            {
+                ApiRequestModel requestRestAPI = new ApiRequestModel();
+                requestRestAPI.Endpoint = $"api/Staff/{id}";
+                ResultAPI result = await CallApi.Get<StaffDto>(requestRestAPI);
+                if (result.Status == StatusCode.OK)
+                {
+                    StaffDto = result.Data as StaffDto ?? new StaffDto();
+                }
+                else
+                {
+                    ToastService.ShowError(result.Message ?? "Lỗi khi lấy thông tin.");
+
+                }
+            }
+            catch (Exception ex)
+            {
+                ToastService.ShowError($"Lỗi khi làm mới dữ liệu: {ex.Message}");
+            }
+        }
         private async ValueTask<GridItemsProviderResult<StaffDto>> LoadStaff(GridItemsProviderRequest<StaffDto> request)
         {
             try

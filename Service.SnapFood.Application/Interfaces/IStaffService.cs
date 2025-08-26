@@ -9,7 +9,7 @@ namespace Service.SnapFood.Application.Interfaces
     {
         DataTableJson GetPaged(BaseQuery query);
         Task<List<User>> GetAllAsync();
-        Task<User> GetByIdAsync(Guid id);
+        Task<StaffDto> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(StaffDto item);
         Task<bool> UpdateAsync(Guid id, StaffDto item);
         Task<bool> DeleteAsync(Guid id);
