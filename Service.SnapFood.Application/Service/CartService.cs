@@ -1437,15 +1437,23 @@ namespace Service.SnapFood.Application.Service
                             }
                            
                         }
+                        var nhanVien = _unitOfWork.UserRepo.GetById(item.NhanVienId);
+                        BillDelivery billDelivery = new BillDelivery()
+                        {
+                            BillId = bill.Id,
+                            ReceivingType = ReceivingType.PickUpAtStore,
+                            ReceiverName = $"[{nhanVien?.FullName}-{nhanVien?.Email}]",
+                            ReceiverPhone =nhanVien?.Numberphone??"Không xác định",
+                        };
+                        _unitOfWork.BillDeliveryRepo.Add(billDelivery);
+                        await _unitOfWork.CompleteAsync();
 
 
-
-                        
                         BillNotes billNotes1 = new BillNotes()
                         {
                             BillId = bill.Id,
                             NoteType = NoteType.CustomerOrder,
-                            NoteContent = "Đơn hàng đã được đặt tại quầy",
+                            NoteContent = $"[{nhanVien?.FullName}-{nhanVien?.Email}] Đơn hàng đã được đặt tại quầy",
                             CreatedBy = Guid.Empty
 
                         };

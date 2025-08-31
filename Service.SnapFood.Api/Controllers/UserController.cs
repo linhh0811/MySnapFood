@@ -111,6 +111,26 @@ namespace Service.SnapFood.Api.Controllers
             return Ok(new { message = "Cập nhật thành công" });
         }
 
+        [HttpPut("{Id}/Approve")]
+        public async Task<IActionResult> Approve(Guid Id)
+        {
+            var result = await _userService.ApproveAsync(Id);
+            if (!result)
+            {
+                return BadRequest("Duyệt không thành công");
+            }
+            return NoContent();
+        }
 
+        [HttpPut("{Id}/Reject")]
+        public async Task<IActionResult> Reject(Guid Id)
+        {
+            var result = await _userService.RejectAsync(Id);
+            if (!result)
+            {
+                return BadRequest("Huỷ duyệt không thành công");
+            }
+            return NoContent();
+        }
     }
 }

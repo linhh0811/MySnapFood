@@ -1,39 +1,89 @@
 ﻿@using Service.SnapFood.Share.Model.Commons
-<FluentStack HorizontalAlignment="@HorizontalAlignment.End"
-             VerticalAlignment="@VerticalAlignment.Center"
-             Style="height: 48px; background: var(--neutral-layer-4); padding-inline-end: 10px; ">
-    <FluentProfileMenu Initials="?"
-                       Style="--fluent-profile-menu-hover: var(--neutral-stroke-focus); padding: 4px;">
-        <StartTemplate>
-            Xin chào: @CurrentUser.UserName
-        </StartTemplate>
-        <HeaderTemplate>
-            <FluentLabel Style="color:blue" Typo="@Typography.Header">Đang đăng nhập</FluentLabel>
-        </HeaderTemplate>
-        <ChildContent>
-            <div style="width: 250px; height: 65px">
-                <FluentLabel Typo="@Typography.Header" Style="font-weight: bold;">@CurrentUser.UserName</FluentLabel>
-                <FluentLabel>@CurrentUser.Email</FluentLabel>
-            </div>
-        </ChildContent>
+@using Service.SnapFood.Share.Model.Enum
+@if (!IsLoading)
+{
+    <FluentStack HorizontalAlignment="@HorizontalAlignment.End"
+                 VerticalAlignment="@VerticalAlignment.Center"
+                 Style="height: 48px; background: var(--neutral-layer-4); padding-inline-end: 10px; ">
+        <FluentProfileMenu Initials="?"
+                           Style="--fluent-profile-menu-hover: var(--neutral-stroke-focus); padding: 4px;">
+            <StartTemplate>
+                Xin chào: @CurrentUser.UserName, Vai trò: @Role
+            </StartTemplate>
+            <HeaderTemplate>
+                <FluentLabel Style="color:blue" Typo="@Typography.Header">Đang đăng nhập</FluentLabel>
+            </HeaderTemplate>
+            <ChildContent>
+                <div style="width: 250px; height: 65px">
+                    <FluentLabel Typo="@Typography.Header" Style="font-weight: bold;">@CurrentUser.UserName</FluentLabel>
+                    <FluentLabel>@CurrentUser.Email</FluentLabel>
+                </div>
+            </ChildContent>
 
-        <FooterTemplate>
-            <FluentStack>
-                <FluentSpacer />
-                   
+            <FooterTemplate>
+                <FluentStack>
+                    <FluentSpacer />
 
-                
-                <FluentButton Title="Xem chi tiết"
-                              Appearance="Appearance.Outline"
-                              OnClick="@(() => OpenModalUpdate(CurrentUser.UserId))">
-                    Xem chi tiết
-                </FluentButton>
-            </FluentStack>
-        </FooterTemplate>
 
-    </FluentProfileMenu>
-</FluentStack>
+
+                    <FluentButton Title="Xem chi tiết"
+                                  Appearance="Appearance.Outline"
+                                  OnClick="@(() => OpenModalUpdate(CurrentUser.UserId))">
+                        Xem chi tiết
+                    </FluentButton>
+                </FluentStack>
+            </FooterTemplate>
+
+        </FluentProfileMenu>
+    </FluentStack>
+
+}
 @code {
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; } = new();
+    public string Role { get; set; } = string.Empty;
+    public bool IsLoading { get; set; } = true;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            IsLoading = true;
+            GetVaiTro();
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GetVaiTro()
+    {
+        if (CurrentUser.Roles.Contains(EnumRole.Admin))
+        {
+            Role = "Admin";
+            return;
+        }
+
+        if (CurrentUser.Roles.Contains(EnumRole.Manager))
+        {
+            Role = "Quản lý";
+            return;
+        }
+
+        if (CurrentUser.Roles.Contains(EnumRole.Staff) && CurrentUser.Roles.Contains(EnumRole.GiaoHang))
+        {
+            Role = "Nhân viên và nhân viên giao hàng";
+            return;
+        }
+
+        if (CurrentUser.Roles.Contains(EnumRole.Staff))
+        {
+            Role = "Nhân viên";
+            return;
+        }
+        if (CurrentUser.Roles.Contains(EnumRole.GiaoHang))
+        {
+            Role = "Nhân viên giao hàng";
+            return;
+        }
+    }
 }

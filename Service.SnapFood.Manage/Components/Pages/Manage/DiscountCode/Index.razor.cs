@@ -32,7 +32,6 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.DiscountCode
         {
             GetSelectTrangThai();
         }
-
         private async ValueTask<GridItemsProviderResult<DiscountCodeDto>> LoadDiscountCodes(GridItemsProviderRequest<DiscountCodeDto> request)
         {
             try

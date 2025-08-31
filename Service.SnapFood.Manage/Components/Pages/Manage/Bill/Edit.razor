@@ -5,141 +5,194 @@
 @using Service.SnapFood.Manage.Enums
 @using Service.SnapFood.Manage.Infrastructure.Services
 @using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.Enum
 @using Service.SnapFood.Share.Model.Result
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @inject HttpClient Http
 
-<h3>Chi tiết đơn hàng</h3>
-
-@if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiWeb && Item.ReceivingType == ReceivingType.HomeDelivery)
+@if (CurrentUser.UserId == Guid.Empty)
 {
-    <div class="step-container @(Item.Status == StatusOrder.Cancelled ? "cancelled" : "")">
-
-        <div class="step @(currentStep >= 1 ? "active" : "")">
-            <div class="circle">1</div>
-            <div class="step-label">Chờ xác nhận</div>
-        </div>
-        <div class="step @(currentStep >= 3 ? "active" : "")">
-            <div class="circle">2</div>
-            <div class="step-label">Đang chuẩn bị</div>
-        </div>
-        <div class="step @(currentStep >= 4 ? "active" : "")">
-            <div class="circle">3</div>
-            <div class="step-label">Giao hàng</div>
-        </div>
-        <div class="step @(currentStep >= 5 ? "active" : "")">
-            <div class="circle">4</div>
-            <div class="step-label">Hoàn thành</div>
-        </div>
-        <div class="step @(Item.Status == StatusOrder.Cancelled ? "active" : "")">
-            <div class="circle">5</div>
-            <div class="step-label">Huỷ</div>
-        </div>
-
-    </div>
-
-    <div class="mb-3">
-        @if (Item.Status == StatusOrder.Pending)
-        {
-            <FluentButton Appearance="Appearance.Accent" @onclick="OpenHoaDonModal" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
-            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
-        }
-        else if (Item.Status == StatusOrder.DangChuanBi)
-        {
-            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Shipping)" IconStart="@(new Icons.Regular.Size20.BoxCheckmark())">Đã chuẩn bị xong</FluentButton>
-            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
-        }
-        else if (Item.Status == StatusOrder.Shipping)
-        {
-            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Hoàn thành</FluentButton>
-            <FluentButton BackgroundColor="Red" Appearance="Appearance.Accent"  Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
-        }
-    </div>
+    <p>Bạn chưa đăng nhập!</p>
 }
-else if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiWeb && Item.ReceivingType == ReceivingType.PickUpAtStore)
+else if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager) || CurrentUser.Roles.Contains(EnumRole.GiaoHang))
 {
-    <div class="step-container @(Item.Status == StatusOrder.Cancelled ? "cancelled" : "")">
+    <h3>Chi tiết đơn hàng</h3>
 
-        <div class="step @(currentStep >= 1 ? "active" : "")">
-            <div class="circle">1</div>
-            <div class="step-label">Chờ xác nhận</div>
-        </div>
-        <div class="step @(currentStep >= 3 ? "active" : "")">
-            <div class="circle">2</div>
-            <div class="step-label">Đang đang chuẩn bị</div>
-        </div>
-        <div class="step @(currentStep >= 4 ? "active" : "")">
-            <div class="circle">3</div>
-            <div class="step-label">Chờ nhận hàng</div>
-        </div>
-        <div class="step @(currentStep >= 5 ? "active" : "")">
-            <div class="circle">4</div>
-            <div class="step-label">Hoàn thành</div>
-        </div>
-        <div class="step @(Item.Status == StatusOrder.Cancelled ? "active" : "")">
-            <div class="circle">5</div>
-            <div class="step-label">Huỷ</div>
-        </div>
+    @if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiWeb && Item.ReceivingType == ReceivingType.HomeDelivery)
+    {
+        <div class="step-container @(Item.Status == StatusOrder.Cancelled ? "cancelled" : "")">
 
-    </div>
+            <div class="step @(currentStep >= 1 ? "active" : "")">
+                <div class="circle">1</div>
+                <div class="step-label">Chờ xác nhận</div>
+            </div>
+            <div class="step @(currentStep >= 2 ? "active" : "")">
+                <div class="circle">2</div>
+                <div class="step-label">Đã xác nhận</div>
+            </div>
+            <div class="step @(currentStep >= 3 ? "active" : "")">
+                <div class="circle">3</div>
+                <div class="step-label">Đang chuẩn bị</div>
+            </div>
+            <div class="step @(currentStep >= 4 ? "active" : "")">
+                <div class="circle">4</div>
+                <div class="step-label">Đã chuẩn bị xong</div>
+            </div>
+            <div class="step @(currentStep >= 5 ? "active" : "")">
+                <div class="circle">5</div>
+                <div class="step-label">Giao hàng</div>
+            </div>
+            <div class="step @(currentStep >= 6 ? "active" : "")">
+                <div class="circle">6</div>
+                <div class="step-label">Hoàn thành</div>
+            </div>
+            <div class="step @(Item.Status == StatusOrder.Cancelled ? "active" : "")">
+                <div class="circle">7</div>
+                <div class="step-label">Huỷ</div>
+            </div>
 
-    <div class="mb-3">
-        @if (Item.Status == StatusOrder.Pending)
-        {
-            <FluentButton Appearance="Appearance.Accent" @onclick="OpenHoaDonModal" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
-            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
-        }
-        else if (Item.Status == StatusOrder.DangChuanBi)
-        {
-            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.ChoLayHang)" IconStart="@(new Icons.Regular.Size20.BoxCheckmark())">Đã chuẩn bị xong</FluentButton>
-            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
-        }
-        else if (Item.Status == StatusOrder.ChoLayHang)
-        {
-            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Khách hàng đã nhận hàng</FluentButton>
-            <FluentButton BackgroundColor="Red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
-        }
-    </div>
-}
-else if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiQuay)
-{
-    <div class="step-container @(Item.Status == StatusOrder.Cancelled ? "cancelled" : "")">
-
-
-        <div class="step @(currentStep >= 3 ? "active" : "")">
-            <div class="circle">1</div>
-            <div class="step-label">Đang chuẩn bị</div>
         </div>
 
-        <div class="step @(currentStep >= 5 ? "active" : "")">
-            <div class="circle">2</div>
-            <div class="step-label">Hoàn thành</div>
+        <div class="mb-3">
+            @if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+            {
+                @if (Item.Status == StatusOrder.Pending)
+                {
+                    <FluentButton Appearance="Appearance.Accent" @onclick="OpenHoaDonModal" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
+                    <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+                }
+                @if (Item.Status == StatusOrder.Confirmed)
+                {
+                    <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.DangChuanBi)" IconStart="@(new Icons.Regular.Size20.BoxCheckmark())">Bắt đầu chuẩn bị</FluentButton>
+                    <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+                }
+                @if (Item.Status == StatusOrder.DangChuanBi)
+                {
+                    <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.DaChuanBiXong)" IconStart="@(new Icons.Regular.Size20.BoxCheckmark())">Đã chuẩn bị xong</FluentButton>
+                    <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+                }
+                
+            }
+            @if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager) || CurrentUser.Roles.Contains(EnumRole.GiaoHang))
+            {
+                @if (Item.Status == StatusOrder.DaChuanBiXong)
+                {
+                    <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Shipping)" IconStart="@(new Icons.Regular.Size20.BoxCheckmark())">Bắt đầu giao hàng</FluentButton>
+                    <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+                }
+                @if (Item.Status == StatusOrder.Shipping)
+                {
+                    <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Hoàn thành</FluentButton>
+                    <FluentButton BackgroundColor="Red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+                }
+            }
         </div>
-        <div class="step @(Item.Status == StatusOrder.Cancelled ? "active" : "")">
-            <div class="circle">3</div>
-            <div class="step-label">Huỷ</div>
+    }
+    else if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiWeb && Item.ReceivingType == ReceivingType.PickUpAtStore)
+    {
+        <div class="step-container @(Item.Status == StatusOrder.Cancelled ? "cancelled" : "")">
+
+            <div class="step @(currentStep >= 1 ? "active" : "")">
+                <div class="circle">1</div>
+                <div class="step-label">Chờ xác nhận</div>
+            </div>
+            <div class="step @(currentStep >= 2 ? "active" : "")">
+                <div class="circle">2</div>
+                <div class="step-label">Đã xác nhận</div>
+            </div>
+            <div class="step @(currentStep >= 3 ? "active" : "")">
+                <div class="circle">3</div>
+                <div class="step-label">Đang chuẩn bị</div>
+            </div>
+            <div class="step @(currentStep >= 5 ? "active" : "")">
+                <div class="circle">4</div>
+                <div class="step-label">Chờ nhận hàng</div>
+            </div>
+            <div class="step @(currentStep >= 6 ? "active" : "")">
+                <div class="circle">5</div>
+                <div class="step-label">Hoàn thành</div>
+            </div>
+            <div class="step @(Item.Status == StatusOrder.Cancelled ? "active" : "")">
+                <div class="circle">6</div>
+                <div class="step-label">Huỷ</div>
+            </div>
+
         </div>
 
-    </div>
+        <div class="mb-3">
+            @if (Item.Status == StatusOrder.Pending)
+            {
+                <FluentButton Appearance="Appearance.Accent" @onclick="OpenHoaDonModal" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Xác nhận</FluentButton>
+                <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+            }
+            @if (Item.Status == StatusOrder.Confirmed)
+            {
+                <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.DangChuanBi)" IconStart="@(new Icons.Regular.Size20.BoxCheckmark())">Bắt đầu chuẩn bị</FluentButton>
+                <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+            }
+            
+            @if (Item.Status == StatusOrder.DangChuanBi)
+            {
+                <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.ChoLayHang)" IconStart="@(new Icons.Regular.Size20.BoxCheckmark())">Đã chuẩn bị xong</FluentButton>
+                <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+            }
 
-    <div class="mb-3">
+            @if (Item.Status == StatusOrder.ChoLayHang)
+            {
+                <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Khách hàng đã nhận hàng</FluentButton>
+                <FluentButton BackgroundColor="Red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+            }
+        </div>
+    }
+    else if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiQuay)
+    {
+        <div class="step-container @(Item.Status == StatusOrder.Cancelled ? "cancelled" : "")">
 
-        @if (Item.Status == StatusOrder.DangChuanBi)
-        {
-            <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Hoàn thành</FluentButton>
-            <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
-        }
 
-    </div>
-}
+            <div class="step @(currentStep >= 3 ? "active" : "")">
+                <div class="circle">1</div>
+                <div class="step-label">Đang chuẩn bị</div>
+            </div>
+
+            <div class="step @(currentStep >= 5 ? "active" : "")">
+                <div class="circle">2</div>
+                <div class="step-label">Hoàn thành</div>
+            </div>
+            <div class="step @(Item.Status == StatusOrder.Cancelled ? "active" : "")">
+                <div class="circle">3</div>
+                <div class="step-label">Huỷ</div>
+            </div>
+
+        </div>
+
+        <div class="mb-3">
+
+            @if (Item.Status == StatusOrder.DangChuanBi)
+            {
+                <FluentButton Appearance="Appearance.Accent" @onclick="() => UpdateStatus(StatusOrder.Completed)" IconStart="@(new Icons.Regular.Size20.CheckmarkCircle())">Hoàn thành</FluentButton>
+                <FluentButton BackgroundColor="red" Appearance="Appearance.Accent" Color="White" @onclick="HuyDonHangAsync" IconStart="@(new Icons.Regular.Size20.DismissCircle())">Huỷ</FluentButton>
+            }
+
+        </div>
+    }
 
 
 
-<div class="order-info">
-    <div class="row">
-        <!-- Bên trái -->
-        <div class="col-md-6 left">
+    <div class="order-info">
+        <div class="row">
+            <!-- Bên trái -->
+            <div class="col-md-6 left">
+                @if (Item.PhuongThucDatHang == PhuongThucDatHangEnum.DatTaiQuay)
+                {
+                    <h4>Thông tin nhân viên</h4>
+                }
+                else
+                {
+                    <h4>Thông tin khách hàng</h4>
+                }
+                
+              
             <p><strong>@Item.BillDeliveryDto.ReceiverName</strong></p>
             <p>@Item.BillDeliveryDto.ReceiverAddress</p>
             @if (!string.IsNullOrEmpty(@Item.BillDeliveryDto.ReceiverPhone))
@@ -282,7 +335,7 @@ else
     </div>
 
 }
-
+}
 <style>
     .step-container {
     display: flex;
@@ -362,6 +415,7 @@ else
 </style>
 
 @code {
+    [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
     [Parameter] public Guid id { get; set; }
     [Inject] protected ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
@@ -374,6 +428,7 @@ else
     {
         await LoadItem();
     }
+   
 
     private async Task LoadItem()
     {
@@ -391,14 +446,15 @@ else
         return status switch
         {
             StatusOrder.Pending => 1, // Pending
-            // StatusOrder.Confirmed => 2, // Confirmed
+            StatusOrder.Confirmed => 2, // Confirmed
             StatusOrder.DangChuanBi => 3, // Confirmed
+            StatusOrder.DaChuanBiXong => 4,
 
-            StatusOrder.Shipping => 4, // Shipping
-            StatusOrder.ChoLayHang => 4, // chờ lấy hàng
+            StatusOrder.Shipping => 5, // Shipping
+            StatusOrder.ChoLayHang => 5, // chờ lấy hàng
 
-            StatusOrder.Completed => 5, // Completed
-            StatusOrder.Cancelled => 6, // Cancelled
+            StatusOrder.Completed => 6, // Completed
+            StatusOrder.Cancelled => 7, // Cancelled
             _ => 1
         };
     }
@@ -411,7 +467,8 @@ else
             var updateDto = new UpdateOrderStatusDto
                 {
                     StatusOrder = status,
-                    Reason = reason
+                    Reason = reason,
+                    NhanVienThaoTac = $"{CurrentUser.UserName}-{CurrentUser.Email}"
                 };
 
             ResultAPI result = await CallApi.Put(request, updateDto);

@@ -1,5 +1,6 @@
 ﻿@using Service.SnapFood.Manage.Dto
 @using Service.SnapFood.Manage.Dto.Combo
+@using Service.SnapFood.Manage.Query
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.SQL
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
@@ -65,6 +66,8 @@
 @code {
     [Parameter] public string SearchKeyword { get; set; } = string.Empty;
     [Parameter] public Guid CartId { get; set; }
+    [Parameter] public string CategoryId { get; set; } = string.Empty;
+
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -88,18 +91,19 @@
 
         try
         {
-            var baseQuery = new BaseQuery
+            var baseQuery = new ProductQuery
+            {
+                CategoryId = string.IsNullOrEmpty(CategoryId) ? Guid.Empty : Guid.Parse(CategoryId),
+                SearchIn = new List<string> { "ComboName" },
+                Keyword = SearchKeyword,
+
+                gridRequest = new GridRequest
                 {
-                    SearchIn = new List<string> { "ComboName" },
-                    Keyword = SearchKeyword,
+                    page = 1,
+                    pageSize = int.MaxValue,
 
-                    gridRequest = new GridRequest
-                    {
-                        page = 1,
-                        pageSize = int.MaxValue,
-
-                    }
-                };
+                }
+            };
             requestRestAPI.Endpoint = "api/Combo/GetPaged";
 
             ResultAPI result = await CallApi.Post<DataTableJson>(requestRestAPI, baseQuery);

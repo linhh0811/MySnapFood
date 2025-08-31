@@ -1,5 +1,8 @@
 ﻿@using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Category
 @using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.SQL
+@using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @inherits ComponentBase
 @implements IDialogContentComponent<EditOrUpdateParameters>
 
@@ -14,22 +17,37 @@
 
 <FluentDialogBody>
     <div class="container ">
-        <FluentStack Orientation="Orientation.Horizontal"
-                     Style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <FluentStack Orientation="Orientation.Horizontal" Style="display:flex; justify-content:space-between;padding-bottom:15px;">
             <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="10">
+
+
             </FluentStack>
-            <FluentSearch @bind-Value="SearchKeyword" Placeholder="Nhập vào từ khóa" />
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <FluentSelect @bind-Value="CategoryId"
+                Items="CategoryList"
+                OptionText="@(x => x.CategoryName)"
+                OptionValue="@(x => x.Id)"
+                Nullable="true"
+                Style="width:100%;"
+                Height="220px"
+                Position="SelectPosition.Below"
+                Width="150px;">
+                </FluentSelect>
+
+                <FluentSearch Style="min-width:200px;" @bind-Value="SearchKeyword" Placeholder="Nhập vào từ khóa" />
+            </div>
+
         </FluentStack>
 
         <div class=" row" style="height:800px; overflow-y:auto; padding-right:5px;">
-            <Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Product.Index SearchKeyword="@SearchKeyword" CartId="@Content.Id">
+            <Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Product.Index CategoryId="@CategoryId" SearchKeyword="@SearchKeyword" CartId="@Content.Id">
             </Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Product.Index>
 
-            <Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Combo.Index SearchKeyword="@SearchKeyword" CartId="@Content.Id">
+            <Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Combo.Index CategoryId="@CategoryId" SearchKeyword="@SearchKeyword" CartId="@Content.Id">
             </Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay.Combo.Index>
         </div>
     </div>
-    
+
 </FluentDialogBody>
 
 
@@ -48,11 +66,17 @@
 
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
+    private List<CategoryDto> CategoryList { get; set; } = new List<CategoryDto>();
     protected string SearchKeyword { get; set; } = string.Empty;
-
+    protected string CategoryId { get; set; } = Guid.Empty.ToString();
     private bool IsCancelling { get; set; }
     private string? ErrorMessage { get; set; }
 
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCategory();
+
+    }
     private async Task CancelAsync()
     {
         if (Content?.OnRefresh.HasDelegate ?? false)
@@ -61,5 +85,24 @@
         }
         await Dialog.CancelAsync();
 
+    }
+
+    private async Task GetCategory()
+    {
+        ApiRequestModel requestRestAPI = new ApiRequestModel() { };
+        requestRestAPI.Endpoint = $"api/Category/";
+        ResultAPI result = await CallApi.Get<List<CategoryDto>>(requestRestAPI);
+        if (result.Status == StatusCode.OK)
+        {
+            CategoryList = result.Data as List<CategoryDto> ?? new List<CategoryDto>();
+            CategoryList = CategoryList.Where(x => x.ModerationStatus == ModerationStatus.Approved).ToList();
+            CategoryDto cateogry = new CategoryDto()
+                {
+                    Id = Guid.Empty.ToString(),
+                    CategoryName = "Chọn phân loại"
+                };
+            CategoryList.Insert(0, cateogry);
+            CategoryId = CategoryList.First().Id ?? string.Empty;
+        }
     }
 }

@@ -11,5 +11,7 @@ namespace Service.SnapFood.Share.Model.Enum
         Admin = 0, // Quản trị viên
         Manager = 1, // Quản lý
         Staff = 2, // Nhân viên
+        GiaoHang = 3,
+
     }
 }

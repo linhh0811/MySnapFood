@@ -174,26 +174,30 @@ namespace Service.SnapFood.Application.Service
                 string NoteContent = string.Empty;
                 if (updateOrderStatusDto.StatusOrder== StatusOrder.Pending)
                 {
-                    NoteContent = "Đơn hàng chờ xác nhận";
+                    NoteContent = $"[{updateOrderStatusDto.NhanVienThaoTac}] Đơn hàng chờ xác nhận";
                 }else if (updateOrderStatusDto.StatusOrder == StatusOrder.Confirmed)
                 {
-                    NoteContent = "Đơn hàng đã được xác nhận";
+                    NoteContent = $"[{updateOrderStatusDto.NhanVienThaoTac}] Đơn hàng đã được xác nhận";
                 }
                 else if (updateOrderStatusDto.StatusOrder == StatusOrder.DangChuanBi)
                 {
-                    NoteContent = "Đơn hàng đã được xác nhận, đang chuẩn bị hàng";
+                    NoteContent = $"[{updateOrderStatusDto.NhanVienThaoTac}] Đơn hàng đang chuẩn bị hàng";
+                }
+                else if (updateOrderStatusDto.StatusOrder == StatusOrder.DaChuanBiXong)
+                {
+                    NoteContent = $"[{updateOrderStatusDto.NhanVienThaoTac}] Đơn hàng đang đã chuẩn bị xong";
                 }
                 else if (updateOrderStatusDto.StatusOrder == StatusOrder.Shipping)
                 {
-                    NoteContent = "Đơn hàng đã được chuẩn bị xong và chuẩn bị giao cho khách hàng";
+                    NoteContent = $"[{updateOrderStatusDto.NhanVienThaoTac}] Đơn hàng đang tiến hành giao cho khách hàng";
                 }
                 else if (updateOrderStatusDto.StatusOrder == StatusOrder.Completed)
                 {
-                    NoteContent = "Đơn hàng đã được hoàn thành";
+                    NoteContent = $"[{updateOrderStatusDto.NhanVienThaoTac}] Đơn hàng đã được hoàn thành";
                 }
                 else if (updateOrderStatusDto.StatusOrder == StatusOrder.Cancelled)
                 {
-                    NoteContent = "Đơn hàng đã bị hủy. Lý do: "+ updateOrderStatusDto.Reason;
+                    NoteContent = $"[{updateOrderStatusDto.NhanVienThaoTac}] Đơn hàng đã bị hủy. Lý do: " + updateOrderStatusDto.Reason;
                 }
 
                 if (!string.IsNullOrEmpty(NoteContent))
@@ -445,8 +449,57 @@ namespace Service.SnapFood.Application.Service
                 throw new Exception("Lỗi khi phân trang hóa đơn: " + ex.Message);
             }
         }
-        
-         public async Task<bool> ApplyDiscountAsync(Guid billId, Guid discountCodeId, Guid userId)
+
+        public DataTableJson GetPageForGiaoHang(BillQuery query)
+        {
+
+            try
+            {
+                if (query == null || query.gridRequest == null)
+                    throw new ArgumentNullException();
+
+                int totalRecords = 0;
+
+                var dataQuery = _unitOfWork.BillRepo.FilterData(
+                     q => q.Where(x =>
+                         (query.Status == StatusOrder.None || x.Status == query.Status) &&
+                         (x.Status == StatusOrder.Shipping || x.Status == StatusOrder.DaChuanBiXong) &&
+                         (!query.IsBanHang || (x.Status != StatusOrder.Completed && x.Status != StatusOrder.Cancelled))
+                         && (query.UserId == Guid.Empty || x.UserId == query.UserId)
+                     ),
+                     query.gridRequest,
+                     ref totalRecords
+                 );
+
+
+                var allUsers = _unitOfWork.UserRepo.GetAll().ToList();
+
+                var data = dataQuery.ToList().Select(m => new BillDto
+                {
+                    Id = m.Id,
+                    BillCode = m.BillCode,
+                    UserId = m.UserId,
+                    FullName = allUsers.FirstOrDefault(u => u.Id == m.UserId)?.Email ?? string.Empty,
+                    StoreId = m.StoreId,
+                    Status = m.Status,
+                    TotalAmount = m.TotalAmount,
+                    TotalAmountEndow = m.TotalAmountEndow,
+                    DiscountAmount = m.DiscountAmount,
+                    PhiVanChuyen = _unitOfWork.BillDeliveryRepo.FirstOrDefault(x => x.BillId == m.Id)?.DeliveryFee ?? 0,
+                    Created = m.Created,
+                    ReceivingType = m.ReceivingType,
+                    PhuongThucDatHang = m.PhuongThucDatHang
+                }).ToList();
+
+                return new DataTableJson(data, query.draw, totalRecords);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Lỗi khi phân trang hóa đơn: " + ex.Message);
+            }
+        }
+
+        public async Task<bool> ApplyDiscountAsync(Guid billId, Guid discountCodeId, Guid userId)
         {
             try
             {
@@ -647,8 +700,10 @@ namespace Service.SnapFood.Application.Service
             var DangGiaoHang = bill.Where(x => x.Status == StatusOrder.Shipping).Count();
             var DangChuanBi = bill.Where(x => x.Status == StatusOrder.DangChuanBi).Count();
             var ChoLayHang = bill.Where(x => x.Status == StatusOrder.ChoLayHang).Count();
+            var DaChuanBiXong = bill.Where(x => x.Status == StatusOrder.DaChuanBiXong).Count();
 
-            
+
+
 
             BillDangXuLyDto BillDangXuLyDto = new BillDangXuLyDto()
             {
@@ -657,7 +712,8 @@ namespace Service.SnapFood.Application.Service
                 DangGiaoHang = DangGiaoHang,
                 DaXacNhan = DaXacNhan,
                 DangChuanBi= DangChuanBi,
-                ChoLayHang =ChoLayHang
+                ChoLayHang =ChoLayHang,
+                DaChuanBiXong=DaChuanBiXong
             };
             return BillDangXuLyDto;
         }
