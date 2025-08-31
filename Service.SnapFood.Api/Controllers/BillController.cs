@@ -29,6 +29,13 @@ namespace Service.SnapFood.Api.Controllers
             return Ok(result);
         }
 
+        [HttpPost("GetPagedForGiaoHang")]
+        public IActionResult GetPageForGiaoHang(BillQuery query)
+        {
+            var result = _billService.GetPageForGiaoHang(query);
+            return Ok(result);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

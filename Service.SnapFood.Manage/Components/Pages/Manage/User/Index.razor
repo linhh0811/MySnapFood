@@ -4,6 +4,7 @@
 @using Microsoft.FluentUI.AspNetCore.Components.Icons
 @using Service.SnapFood.Manage.Dto.User
 @using Service.SnapFood.Share.Model.Enum
+@using Service.SnapFood.Share.Model.SQL
 @inject NavigationManager Navigation
 @if (CurrentUser.UserId == Guid.Empty)
 {
@@ -21,20 +22,20 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contain
         </FluentStack>
         <FluentGridItem Style="width:100%;">
             <FluentDataGrid @ref="UserGrid"
-                            TGridItem="UserDto"
-                            ItemsProvider="@LoadUsers"
-                            Pagination="@pagination"
-                            ResizableColumns="false"
-                            GridTemplateColumns="0.5fr 2fr 2fr 1fr"
-                            RowSize="DataGridRowSize.Large"
-                            ShowHover="true"
-                            GenerateHeader="GenerateHeaderOption.Sticky">
+            TGridItem="UserDto"
+            ItemsProvider="@LoadUsers"
+            Pagination="@pagination"
+            ResizableColumns="false"
+            GridTemplateColumns="0.5fr 2fr 2fr 1fr 1fr 1.25fr 1fr"
+            RowSize="DataGridRowSize.Large"
+            ShowHover="true"
+            GenerateHeader="GenerateHeaderOption.Sticky">
                 <TemplateColumn Title="#" Style="display:flex;align-items: center;">
                     <span style="cursor: pointer;">
                         @context.Index
                     </span>
                 </TemplateColumn>
-                <TemplateColumn Title="Họ tên" Style="display: flex;align-items: center;">
+                <TemplateColumn  Title="Họ tên" Style="display: flex;align-items: center;">
                     <span style="cursor: pointer; color: dodgerblue;" @onclick="() => OpenDetailsModal(context.Id)">
                         @context.FullName
                     </span>
@@ -44,11 +45,47 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contain
                         @context.Email
                     </span>
                 </TemplateColumn>
+                <TemplateColumn Align="Align.Center" Title="Tổng đơn" >
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                        <span style="cursor: pointer;">@context.TongDonHang</span>
+                    </div>
+                </TemplateColumn>
+                <TemplateColumn Align="Align.Center" Title="Đơn bị hủy" >
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                        <span style="cursor: pointer;">@context.DonHangBiHuy</span>
+                    </div>
+                </TemplateColumn>
+                <TemplateColumn Title="Trạng thái" Style="display: flex; align-items: center;">
+                    @if (context.ModerationStatus == ModerationStatus.Approved)
+                    {
+                        <FluentBadge Appearance="Appearance.Accent">
+                            <span>Đang hoạt động</span>
+                        </FluentBadge>
+                    }
+                    else
+                    {
+                        <FluentBadge Appearance="Appearance.Neutral" Color="white" BackgroundColor="red">
+                            <span>Tạm ngừng hoạt động</span>
+                        </FluentBadge>
+                    }
+                </TemplateColumn>
                 <TemplateColumn Title="Thao tác" Style="display: flex; align-items: center; justify-content:space-between;min-width:100px">
                     <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="5">
                         <FluentButton Title="Xem chi tiết" Appearance="Appearance.Outline" OnClick="()=>XemDonHang(context.Id)">
                             <FluentIcon Value="@(new Icons.Regular.Size16.Eye())" />
                         </FluentButton>
+                        @if (context.ModerationStatus == 0)
+                        {
+                            <FluentButton Title="Hủy duyệt" Appearance="Appearance.Outline" OnClick="@(() => RejectAsync(context.Id))">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Dismiss())" />
+                            </FluentButton>
+                        }
+                        else
+                        {
+                            <FluentButton Title="Duyệt" Appearance="Appearance.Outline" OnClick="@(() => ApproveAsync(context.Id))">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Checkmark())" />
+                            </FluentButton>
+                        }
                     </FluentStack>
                 </TemplateColumn>
             </FluentDataGrid>

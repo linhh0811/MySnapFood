@@ -55,6 +55,17 @@ else if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contain
 
                 <FluentGridItem xs="4" md="2">
 
+                    <FluentCard Class="stat-card orange" @onclick="() => SelectTrangThai(StatusOrder.Confirmed)">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.TaskListSquareAdd())" Color="Color.Accent" />
+                        <FluentLabel>Đã xác nhận</FluentLabel>
+                        <div class="stat-value">@billDangXuLyDto.DaXacNhan</div>
+                    </FluentCard>
+
+
+                </FluentGridItem>
+
+                <FluentGridItem xs="4" md="2">
+
                     <FluentCard Class="stat-card pink" @onclick="() => SelectTrangThai(StatusOrder.DangChuanBi)">
                         <FluentIcon Value="@(new Icons.Regular.Size24.CheckmarkCircle())" Color="Color.Accent" />
                         <FluentLabel>Đang chuẩn bị</FluentLabel>
@@ -63,7 +74,18 @@ else if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contain
 
                 </FluentGridItem>
 
-                
+                <FluentGridItem xs="4" md="2">
+
+                    <FluentCard Class="stat-card blue" @onclick="() => SelectTrangThai(StatusOrder.DaChuanBiXong)">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.CheckmarkCircle())" Color="Color.Accent" />
+                        <FluentLabel>Đã chuẩn bị xong</FluentLabel>
+                        <div class="stat-value">@billDangXuLyDto.DaChuanBiXong</div>
+                    </FluentCard>
+
+                </FluentGridItem>
+
+                <FluentGridItem xs="4" md="1">
+                </FluentGridItem>
 
                 <FluentGridItem xs="4" md="2">
 
@@ -75,9 +97,14 @@ else if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contain
 
                 </FluentGridItem>
 
+                
+                
+
+                
+
                 <FluentGridItem xs="4" md="2">
 
-                    <FluentCard Class="stat-card green" @onclick="() => SelectTrangThai(StatusOrder.ChoLayHang)">
+                    <FluentCard Class="stat-card blue" @onclick="() => SelectTrangThai(StatusOrder.ChoLayHang)">
                         <FluentIcon Value="@(new Icons.Regular.Size24.VehicleTruck())" Color="Color.Accent" />
                         <FluentLabel>Chờ lấy hàng</FluentLabel>
                         <div class="stat-value">@billDangXuLyDto.ChoLayHang</div>
@@ -265,7 +292,6 @@ else
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: var(--design-unit-4);
         margin-bottom: var(--design-unit-6);
     }
 
@@ -274,7 +300,6 @@ else
 
         .stats-grid {
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: var(--design-unit-2);
         }
 
         .stat-card {
@@ -398,8 +423,10 @@ else
         return status switch
         {
             StatusOrder.Pending => "Chờ xác nhận",
-            // StatusOrder.Confirmed => "Đã xác nhận",
+            StatusOrder.Confirmed => "Đã xác nhận",
             StatusOrder.DangChuanBi => "Đang chuẩn bị",
+            StatusOrder.DaChuanBiXong => "Đã chuẩn bị xong",
+
             StatusOrder.ChoLayHang => "Chờ lấy hàng",
 
             StatusOrder.Shipping => "Đang giao hàng",
@@ -414,11 +441,13 @@ else
         return status switch
         {
             StatusOrder.Pending => "text-warning",    // Màu vàng
-            // StatusOrder.Confirmed => "text-primary",// Màu xanh
+            StatusOrder.Confirmed => "text-primary",// Màu xanh
             StatusOrder.DangChuanBi => "text-primary", // Màu xanh
             StatusOrder.ChoLayHang => "text-info",
             StatusOrder.Shipping => "text-info",     // Màu xanh nhạt
-            StatusOrder.Completed => "text-success", // Màu xanh lá
+            StatusOrder.Completed => "text-success",
+            StatusOrder.DaChuanBiXong => "text-success", // Màu xanh lá
+            // Màu xanh lá
             StatusOrder.Cancelled => "text-danger",  // Màu đỏ
             _ => "text-dark"                         // Mặc định
         };

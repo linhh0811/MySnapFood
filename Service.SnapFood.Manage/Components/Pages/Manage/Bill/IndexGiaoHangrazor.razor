@@ -1,8 +1,7 @@
-﻿@page "/Quan-Ly/Bill/{userId:guid}"
-@page "/Quan-Ly/Bill"
-
+﻿@page "/Ban-Hang/Giao-Hang"
 
 @using Service.SnapFood.Manage.Dto
+@using Service.SnapFood.Manage.Dto.Bill
 @using Service.SnapFood.Manage.Dto.BillDto
 @using System.Text.Json
 @using Service.SnapFood.Manage.Enums
@@ -21,15 +20,49 @@
 @inject NavigationManager navigation
 @namespace Service.SnapFood.Manage.Components.Pages.Manage.Bill
 
-
 @if (CurrentUser.UserId == Guid.Empty)
 {
     <p>Bạn chưa đăng nhập!</p>
 }
-else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+else if (CurrentUser.Roles.Contains(EnumRole.GiaoHang) || CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
 {
+    <h2>Danh sách đơn hàng đang xử lý</h2>
+    <div class="dashboard-container">
+
+        <div class="stats-grid" style="margin-bottom:10px">
+
+
+            <FluentGrid Spacing="3" AdaptiveRendering="true" Justify="@JustifyContent.FlexStart">
+
+                <FluentGridItem xs="4" md="2">
+
+                    <FluentCard Class="stat-card pink" @onclick="() => SelectTrangThai(StatusOrder.DaChuanBiXong)">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.CheckmarkCircle())" Color="Color.Accent" />
+                        <FluentLabel>Đã chuẩn bị xong</FluentLabel>
+                        <div class="stat-value">@billDangXuLyDto.DaChuanBiXong</div>
+                    </FluentCard>
+
+                </FluentGridItem>
+
+
+
+                <FluentGridItem xs="4" md="2">
+
+                    <FluentCard Class="stat-card green" @onclick="() => SelectTrangThai(StatusOrder.Shipping)">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.VehicleTruck())" Color="Color.Accent" />
+                        <FluentLabel>Đang giao hàng</FluentLabel>
+                        <div class="stat-value">@billDangXuLyDto.DangGiaoHang</div>
+                    </FluentCard>
+
+                </FluentGridItem>             
+
+            </FluentGrid>
+        </div>
+
+    </div>
     <FluentStack Orientation="Orientation.Vertical" VerticalGap="12" Style="width:100%;">
-        <h2>Danh sách hóa đơn</h2>
+
+
 
 
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -118,60 +151,170 @@ else if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contain
 
         <Paginator PaginationState="@pagination" SelectedPageSizeChanged="RefresData" />
     </FluentStack>
+
 }
 else
 {
     <p>Bạn không có quyền sử dụng chức năng.</p>
 }
+
+<style>
+    .dashboard-container {
+        padding: var(--design-unit-4);
+        max-width: 100%;
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .dashboard-container {
+            padding: var(--design-unit-2);
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--design-unit-2);
+        }
+
+        .stat-card {
+            height: 100px;
+            padding: var(--design-unit-2);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+    }
+
+    .stat-card {
+        padding: 20px;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        border: 1px solid #e1dfdd;
+        width: auto;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--elevation-shadow-card-hover);
+        }
+
+        .stat-card.blue {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        }
+
+        .stat-card.pink {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        }
+
+        .stat-card.orange {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
+        }
+
+        .stat-card.purple {
+            background: linear-gradient(135deg, #ede7f6 0%, #d1c4e9 100%);
+        }
+
+        .stat-card h3 {
+            color: #323130;
+            font-size: 15px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0078d4;
+    }
+
+
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        margin-bottom: var(--design-unit-6);
+    }
+
+
+    @@media (max-width: 768px) {
+
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .stat-card {
+            height: 100px;
+            padding: var(--design-unit-2);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+    }
+</style>
 @code {
-    [CascadingParameter] public CurrentUser CurrentUser { get; set; } = new();
-    [Parameter]
-    public Guid userId { get; set; }
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
+
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
-    private ApiRequestModel requestRestAPI = new ApiRequestModel();
+
     protected FluentDataGrid<BillDto> BillGrid { get; set; } = default!;
     protected string SearchKeyword { get; set; } = string.Empty;
     private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
     private Dictionary<String, String> _SelectTrangThai = new Dictionary<string, string>();
     private string SelectedTrangThai = "None";
+    private BillDangXuLyDto billDangXuLyDto { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetBillDangXuLy();
+    }
 
     private async ValueTask<GridItemsProviderResult<BillDto>> LoadBills(GridItemsProviderRequest<BillDto> request)
     {
         try
         {
-
+            // if (!Enum.TryParse<StatusOrder>(SelectedTrangThai, out var selectedTrangThai))
+            // {
+            //     selectedTrangThai = StatusOrder.None; // Mặc định nếu không parse được
+            // }
             bool Convert = Enum.TryParse<StatusOrder>(SelectedTrangThai, out var parsedStatus);
-
             if (Convert)
             {
                 var baseQuery = new BillQuery
-                {
-                    SearchIn = new List<string> { "BillCode" },
-                    UserId = userId,
-                    Keyword = SearchKeyword,
-                    Status = parsedStatus,
-                    gridRequest = new GridRequest
                     {
-                        page = (request.StartIndex / pagination.ItemsPerPage) + 1,
-                        pageSize = pagination.ItemsPerPage,
-                        skip = request.StartIndex,
-                        take = pagination.ItemsPerPage,
-                        sort = request.GetSortByProperties()
-                            .Select(s => new Sort
-                            {
-                                field = s.PropertyName,
-                                dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
-                            }).ToList()
-                    }
-                };
+                        SearchIn = new List<string> { "BillCode" },
+                        Keyword = SearchKeyword,
+                        IsBanHang = true,
+                        Status = parsedStatus,
 
-                requestRestAPI.Endpoint = "api/Bill/GetPaged";
+                        gridRequest = new GridRequest
+                        {
+                            page = (request.StartIndex / pagination.ItemsPerPage) + 1,
+                            pageSize = pagination.ItemsPerPage,
+                            skip = request.StartIndex,
+                            take = pagination.ItemsPerPage,
+                            sort = request.GetSortByProperties()
+                                            .Select(s => new Sort
+                                            {
+                                                field = s.PropertyName,
+                                                dir = s.Direction == SortDirection.Ascending ? "asc" : "desc"
+                                            }).ToList()
+                        }
+                    };
 
-                ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);
-                if (result.Status == StatusCode.OK && result.Data is Dto.DataTableJson dataTable)
+                ApiRequestModel requestRestAPI = new ApiRequestModel();
+                requestRestAPI.Endpoint = "api/Bill/GetPagedForGiaoHang";
+
+                ResultAPI result = await CallApi.Post<SnapFood.Manage.Dto.DataTableJson>(requestRestAPI, baseQuery);
+                if (result.Status == StatusCode.OK && result.Data is SnapFood.Manage.Dto.DataTableJson dataTable)
                 {
                     var items = JsonSerializer.Deserialize<List<BillDto>>(dataTable.Data.GetRawText(),
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<BillDto>();
@@ -227,12 +370,13 @@ else
             StatusOrder.Pending => "Chờ xác nhận",
             StatusOrder.Confirmed => "Đã xác nhận",
             StatusOrder.DangChuanBi => "Đang chuẩn bị",
-            StatusOrder.ChoLayHang => "Chờ lấy hàng",
-            StatusOrder.Shipping => "Đang giao hàng",
-            StatusOrder.Completed => "Hoàn thành    ",
-            StatusOrder.Cancelled => "Đã hủy",
             StatusOrder.DaChuanBiXong => "Đã chuẩn bị xong",
 
+            StatusOrder.ChoLayHang => "Chờ lấy hàng",
+
+            StatusOrder.Shipping => "Đang giao hàng",
+            StatusOrder.Completed => "Đã giao thành công",
+            StatusOrder.Cancelled => "Đã hủy",
 
             _ => "Không xác định"
         };
@@ -242,7 +386,7 @@ else
         return status switch
         {
             StatusOrder.Pending => "text-warning",    // Màu vàng
-            StatusOrder.Confirmed => "text-primary", // Màu xanh
+            StatusOrder.Confirmed => "text-primary",// Màu xanh
             StatusOrder.DangChuanBi => "text-primary", // Màu xanh
             StatusOrder.ChoLayHang => "text-info",
             StatusOrder.Shipping => "text-info",     // Màu xanh nhạt
@@ -259,7 +403,7 @@ else
     new(null, "Tất cả trạng thái"),
     new(StatusOrder.Pending, "Chờ xác nhận"),
     // new(StatusOrder.Confirmed, "Đã xác nhận"),
-     new(StatusOrder.DangChuanBi, "Đang chuẩn bị"),
+    new(StatusOrder.DangChuanBi, "Đang chuẩn bị"),
     new(StatusOrder.ChoLayHang, "Chờ lấy hàng"),
     new(StatusOrder.Shipping, "Đang giao hàng"),
     new(StatusOrder.Completed, "Đã giao thành công"),
@@ -271,6 +415,7 @@ else
     {
         _SelectTrangThai = Enum.GetValues(typeof(StatusOrder))
             .Cast<StatusOrder>()
+            .Where(x => x == StatusOrder.Shipping || x == StatusOrder.DaChuanBiXong || x == StatusOrder.None)
             .OrderBy(e => e == StatusOrder.None ? 0 : 1)
             .ThenBy(e => e)
             .ToDictionary(
@@ -300,9 +445,30 @@ else
         {
             GetSelectTrangThai();           // Load dropdown trạng thái
             await RefreshDataAsync();       // Gọi load dữ liệu cho FluentDataGrid
+
         }
     }
 
+    private async Task SelectTrangThai(StatusOrder TrangThai)
+    {
+        SelectedTrangThai = TrangThai.ToString();
+        await RefreshDataAsync();
+
+    }
+    private async Task GetBillDangXuLy()
+    {
+        ApiRequestModel requestRestAPI = new ApiRequestModel();
+        requestRestAPI.Endpoint = $"api/Bill/GetBillDangXuLy";
+        ResultAPI result = await CallApi.Get<BillDangXuLyDto>(requestRestAPI);
+        if (result.Status == StatusCode.OK)
+        {
+            billDangXuLyDto = result.Data as BillDangXuLyDto ?? new();
+        }
+        else
+        {
+            ToastService.ShowError(result.Message ?? "Không thể lấy thông tin.");
+        }
+    }
 }
 
 

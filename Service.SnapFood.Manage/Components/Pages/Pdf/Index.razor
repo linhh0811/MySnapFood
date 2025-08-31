@@ -5,6 +5,7 @@
 @using Service.SnapFood.Manage.Enums
 @using Service.SnapFood.Manage.Infrastructure.Services
 @using Service.SnapFood.Share.Interface.Extentions
+@using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.ServiceCustomHttpClient
 @inject IJSRuntime JS
 @inject HttpClient Http
@@ -223,7 +224,8 @@
 
 
 @code {
-
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; } = new();
     [CascadingParameter]
     public FluentDialog Dialog { get; set; } = default!;
 
@@ -255,7 +257,7 @@
             await JS.InvokeVoidAsync("downloadFile", $"{Item.BillCode}.pdf", base64);
             if (!Content.IsTaiQuay)
             {
-                await UpdateStatus(StatusOrder.DangChuanBi);
+                await UpdateStatus(StatusOrder.Confirmed);
             }
             await Content.OnRefresh.InvokeAsync();
             await CancelAsync();
@@ -293,7 +295,9 @@
             var updateDto = new UpdateOrderStatusDto
                 {
                     StatusOrder = status,
-                    Reason = reason
+                    Reason = reason,
+                    NhanVienThaoTac = $"{CurrentUser.UserName}-{CurrentUser.Email}"
+
                 };
 
             ResultAPI result = await CallApi.Put(request, updateDto);

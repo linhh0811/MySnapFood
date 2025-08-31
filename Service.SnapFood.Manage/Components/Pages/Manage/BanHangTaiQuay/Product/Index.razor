@@ -2,6 +2,7 @@
 @using Service.SnapFood.Manage.Dto
 @using Service.SnapFood.Manage.Dto.Cart
 @using Service.SnapFood.Manage.Dto.ProductDto
+@using Service.SnapFood.Manage.Query
 @using Service.SnapFood.Share.Interface.Extentions
 @using Service.SnapFood.Share.Model.Commons
 @using Service.SnapFood.Share.Model.SQL
@@ -77,6 +78,8 @@
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; } = new();
     [Parameter] public string SearchKeyword { get; set; } = string.Empty;
+    [Parameter] public string CategoryId { get; set; } = string.Empty;
+
     [Parameter] public Guid CartId { get; set; } 
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
@@ -101,18 +104,19 @@
 
         try
         {
-            var baseQuery = new BaseQuery
+            var baseQuery = new ProductQuery
+            {
+                CategoryId = string.IsNullOrEmpty(CategoryId) ? Guid.Empty : Guid.Parse(CategoryId),
+                SearchIn = new List<string> { "ProductName" },
+                Keyword = SearchKeyword,
+
+                gridRequest = new GridRequest
                 {
-                    SearchIn = new List<string> { "ProductName" },
-                    Keyword = SearchKeyword,
+                    page = 1,
+                    pageSize = int.MaxValue,
 
-                    gridRequest = new GridRequest
-                    {
-                        page = 1,
-                        pageSize = int.MaxValue,
-
-                    }
-                };
+                }
+            };
             requestRestAPI.Endpoint = "api/Product/GetPaged";
 
             ResultAPI result = await CallApi.Post<Dto.DataTableJson>(requestRestAPI, baseQuery);

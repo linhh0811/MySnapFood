@@ -125,6 +125,39 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.User
         protected void XemDonHang(Guid userId)
         {
             Navigation.NavigateTo($"/Quan-Ly/Bill/{userId}");
-        } 
+        }
+        public async Task RejectAsync(Guid id)
+        {
+            requestRestAPI.Endpoint = $"api/User/{id}/Reject";
+            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Huỷ duyệt nhân viên thành công");
+                await UserGrid.RefreshDataAsync();
+            }
+            else
+            {
+                ToastService.ShowError("Huỷ duyệt nhân viên thất bại!  " + result.Message);
+            }
+
+        }
+
+        public async Task ApproveAsync(Guid id)
+        {
+            requestRestAPI.Endpoint = $"api/User/{id}/Approve";
+            ResultAPI result = await CallApi.Put(requestRestAPI, new object());
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Duyệt tài khoản khách hàng thành công");
+                await UserGrid.RefreshDataAsync();
+
+            }
+            else
+            {
+                ToastService.ShowError("Duyệt tài khoản khách hàng thất bại!  " + result.Message);
+            }
+
+        }
+
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace Service.SnapFood.Domain.Enums
 {
@@ -21,11 +16,15 @@ namespace Service.SnapFood.Domain.Enums
         [Description("Đang chuẩn bị")]
         DangChuanBi = 2,
 
+        [Description("Đã chuẩn bị xong")]
+        DaChuanBiXong = 3,
+
         [Description("Đang giao hàng")]
-        Shipping = 3,
+        Shipping = 4,
 
         [Description("Chờ lấy hàng")]
-        ChoLayHang = 4,
+        ChoLayHang = 5,
+
 
 
 

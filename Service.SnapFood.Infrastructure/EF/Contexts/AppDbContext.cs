@@ -672,6 +672,14 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
                 EnumRole = EnumRole.Staff,
                 Description = "Nhân viên",
                 ModerationStatus = ModerationStatus.Approved,
+            },
+            new Roles
+            {
+                Id = Guid.Parse("8a2e5d21-5f7b-4a7c-9d5e-3f6c8b2a1d3e"),
+                RoleName = "Giao hàng",
+                EnumRole = EnumRole.GiaoHang,
+                Description = "Giao hàng",
+                ModerationStatus = ModerationStatus.Approved,
             });
             builder.Entity<User>().HasData(
                new User

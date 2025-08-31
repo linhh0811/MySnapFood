@@ -17,7 +17,7 @@
         <div class="col-auto">
             <select class="form-select w-auto" @onchange="OnStatusFilterChanged">
                 <option value="">Tất cả</option>
-                @foreach (var status in Enum.GetValues<StatusOrder>().Cast<StatusOrder>().Where(s => (int)s >= 0 && (int)s <= 4))
+                @foreach (var status in Enum.GetValues<StatusOrder>().Cast<StatusOrder>())
                 {
                     <option value="@((int)status)">@GetStatusText(status)</option>
                 }
@@ -150,7 +150,9 @@
     private string GetStatusColor(StatusOrder status) => status switch
     {
         StatusOrder.Pending => "#ff9800",
+        StatusOrder.Confirmed => "#2196f3",
         StatusOrder.DangChuanBi => "#2196f3",
+        StatusOrder.DaChuanBiXong => "#2196f3",
         StatusOrder.ChoLayHang => "#2196f3",
         StatusOrder.Shipping => "#00bcd4",
         StatusOrder.Completed => "#4caf50",
@@ -163,11 +165,12 @@
         return status switch
         {
             StatusOrder.Pending => "Chờ xác nhận",
-            // StatusOrder.Confirmed => "Đã xác nhận",
+            StatusOrder.Confirmed => "Đã xác nhận",
             StatusOrder.DangChuanBi => "Đang chuẩn bị",
+            StatusOrder.DaChuanBiXong => "Đã chuẩn bị xong",
             StatusOrder.ChoLayHang => "Chờ lấy hàng",
             StatusOrder.Shipping => "Đang giao hàng",
-            StatusOrder.Completed => "Đã giao thành công",
+            StatusOrder.Completed => "Hoàn thành",
             StatusOrder.Cancelled => "Đã hủy",
 
             _ => "Không xác định"

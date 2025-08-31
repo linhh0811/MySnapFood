@@ -7,13 +7,23 @@
 <FluentStack Orientation="Orientation.Horizontal" Style="width:250px;padding-top:15px">
     <FluentNavMenu Title="Databound">
         <!-- Nhóm Bán hàng -->
-        @if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+        @if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager) || CurrentUser.Roles.Contains(EnumRole.GiaoHang))
         {
             <FluentNavGroup Id="Group1" Title="Bán hàng" Icon="@(new Icons.Regular.Size24.ShoppingBag())" Expanded="true">
+            @if (CurrentUser.Roles.Contains(EnumRole.Staff) || CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
+            {
                 <FluentNavLink Icon="@(new Icons.Regular.Size24.ShoppingBag())" Href="/Ban-Hang/Ban-Tai-Quay">Đặt hàng</FluentNavLink>
                 <FluentNavLink Icon="@(new Icons.Regular.Size24.DocumentCheckmark())" Href="/Ban-Hang/Bill/">Đơn hàng</FluentNavLink>
+            }
+            @if (CurrentUser.Roles.Contains(EnumRole.GiaoHang))
+            {
+                <FluentNavLink Icon="@(new Icons.Regular.Size24.DocumentCheckmark())" Href="/Ban-Hang/Giao-Hang/">Đơn hàng</FluentNavLink>
+            }
+               
             </FluentNavGroup>
         }
+
+        
 
         @if (CurrentUser.Roles.Contains(EnumRole.Admin) || CurrentUser.Roles.Contains(EnumRole.Manager))
         {

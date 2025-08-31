@@ -1,4 +1,4 @@
-﻿using BCrypt.Net;
+﻿using Microsoft.EntityFrameworkCore;
 using Service.SnapFood.Application.Dtos;
 using Service.SnapFood.Application.Interfaces;
 using Service.SnapFood.Application.Interfaces.Jwt;
@@ -8,12 +8,7 @@ using Service.SnapFood.Domain.Interfaces.UnitOfWork;
 using Service.SnapFood.Share.Model.Commons;
 using Service.SnapFood.Share.Model.SQL;
 using Service.SnapFood.Share.Query;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static Azure.Core.HttpHeader;
 
 namespace Service.SnapFood.Application.Service
 {
@@ -131,11 +126,13 @@ namespace Service.SnapFood.Application.Service
 
             int totalRecords = 0;
             var dataQuery = _unitOfWork.UserRepo.FilterData(
-                q => q.Where(u => u.UserType == UserType.User), // Lọc chỉ lấy UserType.User
+                q => q.Include(x=>x.Orderes)
+                .Where(u => u.UserType == UserType.User), // Lọc chỉ lấy UserType.User
                 query.gridRequest,
                 ref totalRecords
             );
             var data = dataQuery.AsEnumerable()
+                .OrderByDescending(m => m.Orderes.Count())
                 .Select((m, i) => new UserDto
                 {
                     Index = ((query.gridRequest.page - 1) * query.gridRequest.pageSize) + i + 1,
@@ -148,7 +145,10 @@ namespace Service.SnapFood.Application.Service
                     Created = m.Created,
                     LastModified = m.LastModified,
                     CreatedBy = m.CreatedBy,
-                    LastModifiedBy = m.LastModifiedBy
+                    LastModifiedBy = m.LastModifiedBy,
+                    TongDonHang=m.Orderes.Count(),
+                    DonHangBiHuy=m.Orderes.Count(x=>x.Status==StatusOrder.Cancelled)
+
                 });
 
             return new DataTableJson(data, query.draw, totalRecords);
@@ -265,6 +265,10 @@ namespace Service.SnapFood.Application.Service
             var user = users.Where(x=>x.UserType==UserType.User).FirstOrDefault(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant());
             if (user == null || !BCrypt.Net.BCrypt.Verify(item.Password, user.Password))
                 return null;
+            if (user.ModerationStatus!= ModerationStatus.Approved)
+            {
+                throw new Exception("Tài khoản của bạn đã bị khóa bởi hệ thống");
+            }
             AuthDto authDto = new AuthDto()
             {
                 Id = user.Id,
@@ -429,7 +433,37 @@ namespace Service.SnapFood.Application.Service
             return number.ToString("D6"); // định dạng để luôn có 6 chữ số, thêm số 0 phía trước nếu cần
         }
 
-      
+
         #endregion
+
+        public async Task<bool> ApproveAsync(Guid id)
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("ID không hợp lệ");
+
+            var user = await _unitOfWork.UserRepo.GetByIdAsync(id);
+            if (user == null)
+                return false;
+
+            user.ModerationStatus = ModerationStatus.Approved;
+            _unitOfWork.UserRepo.Update(user);
+            await _unitOfWork.CompleteAsync();
+            return true;
+        }
+
+        public async Task<bool> RejectAsync(Guid id)
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("ID không hợp lệ");
+
+            var user = await _unitOfWork.UserRepo.GetByIdAsync(id);
+            if (user == null)
+                return false;
+
+            user.ModerationStatus = ModerationStatus.Rejected;
+            _unitOfWork.UserRepo.Update(user);
+            await _unitOfWork.CompleteAsync();
+            return true;
+        }
     }
 }

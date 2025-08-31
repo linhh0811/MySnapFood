@@ -45,6 +45,7 @@ namespace Service.SnapFood.Application.Interfaces
 
         Task<List<TopSellingItemDto>> GetTop5SellingProductsAsync( int top = 8);
         Task<List<TopSellingItemDto>> GetTop5SellingCombosAsync( int top =8);
+        DataTableJson GetPageForGiaoHang(BillQuery query);
 
     }
 }

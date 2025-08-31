@@ -7,41 +7,41 @@
 @inject IUserService UserService
 <style>
     body {
-        margin: 0;
-        font-weight: 600;
-        font-size: 16px;
-        line-height: 18px;
-        font-family: "Times New Roman", serif !important;
+    margin: 0;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 18px;
+    font-family: "Times New Roman", serif !important;
     }
 
 
     .loading-center {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 24px;
-        font-weight: bold;
-        background-color: rgba(255, 255, 255, 0.7);
-        z-index: -1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: -1;
     }
 
     *, *::before, *::after {
-        font-family: inherit !important;
+    font-family: inherit !important;
     }
 
     input, textarea, button, select {
-        font-family: inherit !important;
+    font-family: inherit !important;
     }
 
-   
+
 
     .fluent-toast-provider {
-        z-index: 9999 !important;
+    z-index: 9999 !important;
     }
 </style>
 
@@ -97,11 +97,21 @@ else
     private CurrentUser CurrentUser = new();
     public bool isLoading = true;
 
-    protected override async Task OnInitializedAsync()
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     isLoading = true;
+    //     CurrentUser = await UserService.GetCurrentUserAsync();
+    //     isLoading = false;
+    // }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        isLoading = true;
-        CurrentUser = await UserService.GetCurrentUserAsync();
-        isLoading = false;
-        StateHasChanged();
+        if (firstRender)
+        {
+            isLoading = true;
+            CurrentUser = await UserService.GetCurrentUserAsync();
+            isLoading = false;
+            StateHasChanged();
+        }
     }
+
 }

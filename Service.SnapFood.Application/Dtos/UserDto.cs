@@ -31,5 +31,7 @@ namespace Service.SnapFood.Application.Dtos
         public string CreatedByName { get; set; } = string.Empty;
         public string LastModifiedByName { get; set; } = string.Empty;
         public bool IsThayDoiMatKhau { get; set; } = false;
+        public int TongDonHang { get; set; }
+        public int DonHangBiHuy { get; set; }
     }
 }

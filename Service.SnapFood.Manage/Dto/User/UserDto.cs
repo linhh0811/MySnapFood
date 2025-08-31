@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Service.SnapFood.Share.Model.SQL;
+using System.ComponentModel.DataAnnotations;
 
 namespace Service.SnapFood.Manage.Dto.User
 {
@@ -22,6 +23,10 @@ namespace Service.SnapFood.Manage.Dto.User
         public string PasswordConfirmMoi { get; set; } = string.Empty;
         public bool IsThayDoiMatKhau { get; set; } = false;
         public bool IsHeThong { get; set; } = false;
+        public ModerationStatus ModerationStatus { get; set; }
+        public int TongDonHang { get; set; }
+        public int DonHangBiHuy { get; set; }
+
 
 
     }

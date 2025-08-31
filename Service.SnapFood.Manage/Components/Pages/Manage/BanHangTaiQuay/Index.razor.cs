@@ -30,17 +30,15 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
         public decimal totalPriceEndown = 0;
         public Guid CartSelect { get; set; }
         public PaymentType PhuongThucThanhToan { get; set; } = PaymentType.Cash;
-        private string searchText = string.Empty;
-
-
+        private decimal KhachDuaInput { get; set; } = 0;
+        private decimal TienThoiLai => Math.Max(KhachDuaInput - (totalPrice- totalPriceEndown), 0);
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
                 IsLoading = true;
                 await LoadListCart();
-
-
+                CapNhatMenhGia();
                 IsLoading = false;
                 StateHasChanged();
 
@@ -62,6 +60,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
 
                         totalPrice = CartModel.CartItems.Where(x=>x.ModerationStatus==ModerationStatus.Approved).Sum(p => p.BasePrice * p.Quantity);
                         totalPriceEndown = CartModel.CartItems.Where(x => x.PriceEndown > 0 &&x.ModerationStatus==ModerationStatus.Approved).Sum(p => p.BasePrice * p.Quantity - p.PriceEndown * p.Quantity);
+                        CapNhatMenhGia();
                         StateHasChanged();
                     }
                     else
@@ -160,18 +159,27 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
         {
             try
             {
-                var request = new ApiRequestModel { Endpoint = $"api/Cart/AddCartNew/{CurrentUser.UserId}" };
-
-                ResultAPI result = await CallApi.Post<Guid>(request, null);
-                if (result.Status == StatusCode.OK)
+                if (Carts.Count<5)
                 {
-                    ToastService.ShowSuccess("Thêm giỏ hàng thành công.");
-                    await LoadListCart();
+                    var request = new ApiRequestModel { Endpoint = $"api/Cart/AddCartNew/{CurrentUser.UserId}" };
+
+                    ResultAPI result = await CallApi.Post<Guid>(request, null);
+                    if (result.Status == StatusCode.OK)
+                    {
+                        ToastService.ShowSuccess("Thêm giỏ hàng thành công.");
+                        await LoadListCart();
+                    }
+                    else
+                    {
+                        ToastService.ShowError("Thêm giỏ hàng thất bại.");
+                    }
                 }
                 else
                 {
-                    ToastService.ShowError("Thêm giỏ hàng thất bại.");
+                    ToastService.ShowWarning("Giới hạn giỏ hàng chờ là 5");
+                    return;
                 }
+               
             }
             catch (Exception ex)
             {
@@ -352,10 +360,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
 
         }
 
-        protected async Task KiemTraCheckOut()
-        {
-           
-        }
+
 
         public async Task SelectCart(Guid CartId)
         {
@@ -552,7 +557,20 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
                 ToastService.ShowError($"Lỗi khi mở modal thêm sản phẩm: {ex.Message}");
             }
         }
+        private List<int> MenhGiaGoiY = new();
+        public void CapNhatMenhGia()
+        {
+            var soTienPhaiTra = (int)(totalPrice - totalPriceEndown);
 
+            // Danh sách mệnh giá cố định hoặc có thể tạo động tùy yêu cầu
+            var allMenhGia = new List<int> { 25000, 26000, 30000, 40000, 50000, 100000, 200000, 500000, 600000, 700000, 1000000 };
 
+            // Lọc ra các mệnh giá lớn hơn số tiền phải trả
+            MenhGiaGoiY = allMenhGia.Where(m => m > soTienPhaiTra).Take(6).ToList();
+        }
+        public void ChonMenhGia(decimal amount)
+        {
+            KhachDuaInput = amount;
+        }
     }
 }
