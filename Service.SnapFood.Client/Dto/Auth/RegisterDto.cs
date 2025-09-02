@@ -20,5 +20,7 @@ namespace Service.SnapFood.Client.Dto.Auth
 
         [Compare("Password", ErrorMessage = "Mật khẩu nhập lại không khớp")]
         public string ConfirmPassword { get; set; } = string.Empty;
+        public string OtpCode { get; set; } = string.Empty;
+        public string RecaptchaToken { get; set; } = string.Empty;
     }
 }

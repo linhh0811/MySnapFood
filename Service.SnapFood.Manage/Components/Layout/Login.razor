@@ -6,24 +6,28 @@
 @using System.Net.Http.Json
 @using Blazored.LocalStorage
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.JSInterop
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body {
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: linear-gradient(135deg, #3498db, #8e44ad);
-        margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #3498db, #8e44ad);
+            margin: 0;
         }
 
     </style>
@@ -56,6 +60,8 @@
                             <FluentTextField @bind-Value="loginDto.Password" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu" Style="width: 100%;" />
                             <ValidationMessage style="color:red" For="@(() => loginDto.Password)" />
                         </FluentStack>
+
+                        <div class="g-recaptcha" data-sitekey="6LdNyqMrAAAAAAwO8OMLCHBujdzwa-XzlB3v6GPG"></div>
 
                         <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
                             Đăng nhập
@@ -105,10 +111,10 @@
                             </FluentStack>
 
                             <FluentButton @onclick="SendOTPAsync"
-                            Disabled="@isSendingOTP"
-                            Loading="@loading"
-                            Appearance="Appearance.Accent"
-                            Style="min-width: 100px;">
+                                          Disabled="@isSendingOTP"
+                                          Loading="@loading"
+                                          Appearance="Appearance.Accent"
+                                          Style="min-width: 100px;">
                                 @(isSendingOTP ? $"Gửi lại ({countdown}s)" : "Gửi mã")
                             </FluentButton>
                         </FluentStack>
@@ -125,6 +131,8 @@
                             <FluentTextField @bind-Value="layMatKhauDto.PasswordConfirmMoi" TextFieldType="TextFieldType.Password" Placeholder="Xác nhận nhập mật khẩu mới" Style="width: 100%;" />
                             <ValidationMessage style="color:red" For="@(() => layMatKhauDto.PasswordConfirmMoi)" />
                         </FluentStack>
+
+                        <div class="g-recaptcha" data-sitekey="6LdNyqMrAAAAAAwO8OMLCHBujdzwa-XzlB3v6GPG"></div>
 
                         <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
                             Xác nhận
@@ -145,6 +153,7 @@
     </div>
 </body>
 </html>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
@@ -197,10 +206,28 @@
 
     private async Task HandleSubmit()
     {
+        // Lấy token reCAPTCHA trước khi submit
+        string recaptchaToken = await JSRuntime.InvokeAsync<string>("grecaptcha.getResponse");
+
+        if (string.IsNullOrEmpty(recaptchaToken))
+        {
+            ErrorMessage = "Vui lòng xác nhận bạn không phải là robot.";
+            StateHasChanged();
+            return;
+        }
+
+        // Thêm token vào DTO (giả sử LoginDto có property RecaptchaToken, bạn cần thêm vào class LoginDto)
+        loginDto.RecaptchaToken = recaptchaToken;
+
         bool result = await LoginNhanVien(loginDto);
         if (result)
         {
             ToastService.ShowSuccess("Đăng nhập thành công!");
+        }
+        else
+        {
+            // Reset reCAPTCHA nếu thất bại
+            await JSRuntime.InvokeVoidAsync("grecaptcha.reset");
         }
     }
 
@@ -258,11 +285,24 @@
             StateHasChanged();
 
         }
-      
+
     }
 
     private async Task Confirm()
     {
+        // Lấy token reCAPTCHA trước khi submit
+        string recaptchaToken = await JSRuntime.InvokeAsync<string>("grecaptcha.getResponse");
+
+        if (string.IsNullOrEmpty(recaptchaToken))
+        {
+            ErrorMessage = "Vui lòng xác nhận bạn không phải là robot.";
+            StateHasChanged();
+            return;
+        }
+
+        // Thêm token vào DTO (giả sử OtpConfirmDto có property RecaptchaToken, bạn cần thêm vào class OtpConfirmDto)
+        layMatKhauDto.RecaptchaToken = recaptchaToken;
+
         try
         {
             loading = true;
@@ -279,12 +319,16 @@
             else
             {
                 ToastService.ShowError("Lỗi: " + result.Message);
+                // Reset reCAPTCHA nếu thất bại
+                await JSRuntime.InvokeVoidAsync("grecaptcha.reset");
             }
         }
         catch (Exception ex)
         {
 
             ToastService.ShowError("Lỗi: " + ex.Message);
+            // Reset reCAPTCHA nếu thất bại
+            await JSRuntime.InvokeVoidAsync("grecaptcha.reset");
         }
         finally
         {
@@ -292,7 +336,7 @@
             StateHasChanged();
 
         }
-       
+
     }
 
 
