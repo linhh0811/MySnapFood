@@ -317,6 +317,57 @@ namespace Service.SnapFood.Application.Service
         #endregion
 
         #region Otp
+        public async Task SendOtpDangKy(OtpConfirmDto otpConfirmDto)
+        {
+            var loweredEmail = otpConfirmDto.Email.ToLowerInvariant();
+            var user = _unitOfWork.UserRepo.FirstOrDefault(x => x.Email.ToLower() == otpConfirmDto.Email.ToLower() && x.UserType == UserType.User);
+            if (user is not null)
+            {
+                throw new Exception("Email đã tồn tại trong hệ thống");
+            }
+            // Kiểm tra gửi liên tục dựa trên Email (không phụ thuộc user tồn tại)
+            var otpCheck = _unitOfWork.OtpConfirmRepository.FirstOrDefault(x =>
+                x.Email == loweredEmail &&
+                x.Created >= DateTime.Now.AddMinutes(-1)
+            );
+
+            if (otpCheck is not null)
+            {
+                throw new Exception("Không thể gửi liên tục, vui lòng đợi");
+            }
+
+            string fullName = user?.FullName ?? "Khách hàng";
+
+            OtpConfirm otpConfirm = new OtpConfirm()
+            {
+                UserId = user?.Id ?? Guid.Empty,
+                Email = loweredEmail,
+                OtpCode = GetRandom6DigitString()
+            };
+
+            _unitOfWork.OtpConfirmRepository.Add(otpConfirm);
+            await _unitOfWork.CompleteAsync();
+
+            string subject = user != null ? "Lấy lại mật khẩu Snap-Food" : "Xác thực đăng ký Snap-Food";
+
+            string body = $@"
+                <p>Xin chào <strong>{fullName}</strong>,</p>
+                <p>{(user != null ? "Yêu cầu lấy lại mật khẩu" : "Yêu cầu xác thực đăng ký tài khoản")}</p>
+
+                <h4>📋 Mã xác nhận:</h4>
+                <ul>
+                    <li><strong>Mã xác nhận của bạn là:</strong> {otpConfirm.OtpCode}</li>
+                    <li>Mã xác nhận chỉ tồn tại trong <strong>1 phút</strong></li>
+                </ul>
+                <p>Vui lòng không cung cấp mã xác nhận cho người lạ.</p>
+                <p>Trân trọng,<br>Hệ thống quản lý</p>
+                <p>-----------------------------------------------------------------</p>                   
+            ";
+
+            await _emailService.SendEmailAsync(loweredEmail, subject, body);
+           
+
+        }
         public async Task SendOtp(OtpConfirmDto otpConfirmDto)
         {
             var loweredEmail = otpConfirmDto.Email.ToLowerInvariant();

@@ -354,7 +354,7 @@
             layMatKhauDto.RecaptchaToken = recaptchaToken;
             isSendingOTP = true;
 
-            requestRestAPI.Endpoint = "api/User/SendOtp";
+            requestRestAPI.Endpoint = "api/User/SendOtpStaff";
             ResultAPI result = await CallApi.Put(requestRestAPI, layMatKhauDto);
 
             if (result.Status == StatusCode.OK)
