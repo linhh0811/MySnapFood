@@ -14,6 +14,7 @@ namespace Service.SnapFood.Application.Interfaces
         Task<AuthResponseDto?> LoginAsync(LoginDto item);
         Task<Guid> RegisterAsync(RegisterDto item);
         Task SendOtp(OtpConfirmDto otpConfirmDto);
+        Task SendOtpStaff(OtpConfirmDto otpConfirmDto);
         Task LayLaiMatKhau(OtpConfirmDto otpConfirmDto);
         Task<bool> ApproveAsync(Guid id);
         Task<bool> RejectAsync(Guid id);
