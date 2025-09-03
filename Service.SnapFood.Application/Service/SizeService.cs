@@ -95,7 +95,7 @@ namespace Service.SnapFood.Application.Service
                     throw new Exception("Vị trí nhỏ hơn 0");
                 }
 
-                size.SizeName = item.SizeName;
+                size.SizeName = item.SizeName.Trim();
                 size.AdditionalPrice = item.AdditionalPrice;
                 size.DisplayOrder = item.DisplayOrder;
                 size.ParentId = item.ParentId;
@@ -134,7 +134,7 @@ namespace Service.SnapFood.Application.Service
 
                 Sizes size = new Sizes
                 {
-                    SizeName = item.SizeName,
+                    SizeName = item.SizeName.Trim(),
                     AdditionalPrice = item.AdditionalPrice,
                     DisplayOrder = item.DisplayOrder,
                     ParentId = item.ParentId,

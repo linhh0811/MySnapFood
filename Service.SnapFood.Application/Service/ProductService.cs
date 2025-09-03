@@ -378,7 +378,7 @@ namespace Service.SnapFood.Application.Service
                 {
                     CategoryId = item.CategoryId,
                     ImageUrl = item.ImageUrl,
-                    ProductName = item.ProductName,
+                    ProductName = item.ProductName.Trim(),
                     Description = item.Description,
                     Quantity = 0,
                     BasePrice = item.BasePrice,
@@ -456,7 +456,7 @@ namespace Service.SnapFood.Application.Service
 
 
                 product.CategoryId = item.CategoryId;
-                product.ProductName = item.ProductName;
+                product.ProductName = item.ProductName.Trim();
                 product.ImageUrl = item.ImageUrl;
                 product.Description = item.Description;
                 product.BasePrice = item.BasePrice;

@@ -134,8 +134,8 @@ namespace Service.SnapFood.Application.Service
 
             var user = new User
             {
-                FullName = item.FullName,
-                Email = item.Email,
+                FullName = item.FullName.Trim(),
+                Email = item.Email.Trim().ToLower(),
                 Numberphone = item.Numberphone,
                 Password = hashedPassword,
                 UserType = Domain.Enums.UserType.Store
@@ -194,8 +194,8 @@ namespace Service.SnapFood.Application.Service
 
 
 
-            user.FullName = item.FullName;
-            user.Email = item.Email;
+            user.FullName = item.FullName.Trim();
+            user.Email = item.Email.Trim().ToLower();
             user.Numberphone = item.Numberphone;
             user.FillDataForUpdate(Guid.NewGuid());
             string subject = "Cập nhật thông tin tài khoản";
