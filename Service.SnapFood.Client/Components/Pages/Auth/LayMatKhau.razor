@@ -68,6 +68,13 @@
                                             </FluentButton>
                                         </div>
                                     }
+
+                                    <hr />
+                                    <div class="group">
+                                        <FluentButton Loading="@IsLoading" Appearance="Appearance.Lightweight" Class="back-button" Style="width: 100%;" IconStart="@(new Icons.Regular.Size20.ArrowLeft())" OnClick="OpenModalDangNhap">
+                                            Quay lại đăng nhập/đăng ký
+                                        </FluentButton>
+                                    </div>
                                 }
                                 else if (forgotStep == 2)
                                 {
@@ -90,8 +97,8 @@
                                             Xác nhận
                                         </FluentButton>
                                         <hr />
-                                        <FluentButton Loading="@IsLoading" Appearance="Appearance.Lightweight" Style="width: 100%;" IconStart="@(new Icons.Regular.Size20.ArrowLeft())" OnClick="OpenModalDangNhap">
-                                            Quay lại
+                                        <FluentButton Loading="@IsLoading" Appearance="Appearance.Lightweight" Class="back-button" Style="width: 100%;" IconStart="@(new Icons.Regular.Size20.ArrowLeft())" OnClick="OpenModalDangNhap">
+                                            Quay lại đăng nhập/đăng ký
                                         </FluentButton>
                                     </div>
                                 }
@@ -331,8 +338,19 @@
         }
 
     .group .form-label {
-        color: white!important;
+        color: white !important;
     }
+
+    .back-button {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        transition: background 0.3s ease, transform 0.3s ease;
+    }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
 </style>
 
 @code {

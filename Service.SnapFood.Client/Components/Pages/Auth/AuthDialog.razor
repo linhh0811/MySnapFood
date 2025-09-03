@@ -45,15 +45,16 @@
 
                                 </div>
 
-                                <div class="group">
+                                <div class="group-password">
                                     <label class="form-label">Mật khẩu</label>
                                     <InputText class="form-control" type="password" @bind-Value="loginModel.Password" />
                                     <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => loginModel.Password)" />
 
                                 </div>
 
-                                <div id="login-recaptcha"></div>
-
+                                <div class="group recaptcha-wrapper">
+                                    <div id="login-recaptcha"></div>
+                                </div>
 
                                 <div class="group">
                                     <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isLoggingIn">Đăng nhập</FluentButton>
@@ -153,8 +154,6 @@
 <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
 <script src="\Js\recaptchaInterop.js"></script>
 <style>
-
-
     *,
     :after,
     :before {
@@ -183,7 +182,7 @@
         max-width: 525px;
         min-height: 670px;
         position: relative;
-    background: url(https://png.pngtree.com/png-clipart/20230916/original/pngtree-fast-food-in-a-cute-hand-drawn-style-clipart-vector-png-image_12246520.png) no-repeat center;
+        background: url(https://png.pngtree.com/png-clipart/20230916/original/pngtree-fast-food-in-a-cute-hand-drawn-style-clipart-vector-png-image_12246520.png) no-repeat center;
         box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
     }
 
@@ -205,6 +204,8 @@
             transform: rotateY(180deg);
             backface-visibility: hidden;
             transition: all 0.4s linear;
+            pointer-events: none;
+            z-index: 0;
         }
 
         .login-html .sign-in,
@@ -231,7 +232,7 @@
 
         .login-html .sign-in:checked + .tab,
         .login-html .sign-up:checked + .tab {
-    color: #fff!important;
+            color: #fff !important;
             border-color: #1161ee;
             cursor: pointer;
         }
@@ -244,19 +245,21 @@
     }
 
         .login-form .group {
+            position: relative; 
             margin-bottom: 15px;
         }
 
+            .login-form .group .form-control,
             .login-form .group .label,
-            .login-form .group .input,
+            .login-form .group .input {
+                position: relative;
+                z-index: 2; 
+            }
+
             .login-form .group .button {
                 width: 100%;
                 color: #fff;
                 display: block;
-            }
-
-            .login-form .group .input,
-            .login-form .group .button {
                 border: none;
                 padding: 15px 20px;
                 border-radius: 25px;
@@ -266,6 +269,8 @@
             .login-form .group .label {
                 color: #aaa;
                 font-size: 12px;
+                display: block;
+                margin-bottom: 6px;
             }
 
             .login-form .group .button {
@@ -330,10 +335,26 @@
     .sign-in:checked + .tab + .sign-up + .tab + .login-form
     .sign-in-htm {
         transform: rotate(0);
+        z-index: 2;
+        pointer-events: auto; 
     }
 
     .login-html .sign-up:checked + .tab + .login-form .sign-up-htm {
         transform: rotate(0);
+        z-index: 2;
+        pointer-events: auto;
+    }
+
+    .login-html
+    .sign-in:checked + .tab + .sign-up + .tab + .login-form
+    .sign-up-htm {
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .login-html .sign-up:checked + .tab + .login-form .sign-in-htm {
+        pointer-events: none;
+        z-index: 1;
     }
 
     .hr {
@@ -347,14 +368,14 @@
     }
 
     .close-button {
-        z-index: 10;
+        z-index: 1000; 
         position: absolute;
         top: 10px;
         right: 10px;
         width: 30px;
         height: 30px;
         border-radius: 50%;
-        background: transparent; /* Màu đỏ nhạt */
+        background: transparent;
         color: white;
         display: flex;
         align-items: center;
@@ -363,16 +384,38 @@
         cursor: pointer;
         font-weight: bold;
         font-size: 16px;
-        z-index: 1000; /* Đảm bảo nút ở trên cùng */
     }
 
         .close-button:hover {
-            background: #e43f3f; /* Màu đỏ đậm hơn khi hover */
+            background: #e43f3f;
         }
 
     .group .form-label {
         color: white !important;
     }
+
+    .group-password {
+        position: relative;
+        z-index: 5; 
+        margin-bottom: 18px; 
+    }
+
+    .recaptcha-wrapper {
+        position: relative; 
+        z-index: 1;
+        display: block;
+        max-width: 304px; 
+        height: 78px;
+        overflow: hidden; 
+        margin-top: 12px;
+    }
+
+    #login-recaptcha,
+    #login-recaptcha > div,
+    #login-recaptcha iframe {
+        transform: none !important;
+    }
+
 </style>
 
 @code {

@@ -19,7 +19,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập</title>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+    <script src="\Js\recaptchaInterop.js"></script>
     <style>
         body {
             height: 100vh;
@@ -61,13 +62,13 @@
                             <ValidationMessage style="color:red" For="@(() => loginDto.Password)" />
                         </FluentStack>
 
-                        <div class="g-recaptcha" data-sitekey="6LdNyqMrAAAAAAwO8OMLCHBujdzwa-XzlB3v6GPG"></div>
+                        <div id="recaptcha-login" class="recaptcha-box"></div>
 
                         <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
                             Đăng nhập
                         </FluentButton>
                         <hr />
-                        <FluentButton Loading="@loading" Appearance="Appearance.Lightweight" Style="width: 100%;" OnClick="()=>DoiTrangThai(true)">
+                        <FluentButton Loading="@loading" Appearance="Appearance.Lightweight" Style="width: 100%;" OnClick="() => DoiTrangThai(true)">
                             Bạn quên mật khẩu?
                         </FluentButton>
 
@@ -90,60 +91,80 @@
                         </FluentMessageBar>
                     }
 
-                    <FluentStack Orientation="Orientation.Vertical" Style="gap: 1rem;">
-                        <FluentStack Orientation="Orientation.Vertical">
-                            <FluentLabel Weight="FontWeight.Bold">Email:</FluentLabel>
-                            <FluentTextField @bind-Value="layMatKhauDto.Email" Placeholder="Nhập email" Style="width: 100%;" />
-                            <ValidationMessage style="color:red" For="@(() => layMatKhauDto.Email)" />
+                    @if (forgotStep == 1)
+                    {
+                        <FluentStack Orientation="Orientation.Vertical" Style="gap: 1rem;">
+                            <FluentStack Orientation="Orientation.Vertical">
+                                <FluentLabel Weight="FontWeight.Bold">Email:</FluentLabel>
+                                <FluentTextField @bind-Value="layMatKhauDto.Email" Placeholder="Nhập email" Style="width: 100%;" />
+                                <ValidationMessage style="color:red" For="@(() => layMatKhauDto.Email)" />
 
-                            @if (!string.IsNullOrEmpty(CheckEmail))
-                            {
-                                <div class="validation-message" style="color:red">@CheckEmail.</div>
+                                @if (!string.IsNullOrEmpty(CheckEmail))
+                                {
+                                    <div class="validation-message" style="color:red">@CheckEmail.</div>
 
-                            }
-                        </FluentStack>
-
-                        <FluentStack Orientation="Orientation.Horizontal" Style="gap: 1rem; align-items: flex-end;">
-                            <FluentStack Orientation="Orientation.Vertical" Style="flex: 1;">
-                                <FluentLabel Weight="FontWeight.Bold">Mã xác nhận:</FluentLabel>
-                                <FluentTextField @bind-Value="layMatKhauDto.OtpCode" Placeholder="Nhập mã xác nhận" Style="width: 100%;" />
-                                <ValidationMessage style="color:red" For="@(() => layMatKhauDto.OtpCode)" />
+                                }
                             </FluentStack>
 
-                            <FluentButton @onclick="SendOTPAsync"
-                                          Disabled="@isSendingOTP"
-                                          Loading="@loading"
-                                          Appearance="Appearance.Accent"
-                                          Style="min-width: 100px;">
-                                @(isSendingOTP ? $"Gửi lại ({countdown}s)" : "Gửi mã")
+                            <div id="recaptcha-forgot" class="recaptcha-box"></div>
+
+                            <FluentStack Orientation="Orientation.Horizontal" Style="gap: 1rem; align-items: flex-end;">
+                                <FluentButton @onclick="SendOTPAsync"
+                                              Disabled="@isSendingOTP"
+                                              Loading="@loading"
+                                              Appearance="Appearance.Accent"
+                                              Style="min-width: 100px;">
+                                    @(isSendingOTP ? $"Gửi lại ({countdown}s)" : (otpSent ? "Gửi lại mã" : "Gửi mã OTP"))
+                                </FluentButton>
+                            </FluentStack>
+
+                            @if (otpSent)
+                            {
+                                <FluentStack Orientation="Orientation.Vertical">
+                                    <FluentLabel Weight="FontWeight.Bold">Mã xác nhận:</FluentLabel>
+                                    <FluentTextField @bind-Value="layMatKhauDto.OtpCode" Placeholder="Nhập mã xác nhận" Style="width: 100%;" />
+                                    <ValidationMessage style="color:red" For="@(() => layMatKhauDto.OtpCode)" />
+                                </FluentStack>
+
+                                <FluentButton @onclick="VerifyOtpAsync"
+                                              Disabled="@isVerifying"
+                                              Loading="@loading"
+                                              Appearance="Appearance.Accent"
+                                              Style="width: 100%;">
+                                    Xác thực OTP
+                                </FluentButton>
+                            }
+
+                            <hr />
+                            <FluentButton Loading="@loading" Appearance="Appearance.Lightweight" Style="width: 100%;" OnClick="() => DoiTrangThai(false)" IconStart="@(new Icons.Regular.Size20.ArrowLeft())">
+                                Quay lại
                             </FluentButton>
                         </FluentStack>
+                    }
+                    else if (forgotStep == 2)
+                    {
+                        <FluentStack Orientation="Orientation.Vertical" Style="gap: 1rem;">
+                            <FluentStack Orientation="Orientation.Vertical">
+                                <FluentLabel Weight="FontWeight.Bold">Mật khẩu mới:</FluentLabel>
+                                <FluentTextField @bind-Value="layMatKhauDto.PasswordMoi" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu mới" Style="width: 100%;" />
+                                <ValidationMessage style="color:red" For="@(() => layMatKhauDto.PasswordMoi)" />
+                            </FluentStack>
 
+                            <FluentStack Orientation="Orientation.Vertical">
+                                <FluentLabel Weight="FontWeight.Bold">Xác nhận mật khẩu mới:</FluentLabel>
+                                <FluentTextField @bind-Value="layMatKhauDto.PasswordConfirmMoi" TextFieldType="TextFieldType.Password" Placeholder="Xác nhận nhập mật khẩu mới" Style="width: 100%;" />
+                                <ValidationMessage style="color:red" For="@(() => layMatKhauDto.PasswordConfirmMoi)" />
+                            </FluentStack>
 
-                        <FluentStack Orientation="Orientation.Vertical">
-                            <FluentLabel Weight="FontWeight.Bold">Mật khẩu mới:</FluentLabel>
-                            <FluentTextField @bind-Value="layMatKhauDto.PasswordMoi" TextFieldType="TextFieldType.Password" Placeholder="Nhập mật khẩu mới" Style="width: 100%;" />
-                            <ValidationMessage style="color:red" For="@(() => layMatKhauDto.PasswordMoi)" />
+                            <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
+                                Xác nhận
+                            </FluentButton>
+                            <hr />
+                            <FluentButton Loading="@loading" Appearance="Appearance.Lightweight" Style="width: 100%;" OnClick="BackToStepOne" IconStart="@(new Icons.Regular.Size20.ArrowLeft())">
+                                Quay lại
+                            </FluentButton>
                         </FluentStack>
-
-                        <FluentStack Orientation="Orientation.Vertical">
-                            <FluentLabel Weight="FontWeight.Bold">Xác nhận mật khẩu mới:</FluentLabel>
-                            <FluentTextField @bind-Value="layMatKhauDto.PasswordConfirmMoi" TextFieldType="TextFieldType.Password" Placeholder="Xác nhận nhập mật khẩu mới" Style="width: 100%;" />
-                            <ValidationMessage style="color:red" For="@(() => layMatKhauDto.PasswordConfirmMoi)" />
-                        </FluentStack>
-
-                        <div class="g-recaptcha" data-sitekey="6LdNyqMrAAAAAAwO8OMLCHBujdzwa-XzlB3v6GPG"></div>
-
-                        <FluentButton Loading="@loading" Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">
-                            Xác nhận
-                        </FluentButton>
-                        <hr />
-                        <FluentButton Loading="@loading" Appearance="Appearance.Lightweight" Style="width: 100%;" OnClick="()=>DoiTrangThai(false)" IconStart="@(new Icons.Regular.Size20.ArrowLeft())">
-                            Quay lại
-                        </FluentButton>
-
-
-                    </FluentStack>
+                    }
                 </EditForm>
             </FluentCard>
         }
@@ -153,7 +174,6 @@
     </div>
 </body>
 </html>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 @code {
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
@@ -169,6 +189,55 @@
 
     private string? ErrorMessage;
     public string CheckEmail { get; set; } = string.Empty;
+
+    private int forgotStep = 1;  // Bước 1: Nhập email, gửi và xác thực OTP, Bước 2: Nhập mật khẩu mới
+    private bool otpSent = false;
+    private bool isSendingOTP = false;
+    private bool isVerifying = false;
+    private int countdown = 60;
+    private Timer? timer;
+
+    private int widgetIdLogin = -1;
+    private int widgetIdForgot = -1;
+
+    private bool? currentIsLayLaiMatKhau;
+    private int? currentForgotStep;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || currentIsLayLaiMatKhau != IsLayLaiMatKhau || currentForgotStep != forgotStep)
+        {
+            string siteKey = "6LdNyqMrAAAAAAwO8OMLCHBujdzwa-XzlB3v6GPG";
+
+            if (!IsLayLaiMatKhau)
+            {
+                try
+                {
+                    widgetIdLogin = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "recaptcha-login", siteKey);
+                }
+                catch
+                {
+                    await Task.Delay(500);
+                    widgetIdLogin = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "recaptcha-login", siteKey);
+                }
+            }
+            else if (forgotStep == 1)
+            {
+                try
+                {
+                    widgetIdForgot = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "recaptcha-forgot", siteKey);
+                }
+                catch
+                {
+                    await Task.Delay(500);
+                    widgetIdForgot = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "recaptcha-forgot", siteKey);
+                }
+            }
+
+            currentIsLayLaiMatKhau = IsLayLaiMatKhau;
+            currentForgotStep = forgotStep;
+        }
+    }
 
     private async Task<bool> LoginNhanVien(LoginDto loginDto)
     {
@@ -207,7 +276,7 @@
     private async Task HandleSubmit()
     {
         // Lấy token reCAPTCHA trước khi submit
-        string recaptchaToken = await JSRuntime.InvokeAsync<string>("grecaptcha.getResponse");
+        string recaptchaToken = await JSRuntime.InvokeAsync<string>("recaptchaInterop.getResponse", widgetIdLogin);
 
         if (string.IsNullOrEmpty(recaptchaToken))
         {
@@ -216,7 +285,7 @@
             return;
         }
 
-        // Thêm token vào DTO (giả sử LoginDto có property RecaptchaToken, bạn cần thêm vào class LoginDto)
+        // Thêm token vào DTO
         loginDto.RecaptchaToken = recaptchaToken;
 
         bool result = await LoginNhanVien(loginDto);
@@ -227,27 +296,49 @@
         else
         {
             // Reset reCAPTCHA nếu thất bại
-            await JSRuntime.InvokeVoidAsync("grecaptcha.reset");
+            await JSRuntime.InvokeVoidAsync("recaptchaInterop.reset", widgetIdLogin);
         }
     }
 
     private void DoiTrangThai(bool trangThai)
     {
+        if (trangThai)
+        {
+            widgetIdForgot = -1;
+        }
+        else
+        {
+            widgetIdLogin = -1;
+        }
         IsLayLaiMatKhau = trangThai;
+        forgotStep = 1;
+        otpSent = false;
+        isSendingOTP = false;
+        timer?.Dispose();
+        CheckEmail = string.Empty;
+        ErrorMessage = string.Empty;
+        layMatKhauDto = new OtpConfirmDto();
         StateHasChanged();
     }
 
+    private void BackToStepOne()
+    {
+        widgetIdForgot = -1;
+        forgotStep = 1;
+        otpSent = false;
+        isSendingOTP = false;
+        timer?.Dispose();
+        StateHasChanged();
+    }
 
-    private bool isSendingOTP = false;
-    private int countdown = 60;
-    private Timer? timer;
 
     private async Task SendOTPAsync()
     {
         try
         {
-            loading = true;
             if (isSendingOTP) return;
+
+            loading = true;
 
             if (string.IsNullOrEmpty(layMatKhauDto.Email))
             {
@@ -256,28 +347,44 @@
                 return;
             }
 
+            // Lấy token reCAPTCHA trước khi gửi
+            string recaptchaToken = await JSRuntime.InvokeAsync<string>("recaptchaInterop.getResponse", widgetIdForgot);
+
+            if (string.IsNullOrEmpty(recaptchaToken))
+            {
+                CheckEmail = "Vui lòng xác nhận bạn không phải là robot.";
+                StateHasChanged();
+                return;
+            }
+
+            layMatKhauDto.RecaptchaToken = recaptchaToken;
+            isSendingOTP = true;
+
             requestRestAPI.Endpoint = "api/User/SendOtp";
             ResultAPI result = await CallApi.Put(requestRestAPI, layMatKhauDto);
 
             if (result.Status == StatusCode.OK)
             {
 
-                isSendingOTP = true;
+                otpSent = true;
                 countdown = 60;
                 StartCountdown();
-
                 ToastService.ShowSuccess("Mã xác nhận đã được gửi!");
             }
             else
             {
+                isSendingOTP = false;
                 ToastService.ShowError("" + result.Message);
+                await JSRuntime.InvokeVoidAsync("recaptchaInterop.reset", widgetIdForgot);
             }
 
         }
         catch (Exception ex)
         {
 
+            isSendingOTP = false;
             ToastService.ShowError("" + ex.Message);
+            await JSRuntime.InvokeVoidAsync("recaptchaInterop.reset", widgetIdForgot);
         }
         finally
         {
@@ -288,21 +395,51 @@
 
     }
 
+    private async Task VerifyOtpAsync()
+    {
+        try
+        {
+            loading = true;
+            isVerifying = true;
+            CheckEmail = "";
+
+            if (string.IsNullOrEmpty(layMatKhauDto.OtpCode))
+            {
+                CheckEmail = "Vui lòng nhập mã OTP.";
+                return;
+            }
+
+            var verifyDto = new OtpConfirmDto { Email = layMatKhauDto.Email, OtpCode = layMatKhauDto.OtpCode };
+
+            requestRestAPI.Endpoint = "api/User/VerifyOtp";
+            ResultAPI result = await CallApi.Put(requestRestAPI, verifyDto);
+
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Xác thực OTP thành công!");
+                timer?.Dispose();
+                isSendingOTP = false;
+                forgotStep = 2;
+            }
+            else
+            {
+                CheckEmail = "Xác thực OTP thất bại: " + result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            CheckEmail = "Lỗi: " + ex.Message;
+        }
+        finally
+        {
+            isVerifying = false;
+            loading = false;
+            StateHasChanged();
+        }
+    }
+
     private async Task Confirm()
     {
-        // Lấy token reCAPTCHA trước khi submit
-        string recaptchaToken = await JSRuntime.InvokeAsync<string>("grecaptcha.getResponse");
-
-        if (string.IsNullOrEmpty(recaptchaToken))
-        {
-            ErrorMessage = "Vui lòng xác nhận bạn không phải là robot.";
-            StateHasChanged();
-            return;
-        }
-
-        // Thêm token vào DTO (giả sử OtpConfirmDto có property RecaptchaToken, bạn cần thêm vào class OtpConfirmDto)
-        layMatKhauDto.RecaptchaToken = recaptchaToken;
-
         try
         {
             loading = true;
@@ -319,16 +456,12 @@
             else
             {
                 ToastService.ShowError("Lỗi: " + result.Message);
-                // Reset reCAPTCHA nếu thất bại
-                await JSRuntime.InvokeVoidAsync("grecaptcha.reset");
             }
         }
         catch (Exception ex)
         {
 
             ToastService.ShowError("Lỗi: " + ex.Message);
-            // Reset reCAPTCHA nếu thất bại
-            await JSRuntime.InvokeVoidAsync("grecaptcha.reset");
         }
         finally
         {
@@ -354,8 +487,12 @@
             else
             {
                 isSendingOTP = false;
+                InvokeAsync(async () =>
+            {
+                await JSRuntime.InvokeVoidAsync("recaptchaInterop.reset", widgetIdForgot);
+                StateHasChanged();
+            });
                 timer?.Dispose();
-                InvokeAsync(StateHasChanged);
             }
         }, null, 0, 1000); // 1000ms = 1 giây
     }
