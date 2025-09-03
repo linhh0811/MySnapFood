@@ -325,13 +325,13 @@ namespace Service.SnapFood.Application.Service
 
                 Promotions promotion = new Promotions
                 {
-                    PromotionName = item.PromotionName,
+                    PromotionName = item.PromotionName.Trim(),
                     PromotionValue = item.PromotionValue,
                     PromotionType = item.PromotionType,
                     StartDate = item.StartDate,
                     EndDate = item.EndDate,
                     ModerationStatus = ModerationStatus.Rejected,
-                    Description = item.Description,
+                    Description = item.Description.Trim(),
                 };
                 _unitOfWork.PromotionRepository.Add(promotion);
                 await _unitOfWork.CompleteAsync();
@@ -415,12 +415,12 @@ namespace Service.SnapFood.Application.Service
 
                 }
 
-                promotion.PromotionName = item.PromotionName;
+                promotion.PromotionName = item.PromotionName.Trim();
                 promotion.PromotionType = item.PromotionType;
                 promotion.PromotionValue = item.PromotionValue;
                 promotion.StartDate = item.StartDate;
                 promotion.EndDate = item.EndDate;
-                promotion.Description = item.Description;
+                promotion.Description = item.Description.Trim();
 
                 _unitOfWork.PromotionRepository.Update(promotion);
                 await _unitOfWork.CompleteAsync();

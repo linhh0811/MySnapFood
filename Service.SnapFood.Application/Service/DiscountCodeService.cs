@@ -107,7 +107,7 @@ namespace Service.SnapFood.Application.Service
                 var entity = new DiscountCode
                 {
                     Id = Guid.NewGuid(),
-                    Code = item.Code.ToUpper(),
+                    Code = item.Code.ToUpper().Trim(),
                     Description = item.Description,
                     DiscountValue = item.DiscountValue,
                     DiscountValueMax = item.DiscountValueMax,
@@ -149,7 +149,7 @@ namespace Service.SnapFood.Application.Service
 
                 }
 
-                entity.Code = item.Code.ToUpper();
+                entity.Code = item.Code.ToUpper().Trim();
                 entity.Description = item.Description;
                 entity.DiscountValue = item.DiscountValue;
                 entity.DiscountValueMax = item.DiscountValueMax;

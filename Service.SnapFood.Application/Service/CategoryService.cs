@@ -31,8 +31,8 @@ namespace Service.SnapFood.Application.Service
                 }
                 Categories category = new Categories
                 {
-                    CategoryName = item.CategoryName,
-                    ImageUrl=item.ImageUrl,
+                    CategoryName = item.CategoryName.Trim(),
+                    ImageUrl=item.ImageUrl.Trim(),
                     DisplayOrder = item.DisplayOrder,
 
                 };
@@ -61,8 +61,8 @@ namespace Service.SnapFood.Application.Service
                 }
 
 
-                category.CategoryName = item.CategoryName;
-                category.ImageUrl = item.ImageUrl;
+                category.CategoryName = item.CategoryName.Trim();
+                category.ImageUrl = item.ImageUrl.Trim();
                 category.DisplayOrder = item.DisplayOrder;
                 _unitOfWork.CategoriesRepo.Update(category);
                 await _unitOfWork.CompleteAsync();

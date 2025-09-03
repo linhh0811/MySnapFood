@@ -304,7 +304,7 @@ namespace Service.SnapFood.Application.Service
                 Combo combo = new Combo
                 {
                     CategoryId = item.CategoryId,
-                    ComboName = item.ComboName,
+                    ComboName = item.ComboName.Trim(),
                     ImageUrl = item.ImageUrl,
                     BasePrice = item.BasePrice,
                     Description = item.Description,
@@ -393,7 +393,7 @@ namespace Service.SnapFood.Application.Service
                 }
 
                 combo.CategoryId = item.CategoryId;
-                combo.ComboName = item.ComboName;
+                combo.ComboName = item.ComboName.Trim();
                 combo.ImageUrl = item.ImageUrl;
                 combo.BasePrice = item.BasePrice;
                 combo.Description = item.Description;

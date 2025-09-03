@@ -1084,7 +1084,11 @@ namespace Service.SnapFood.Application.Service
             var cart = _unitOfWork.CartRepo.FirstOrDefault(x => x.UserId == item.UserId);
             if (cart is null)
                 throw new Exception("Không tìm thấy giỏ hàng");
-
+            var user = _unitOfWork.UserRepo.FirstOrDefault(x => x.Id == item.UserId);
+            if (user is null)
+                throw new Exception("Người dùng không tồn tại");
+            if (user.ModerationStatus == ModerationStatus.Rejected)
+                throw new Exception("Tài khoản đã bị khóa");
             var cartProductItems = _unitOfWork.CartItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
             var cartComboItems = _unitOfWork.CartComboItemRepo.FindWhere(x => x.CartId == cart.Id).ToList();
 

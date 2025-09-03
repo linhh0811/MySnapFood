@@ -219,7 +219,7 @@ namespace Service.SnapFood.Application.Service
 
             if (!IsValidEmail(item.Email))
                 throw new ArgumentException("Email không hợp lệ");
-            var loweredEmail = item.Email.ToLowerInvariant();
+            var loweredEmail = item.Email.ToLowerInvariant().Trim();
             var users = await _unitOfWork.UserRepo.GetAllAsync();
             var user = users.Where(x => x.UserType == UserType.User).FirstOrDefault(u => u.Email == loweredEmail);
             if (user == null || !BCrypt.Net.BCrypt.Verify(item.Password, user.Password))
@@ -253,9 +253,9 @@ namespace Service.SnapFood.Application.Service
 
 
             var users = await _unitOfWork.UserRepo.GetAllAsync();
-            if (users.Where(x => x.UserType == UserType.User).Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
+            if (users.Where(x => x.UserType == UserType.User).Any(u => u.Email.ToLowerInvariant().Trim() == item.Email.ToLowerInvariant().Trim()))
                 throw new Exception("Email đã tồn tại");
-            var loweredEmail = item.Email.ToLowerInvariant();
+            var loweredEmail = item.Email.ToLowerInvariant().Trim();
 
             var userId = Guid.NewGuid();
             var user = new User
