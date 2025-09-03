@@ -200,45 +200,40 @@
     private int widgetIdLogin = -1;
     private int widgetIdForgot = -1;
 
-    private bool? currentIsLayLaiMatKhau;
-    private int? currentForgotStep;
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender || currentIsLayLaiMatKhau != IsLayLaiMatKhau || currentForgotStep != forgotStep)
-        {
-            string siteKey = "6LdNyqMrAAAAAAwO8OMLCHBujdzwa-XzlB3v6GPG";
+        string siteKey = "6LdNyqMrAAAAAAwO8OMLCHBujdzwa-XzlB3v6GPG";
 
+        try
+        {
             if (!IsLayLaiMatKhau)
             {
-                try
+                // Kiểm tra xem đã render chưa
+                widgetIdLogin = await JSRuntime.InvokeAsync<int>("recaptchaInterop.getWidgetId", "recaptcha-login");
+                if (widgetIdLogin == -1)
                 {
-                    widgetIdLogin = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "recaptcha-login", siteKey);
-                }
-                catch
-                {
-                    await Task.Delay(500);
+                    // Chỉ render nếu chưa
                     widgetIdLogin = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "recaptcha-login", siteKey);
                 }
             }
             else if (forgotStep == 1)
             {
-                try
+                // Kiểm tra xem đã render chưa
+                widgetIdForgot = await JSRuntime.InvokeAsync<int>("recaptchaInterop.getWidgetId", "recaptcha-forgot");
+                if (widgetIdForgot == -1)
                 {
-                    widgetIdForgot = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "recaptcha-forgot", siteKey);
-                }
-                catch
-                {
-                    await Task.Delay(500);
+                    // Chỉ render nếu chưa
                     widgetIdForgot = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "recaptcha-forgot", siteKey);
                 }
             }
-
-            currentIsLayLaiMatKhau = IsLayLaiMatKhau;
-            currentForgotStep = forgotStep;
+        }
+        catch (JSException ex)
+        {
+            // Log lỗi mà không throw để tránh circuit disconnect
+            Console.WriteLine($"Lỗi reCAPTCHA: {ex.Message}. Bỏ qua để tránh disconnect circuit.");
+            // Không retry, vì có thể là "already rendered" - chúng ta đã xử lý bằng getWidgetId
         }
     }
-
     private async Task<bool> LoginNhanVien(LoginDto loginDto)
     {
         ErrorMessage = null;
@@ -304,11 +299,11 @@
     {
         if (trangThai)
         {
-            widgetIdForgot = -1;
+            // Không cần reset widgetIdLogin nữa
         }
         else
         {
-            widgetIdLogin = -1;
+            // Không cần reset widgetIdForgot nữa
         }
         IsLayLaiMatKhau = trangThai;
         forgotStep = 1;
@@ -320,7 +315,6 @@
         layMatKhauDto = new OtpConfirmDto();
         StateHasChanged();
     }
-
     private void BackToStepOne()
     {
         widgetIdForgot = -1;
