@@ -490,7 +490,7 @@
 
         registerError = "";
         isSendingOTP = true;
-        requestRestAPI.Endpoint = "api/User/SendOtp";
+        requestRestAPI.Endpoint = "api/User/SendOtpDangKy";
         ResultAPI result = await CallApi.Put(requestRestAPI, otpDto);
 
         if (result.Status == StatusCode.OK)

@@ -69,6 +69,15 @@ namespace Service.SnapFood.Api.Controllers
 
         }
 
+        [HttpPut("SendOtpDangKy")]
+        public async Task<IActionResult> SendOtpDangKy([FromBody] OtpConfirmDto item)
+        {
+
+            await _userService.SendOtpDangKy(item);
+            return Ok();
+
+        }
+
         [HttpPut("SendOtpStaff")]
         public async Task<IActionResult> SendOtpStaff([FromBody] OtpConfirmDto item)
         {
@@ -80,15 +89,10 @@ namespace Service.SnapFood.Api.Controllers
         [HttpPut("VerifyOtp")]
         public async Task<IActionResult> VerifyOtp([FromBody] OtpConfirmDto item)
         {
-            try
-            {
-                 await _userService.VerifyOtp(item);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { status = "ERROR", message = ex.Message });
-            }
+           
+            await _userService.VerifyOtp(item);
+            return Ok();
+          
         }
 
         [HttpPut("LayMatKhau")]
@@ -109,15 +113,11 @@ namespace Service.SnapFood.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var user = await _userService.GetByIdAsync(id);
-                return Ok(user);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+          
+            var user = await _userService.GetByIdAsync(id);
+            return Ok(user);
+           
+
         }
 
         [HttpPut("{id}")]
