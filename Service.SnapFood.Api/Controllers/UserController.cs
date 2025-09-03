@@ -68,6 +68,15 @@ namespace Service.SnapFood.Api.Controllers
             return Ok();
 
         }
+
+        [HttpPut("SendOtpStaff")]
+        public async Task<IActionResult> SendOtpStaff([FromBody] OtpConfirmDto item)
+        {
+
+            await _userService.SendOtpStaff(item);
+            return Ok();
+
+        }
         [HttpPut("VerifyOtp")]
         public async Task<IActionResult> VerifyOtp([FromBody] OtpConfirmDto item)
         {

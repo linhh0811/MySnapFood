@@ -15,7 +15,7 @@ namespace Service.SnapFood.Infrastructure.EF.Contexts
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
             // Cấu hình chuỗi kết nối, thay "Your_Connection_String_Here" bằng chuỗi kết nối của bạn
-            optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=Do_An_Nhanh_API;Integrated Security=True;TrustServerCertificate=True");
+            optionsBuilder.UseSqlServer("Data Source=VietManhABC\\SQLEXPRESS;Initial Catalog=Do_An_Nhanh_API;Integrated Security=True;TrustServerCertificate=true");
 
             return new AppDbContext(optionsBuilder.Options);
         }
