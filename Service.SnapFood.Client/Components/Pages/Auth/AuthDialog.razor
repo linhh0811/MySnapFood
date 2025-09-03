@@ -394,6 +394,9 @@
         color: white !important;
     }
 
+    .group-password .form-label {
+        color: white !important;
+    }
     .group-password {
         position: relative;
         z-index: 5; 
@@ -486,6 +489,13 @@
             return;
         }
 
+        if (string.IsNullOrEmpty(registerModel.Email))
+        {
+            registerError = "Email không để trống";
+            StateHasChanged();
+            return;
+        }
+
         var otpDto = new OtpConfirmDto { Email = registerModel.Email, RecaptchaToken = recaptchaToken };
 
         registerError = "";
@@ -566,7 +576,7 @@
             loginModel.Email = registerModel.Email;
             loginModel.Password = registerModel.Password;
 
-            await HandleLogin();
+            await HandleLogin2();
 
         }
         else
@@ -655,6 +665,42 @@
             isLoggingIn = false; // Reset after API call
             StateHasChanged(); // Ensure UI updates
         }
+    }
+
+    private async Task HandleLogin2()
+    {
+        loginError = "";
+
+
+        try
+        {
+            isLoggingIn = true;
+            requestRestAPI.Endpoint = "api/User/Login";
+            ResultAPI response = await CallApi.Post<Dto.Auth.AuthResponseDto>(requestRestAPI, loginModel);
+            if (response.Status == StatusCode.OK)
+            {
+                var result = response.Data as Dto.Auth.AuthResponseDto;
+                if (result?.Token != null)
+                {
+                    await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(result);
+                    await Dialog.CloseAsync();
+                    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                }
+                ToastService.ShowSuccess("Đăng nhập thành công.");
+            }
+            else
+            {
+                isLoggingIn = false;
+                loginError = "Thông tin không chính xác";
+            }
+        }
+        catch (Exception ex)
+        {
+            isLoggingIn = false;
+            loginError = ex.Message;
+
+        }
+
     }
 
     private void StartCountdown()
