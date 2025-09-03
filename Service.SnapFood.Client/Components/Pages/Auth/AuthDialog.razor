@@ -17,8 +17,7 @@
     <FluentDialog PreventDismissOnOverlayClick="false">
         <FluentDialogBody>
             <div class="login-wrap">
-                <button 
-                        Class="close-button"
+                <button Class="close-button"
                         @onclick="@(() => Dialog.CloseAsync())">
                     <span>X</span>
                 </button>
@@ -46,14 +45,16 @@
 
                                 </div>
 
-                                <div class="group">
+                                <div class="group-password">
                                     <label class="form-label">Mật khẩu</label>
                                     <InputText class="form-control" type="password" @bind-Value="loginModel.Password" />
                                     <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => loginModel.Password)" />
 
                                 </div>
 
-
+                                <div class="group recaptcha-wrapper">
+                                    <div id="login-recaptcha"></div>
+                                </div>
 
                                 <div class="group">
                                     <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isLoggingIn">Đăng nhập</FluentButton>
@@ -73,37 +74,71 @@
                                     </FluentMessageBar>
                                 }
                                 <DataAnnotationsValidator />
-                                <div class="group">
-                                    <label class="form-label">Họ và tên</label>
-                                    <InputText class="form-control" @bind-Value="registerModel.FullName" />
-                                    <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => registerModel.FullName)" />
 
-                                </div>
-                                <div class="group">
-                                    <label class="form-label">Email</label>
-                                    <InputText class="form-control" @bind-Value="registerModel.Email" />
-                                    <ValidationMessage style="color:red;margin-top:10px;" For="@(() => registerModel.Email)" />
+                                @if (registerStep == 1)
+                                {
+                                    <div class="group">
+                                        <label class="form-label">Email</label>
+                                        <InputText class="form-control" @bind-Value="registerModel.Email" />
+                                        <ValidationMessage style="color:red;margin-top:10px;" For="@(() => registerModel.Email)" />
+                                    </div>
 
-                                </div>
+                                    <div id="register-recaptcha"></div>
 
-                                <div class="group">
-                                    <label class="form-label">Mật khẩu</label>
-                                    <InputText class="form-control" type="password" @bind-Value="registerModel.Password" />
-                                    <ValidationMessage style="color:red;margin-top:10px;" For="@(() => registerModel.Password)" />
+                                    <div class="group" style="display: flex; gap: 10px;">
+                                        <FluentButton @onclick="SendOtpForRegister"
+                                                      Disabled="@isSendingOTP"
+                                                      Appearance="Appearance.Accent"
+                                                      Style="width: 100%;height:37px;">
+                                            @(isSendingOTP ? $"Gửi lại ({countdown}s)" : (otpSent ? "Gửi lại mã" : "Gửi mã OTP"))
+                                        </FluentButton>
+                                    </div>
 
-                                </div>
+                                    @if (otpSent)
+                                    {
+                                        <div class="group">
+                                            <label class="form-label">Mã xác nhận</label>
+                                            <InputText class="form-control" @bind-Value="registerModel.OtpCode" />
+                                            <ValidationMessage style="color:red; margin-top: 5px;" For="@(() => registerModel.OtpCode)" />
+                                        </div>
 
-                                <div class="group">
-                                    <label class="form-label">Nhập lại mật khẩu</label>
-                                    <InputText class="form-control" type="password" @bind-Value="registerModel.ConfirmPassword" />
-                                    <ValidationMessage style="color:red;margin-top:10px;" For="@(() => registerModel.ConfirmPassword)" />
+                                        <div class="group">
+                                            <FluentButton @onclick="VerifyOtpForRegister"
+                                                          Disabled="@isVerifying"
+                                                          Appearance="Appearance.Accent">
+                                                Xác thực OTP
+                                            </FluentButton>
+                                        </div>
+                                    }
+                                }
+                                else if (registerStep == 2)
+                                {
+                                    <div class="group">
+                                        <label class="form-label">Họ và tên</label>
+                                        <InputText class="form-control" @bind-Value="registerModel.FullName" />
+                                        <ValidationMessage style="color:red ;margin-top:10px;" For="@(() => registerModel.FullName)" />
 
-                                </div>
+                                    </div>
 
-                                <div class="group">
-                                    <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isRegistering">Đăng ký</FluentButton>
-                                  
-                                </div>
+                                    <div class="group">
+                                        <label class="form-label">Mật khẩu</label>
+                                        <InputText class="form-control" type="password" @bind-Value="registerModel.Password" />
+                                        <ValidationMessage style="color:red;margin-top:10px;" For="@(() => registerModel.Password)" />
+
+                                    </div>
+
+                                    <div class="group">
+                                        <label class="form-label">Nhập lại mật khẩu</label>
+                                        <InputText class="form-control" type="password" @bind-Value="registerModel.ConfirmPassword" />
+                                        <ValidationMessage style="color:red;margin-top:10px;" For="@(() => registerModel.ConfirmPassword)" />
+
+                                    </div>
+
+                                    <div class="group">
+                                        <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Disabled="@isRegistering">Đăng ký</FluentButton>
+
+                                    </div>
+                                }
 
                             </EditForm>
                         </div>
@@ -116,210 +151,231 @@
 
 
 </body>
-
+<script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+<script src="\Js\recaptchaInterop.js"></script>
 <style>
-
-
     *,
     :after,
     :before {
-    box-sizing: border-box;
+        box-sizing: border-box;
     }
 
     .clearfix:after,
     .clearfix:before {
-    content: "";
-    display: table;
+        content: "";
+        display: table;
     }
 
     .clearfix:after {
-    clear: both;
-    display: block;
+        clear: both;
+        display: block;
     }
 
     a {
-    color: inherit;
-    text-decoration: none;
+        color: inherit;
+        text-decoration: none;
     }
 
     .login-wrap {
-    width: 100%;
-    margin: auto;
-    max-width: 525px;
-    min-height: 670px;
-    position: relative;
-    background: url(https://png.pngtree.com/png-clipart/20230916/original/pngtree-fast-food-in-a-cute-hand-drawn-style-clipart-vector-png-image_12246520.png) no-repeat center;
-    box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+        width: 100%;
+        margin: auto;
+        max-width: 525px;
+        min-height: 670px;
+        position: relative;
+        background: url(https://png.pngtree.com/png-clipart/20230916/original/pngtree-fast-food-in-a-cute-hand-drawn-style-clipart-vector-png-image_12246520.png) no-repeat center;
+        box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
     }
 
     .login-html {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    padding: 90px 70px 50px 70px;
-    background: rgba(40, 57, 101, 0.9);
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        padding: 90px 70px 50px 70px;
+        background: rgba(40, 57, 101, 0.9);
     }
 
-    .login-html .sign-in-htm,
-    .login-html .sign-up-htm {
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    position: absolute;
-    transform: rotateY(180deg);
-    backface-visibility: hidden;
-    transition: all 0.4s linear;
-    }
+        .login-html .sign-in-htm,
+        .login-html .sign-up-htm {
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            position: absolute;
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+            transition: all 0.4s linear;
+            pointer-events: none;
+            z-index: 0;
+        }
 
-    .login-html .sign-in,
-    .login-html .sign-up,
-    .login-form .group .check {
-    display: none;
-    }
+        .login-html .sign-in,
+        .login-html .sign-up,
+        .login-form .group .check {
+            display: none;
+        }
 
-    .login-html .tab,
-    .login-form .group .label,
-    .login-form .group .button {
-    text-transform: uppercase;
-    }
+        .login-html .tab,
+        .login-form .group .label,
+        .login-form .group .button {
+            text-transform: uppercase;
+        }
 
-    .login-html .tab {
-    font-size: 22px;
-    margin-right: 15px;
-    cursor: pointer;
-    padding-bottom: 5px;
-    margin: 0 15px 10px 0;
-    display: inline-block;
-    border-bottom: 2px solid transparent;
-    }
+        .login-html .tab {
+            font-size: 22px;
+            margin-right: 15px;
+            cursor: pointer;
+            padding-bottom: 5px;
+            margin: 0 15px 10px 0;
+            display: inline-block;
+            border-bottom: 2px solid transparent;
+        }
 
-    .login-html .sign-in:checked + .tab,
-    .login-html .sign-up:checked + .tab {
-    color: #fff!important;
-    border-color: #1161ee;
-    cursor: pointer;
-    }
+        .login-html .sign-in:checked + .tab,
+        .login-html .sign-up:checked + .tab {
+            color: #fff !important;
+            border-color: #1161ee;
+            cursor: pointer;
+        }
 
     .login-form {
-    min-height: 345px;
-    position: relative;
-    perspective: 1000px;
-    transform-style: preserve-3d;
+        min-height: 345px;
+        position: relative;
+        perspective: 1000px;
+        transform-style: preserve-3d;
     }
 
-    .login-form .group {
-    margin-bottom: 15px;
-    }
+        .login-form .group {
+            position: relative; 
+            margin-bottom: 15px;
+        }
 
-    .login-form .group .label,
-    .login-form .group .input,
-    .login-form .group .button {
-    width: 100%;
-    color: #fff;
-    display: block;
-    }
+            .login-form .group .form-control,
+            .login-form .group .label,
+            .login-form .group .input {
+                position: relative;
+                z-index: 2; 
+            }
 
-    .login-form .group .input,
-    .login-form .group .button {
-    border: none;
-    padding: 15px 20px;
-    border-radius: 25px;
-    background: rgba(255, 255, 255, 0.1);
-    }
+            .login-form .group .button {
+                width: 100%;
+                color: #fff;
+                display: block;
+                border: none;
+                padding: 15px 20px;
+                border-radius: 25px;
+                background: rgba(255, 255, 255, 0.1);
+            }
 
-    .login-form .group .label {
-    color: #aaa;
-    font-size: 12px;
-    }
+            .login-form .group .label {
+                color: #aaa;
+                font-size: 12px;
+                display: block;
+                margin-bottom: 6px;
+            }
 
-    .login-form .group .button {
-    background: #1161ee;
-    cursor: pointer;
-    }
+            .login-form .group .button {
+                background: #1161ee;
+                cursor: pointer;
+            }
 
-    .login-form .group .button:hover {
-    background: #1454c4;
-    cursor: pointer;
-    }
+                .login-form .group .button:hover {
+                    background: #1454c4;
+                    cursor: pointer;
+                }
 
-    .login-form .group label .icon {
-    width: 15px;
-    height: 15px;
-    border-radius: 2px;
-    position: relative;
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.1);
-    }
+            .login-form .group label .icon {
+                width: 15px;
+                height: 15px;
+                border-radius: 2px;
+                position: relative;
+                display: inline-block;
+                background: rgba(255, 255, 255, 0.1);
+            }
 
-    .login-form .group label .icon:before,
-    .login-form .group label .icon:after {
-    content: "";
-    width: 10px;
-    height: 2px;
-    background: #fff;
-    position: absolute;
-    transition: all 0.2s ease-in-out 0s;
-    }
+                .login-form .group label .icon:before,
+                .login-form .group label .icon:after {
+                    content: "";
+                    width: 10px;
+                    height: 2px;
+                    background: #fff;
+                    position: absolute;
+                    transition: all 0.2s ease-in-out 0s;
+                }
 
-    .login-form .group label .icon:before {
-    left: 3px;
-    width: 5px;
-    bottom: 6px;
-    transform: scale(0) rotate(0);
-    }
+                .login-form .group label .icon:before {
+                    left: 3px;
+                    width: 5px;
+                    bottom: 6px;
+                    transform: scale(0) rotate(0);
+                }
 
-    .login-form .group label .icon:after {
-    top: 6px;
-    right: 0;
-    transform: scale(0) rotate(0);
-    }
+                .login-form .group label .icon:after {
+                    top: 6px;
+                    right: 0;
+                    transform: scale(0) rotate(0);
+                }
 
-    .login-form .group .check:checked + label {
-    color: #fff;
-    }
+            .login-form .group .check:checked + label {
+                color: #fff;
+            }
 
-    .login-form .group .check:checked + label .icon {
-    background: #1161ee;
-    }
+                .login-form .group .check:checked + label .icon {
+                    background: #1161ee;
+                }
 
-    .login-form .group .check:checked + label .icon:before {
-    transform: scale(1) rotate(45deg);
-    }
+                    .login-form .group .check:checked + label .icon:before {
+                        transform: scale(1) rotate(45deg);
+                    }
 
-    .login-form .group .check:checked + label .icon:after {
-    transform: scale(1) rotate(-45deg);
-    }
+                    .login-form .group .check:checked + label .icon:after {
+                        transform: scale(1) rotate(-45deg);
+                    }
 
     .login-html
     .sign-in:checked + .tab + .sign-up + .tab + .login-form
     .sign-in-htm {
-    transform: rotate(0);
+        transform: rotate(0);
+        z-index: 2;
+        pointer-events: auto; 
     }
 
     .login-html .sign-up:checked + .tab + .login-form .sign-up-htm {
-    transform: rotate(0);
+        transform: rotate(0);
+        z-index: 2;
+        pointer-events: auto;
+    }
+
+    .login-html
+    .sign-in:checked + .tab + .sign-up + .tab + .login-form
+    .sign-up-htm {
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .login-html .sign-up:checked + .tab + .login-form .sign-in-htm {
+        pointer-events: none;
+        z-index: 1;
     }
 
     .hr {
-    height: 2px;
-    margin: 60px 0 50px 0;
-    background: rgba(255, 255, 255, 0.2);
+        height: 2px;
+        margin: 60px 0 50px 0;
+        background: rgba(255, 255, 255, 0.2);
     }
 
     .foot-lnk {
-    text-align: center;
+        text-align: center;
     }
 
     .close-button {
-        z-index:10;
+        z-index: 1000; 
         position: absolute;
         top: 10px;
         right: 10px;
         width: 30px;
         height: 30px;
         border-radius: 50%;
-        background: transparent; /* Màu đỏ nhạt */
+        background: transparent;
         color: white;
         display: flex;
         align-items: center;
@@ -328,16 +384,38 @@
         cursor: pointer;
         font-weight: bold;
         font-size: 16px;
-        z-index: 1000; /* Đảm bảo nút ở trên cùng */
     }
 
         .close-button:hover {
-            background: #e43f3f; /* Màu đỏ đậm hơn khi hover */
+            background: #e43f3f;
         }
 
     .group .form-label {
         color: white !important;
     }
+
+    .group-password {
+        position: relative;
+        z-index: 5; 
+        margin-bottom: 18px; 
+    }
+
+    .recaptcha-wrapper {
+        position: relative; 
+        z-index: 1;
+        display: block;
+        max-width: 304px; 
+        height: 78px;
+        overflow: hidden; 
+        margin-top: 12px;
+    }
+
+    #login-recaptcha,
+    #login-recaptcha > div,
+    #login-recaptcha iframe {
+        transform: none !important;
+    }
+
 </style>
 
 @code {
@@ -346,6 +424,7 @@
     [Inject] private ICallServiceRegistry CallApi { get; set; } = default!;
     [Inject] private IToastService ToastService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
     private ApiRequestModel requestRestAPI = new ApiRequestModel() { };
     private RegisterDto registerModel = new();
@@ -360,6 +439,118 @@
 
     [Inject] private NavigationManager manager { get; set; } = default!;
 
+    private int loginWidgetId;
+    private int registerWidgetId;
+
+    private int registerStep = 1;  // Bước 1: Nhập email, gửi và xác thực OTP, Bước 2: Nhập thông tin còn lại
+
+    private bool isSendingOTP = false;
+    private bool otpSent = false;
+    private bool isVerifying = false;
+    private int countdown = 60;
+    private Timer? timer;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var siteKey = "6LdNyqMrAAAAAAwO8OMLCHBujdzwa-XzlB3v6GPG";
+
+            try
+            {
+                loginWidgetId = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "login-recaptcha", siteKey);
+                registerWidgetId = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "register-recaptcha", siteKey);
+            }
+            catch (JSException)
+            {
+                // Nếu script chưa load kịp thì thử lại sau 500ms
+                await Task.Delay(500);
+                loginWidgetId = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "login-recaptcha", siteKey);
+                registerWidgetId = await JSRuntime.InvokeAsync<int>("recaptchaInterop.render", "register-recaptcha", siteKey);
+            }
+
+        }
+    }
+
+    private async Task SendOtpForRegister()
+    {
+        if (isSendingOTP) return;
+
+        // Lấy token reCAPTCHA trước khi gửi
+        string recaptchaToken = await JSRuntime.InvokeAsync<string>("recaptchaInterop.getResponse", registerWidgetId);
+
+        if (string.IsNullOrEmpty(recaptchaToken))
+        {
+            registerError = "Vui lòng xác nhận bạn không phải là robot.";
+            StateHasChanged();
+            return;
+        }
+
+        var otpDto = new OtpConfirmDto { Email = registerModel.Email, RecaptchaToken = recaptchaToken };
+
+        registerError = "";
+        isSendingOTP = true;
+        requestRestAPI.Endpoint = "api/User/SendOtp";
+        ResultAPI result = await CallApi.Put(requestRestAPI, otpDto);
+
+        if (result.Status == StatusCode.OK)
+        {
+            ToastService.ShowSuccess("Mã OTP đã được gửi đến email của bạn.");
+            otpSent = true;
+            countdown = 60;
+            StartCountdown();
+        }
+        else
+        {
+            isSendingOTP = false;
+            registerError = "Gửi OTP thất bại: " + result.Message;
+            await JSRuntime.InvokeVoidAsync("recaptchaInterop.reset", registerWidgetId);
+        }
+        StateHasChanged();
+    }
+
+    private async Task VerifyOtpForRegister()
+    {
+        if (string.IsNullOrEmpty(registerModel.OtpCode))
+        {
+            registerError = "Vui lòng nhập mã OTP.";
+            StateHasChanged();
+            return;
+        }
+
+        registerError = "";
+        isVerifying = true;
+        StateHasChanged();
+
+        try
+        {
+            var otpDto = new OtpConfirmDto { Email = registerModel.Email, OtpCode = registerModel.OtpCode };
+            requestRestAPI.Endpoint = "api/User/VerifyOtp";
+            ResultAPI result = await CallApi.Put(requestRestAPI, otpDto);
+
+            if (result.Status == StatusCode.OK)
+            {
+                ToastService.ShowSuccess("Xác thực OTP thành công.");
+                timer?.Dispose();
+                isSendingOTP = false;
+                registerStep = 2;
+            }
+            else
+            {
+                registerError = "Xác thực OTP thất bại: " + result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            registerError = "Lỗi: " + ex.Message;
+        }
+        finally
+        {
+            isVerifying = false;
+            StateHasChanged();
+        }
+    }
+
     private async Task HandleRegister()
     {
         registerError = "";
@@ -373,7 +564,7 @@
             ToastService.ShowSuccess("Tạo tài khoản thành công.");
 
             loginModel.Email = registerModel.Email;
-            loginModel.Password = loginModel.Password;
+            loginModel.Password = registerModel.Password;
 
             await HandleLogin();
 
@@ -384,8 +575,7 @@
             registerError = "Tạo tài khoản thất bại: " + result.Message;
 
         }
-
-
+        StateHasChanged();
     }
 
     private async Task OpenModalLayMatKhau()
@@ -410,8 +600,21 @@
 
     private async Task HandleLogin()
     {
-        loginError = "";
+        // Giữ nguyên logic HandleLogin, với CAPTCHA cho login nếu cần
+        string recaptchaToken = await JSRuntime.InvokeAsync<string>("recaptchaInterop.getResponse", loginWidgetId);
 
+        if (string.IsNullOrEmpty(recaptchaToken))
+        {
+            loginError = "Vui lòng xác nhận bạn không phải là robot.";
+            StateHasChanged();
+            return;
+        }
+
+        loginModel.RecaptchaToken = recaptchaToken;
+
+        loginError = "";
+        isLoggingIn = true;
+        StateHasChanged();
 
         try
         {
@@ -433,6 +636,9 @@
             {
                 isLoggingIn = false;
                 loginError = "Thông tin không chính xác";
+
+                // Reset reCAPTCHA nếu thất bại
+                await JSRuntime.InvokeVoidAsync("recaptchaInterop.reset", loginWidgetId);
             }
         }
         catch (Exception ex)
@@ -440,7 +646,44 @@
             isLoggingIn = false;
             loginError = ex.Message;
 
+            // Reset reCAPTCHA nếu thất bại
+            await JSRuntime.InvokeVoidAsync("recaptchaInterop.reset", loginWidgetId);
+
         }
-       
+        finally
+        {
+            isLoggingIn = false; // Reset after API call
+            StateHasChanged(); // Ensure UI updates
+        }
+    }
+
+    private void StartCountdown()
+    {
+        timer?.Dispose();
+
+        timer = new Timer(state =>
+        {
+            if (countdown > 0)
+            {
+                countdown--;
+                InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                isSendingOTP = false;
+                InvokeAsync(async () =>
+            {
+                await JSRuntime.InvokeVoidAsync("recaptchaInterop.reset", registerWidgetId);
+                StateHasChanged();
+            });
+                timer?.Dispose();
+
+            }
+        }, null, 0, 1000);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
     }
 }

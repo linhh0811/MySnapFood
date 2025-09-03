@@ -68,6 +68,19 @@ namespace Service.SnapFood.Api.Controllers
             return Ok();
 
         }
+        [HttpPut("VerifyOtp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] OtpConfirmDto item)
+        {
+            try
+            {
+                 await _userService.VerifyOtp(item);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { status = "ERROR", message = ex.Message });
+            }
+        }
 
         [HttpPut("LayMatKhau")]
         public async Task<IActionResult> LayMatKhau([FromBody] OtpConfirmDto item)

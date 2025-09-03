@@ -33,47 +33,6 @@ namespace Service.SnapFood.Application.Service
             return users.ToList();
         }
 
-        //public async Task<User> GetByIdAsync(Guid id)
-        //{
-        //    if (id == Guid.Empty)
-        //        throw new ArgumentException("ID không hợp lệ");
-
-        //    var user = await _unitOfWork.UserRepo.GetByIdAsync(id);
-        //    if (user == null)
-        //        throw new Exception("Không tìm thấy người dùng");
-
-        //    return user;
-        //}
-        //public async Task<UserDto> GetByIdAsync(Guid id)
-        //{
-        //    if (id == Guid.Empty)
-        //        throw new ArgumentException("ID không hợp lệ");
-
-        //    var user = await _unitOfWork.UserRepo.GetByIdAsync(id);
-        //    if (user == null)
-        //        throw new Exception("Không tìm thấy người dùng");
-
-        //    // Lấy người tạo và người sửa cuối (nếu có)
-        //    var createdByUser = await _unitOfWork.UserRepo.GetByIdAsync(user.CreatedBy);
-        //    var lastModifiedByUser = await _unitOfWork.UserRepo.GetByIdAsync(user.LastModifiedBy);
-
-        //    return new UserDto
-        //    {
-        //        Id = user.Id,
-        //        FullName = user.FullName,
-        //        Email = user.Email,
-        //        UserType = user.UserType,
-        //        ModerationStatus = user.ModerationStatus,
-        //        Created = user.Created,
-        //        LastModified = user.LastModified,
-        //        CreatedBy = user.CreatedBy,
-        //        LastModifiedBy = user.LastModifiedBy,
-        //        CreatedByName = createdByUser?.FullName ?? "Không xác định",
-        //        LastModifiedByName = lastModifiedByUser?.FullName ?? "Không xác định"
-
-        //    };
-        //}
-
         public async Task<UserDto> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
@@ -126,7 +85,7 @@ namespace Service.SnapFood.Application.Service
 
             int totalRecords = 0;
             var dataQuery = _unitOfWork.UserRepo.FilterData(
-                q => q.Include(x=>x.Orderes)
+                q => q.Include(x => x.Orderes)
                 .Where(u => u.UserType == UserType.User), // Lọc chỉ lấy UserType.User
                 query.gridRequest,
                 ref totalRecords
@@ -146,8 +105,8 @@ namespace Service.SnapFood.Application.Service
                     LastModified = m.LastModified,
                     CreatedBy = m.CreatedBy,
                     LastModifiedBy = m.LastModifiedBy,
-                    TongDonHang=m.Orderes.Count(),
-                    DonHangBiHuy=m.Orderes.Count(x=>x.Status==StatusOrder.Cancelled)
+                    TongDonHang = m.Orderes.Count(),
+                    DonHangBiHuy = m.Orderes.Count(x => x.Status == StatusOrder.Cancelled)
 
                 });
 
@@ -156,7 +115,7 @@ namespace Service.SnapFood.Application.Service
         #endregion
 
         #region Sửa
-        
+
 
         public async Task<bool> UpdateAsync(Guid id, UserDto item)
         {
@@ -168,16 +127,16 @@ namespace Service.SnapFood.Application.Service
             // Validate input
             ValidateUserInput(item);
 
-          
+
 
             var user = await _unitOfWork.UserRepo.GetByIdAsync(id);
             if (user == null)
                 throw new Exception("Không tìm thấy người dùng");
 
             // Kiểm tra email trùng
-            if (user.Email.ToLowerInvariant() != item.Email.ToLowerInvariant())
+            if (user.Email.ToLower() != item.Email.ToLower())
             {
-                var existingUsers = _unitOfWork.UserRepo.FindWhere(x=>x.UserType==UserType.User);
+                var existingUsers = _unitOfWork.UserRepo.FindWhere(x => x.UserType == UserType.User);
                 if (existingUsers.Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
                     throw new Exception("Email đã tồn tại");
             }
@@ -197,7 +156,7 @@ namespace Service.SnapFood.Application.Service
             }
 
             user.FullName = item.FullName;
-            user.Email = item.Email;
+            user.Email = item.Email.ToLower();
             user.Numberphone = item.Numberphone;
 
             _unitOfWork.UserRepo.Update(user);
@@ -243,7 +202,7 @@ namespace Service.SnapFood.Application.Service
             }
 
 
-                await _emailService.SendEmailAsync(item.Email, subject, body);
+            await _emailService.SendEmailAsync(item.Email, subject, body);
 
             return true;
         }
@@ -260,12 +219,12 @@ namespace Service.SnapFood.Application.Service
 
             if (!IsValidEmail(item.Email))
                 throw new ArgumentException("Email không hợp lệ");
-
+            var loweredEmail = item.Email.ToLowerInvariant();
             var users = await _unitOfWork.UserRepo.GetAllAsync();
-            var user = users.Where(x=>x.UserType==UserType.User).FirstOrDefault(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant());
+            var user = users.Where(x => x.UserType == UserType.User).FirstOrDefault(u => u.Email == loweredEmail);
             if (user == null || !BCrypt.Net.BCrypt.Verify(item.Password, user.Password))
                 return null;
-            if (user.ModerationStatus!= ModerationStatus.Approved)
+            if (user.ModerationStatus != ModerationStatus.Approved)
             {
                 throw new Exception("Tài khoản của bạn đã bị khóa bởi hệ thống");
             }
@@ -283,43 +242,43 @@ namespace Service.SnapFood.Application.Service
         }
 
 
-    
+
         public async Task<Guid> RegisterAsync(RegisterDto item)
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item), "Thông tin đăng ký không được để trống");
 
-           
+
             ValidateRegisterInput(item);
 
-       
-            var users = await _unitOfWork.UserRepo.GetAllAsync();
-            if (users.Where(x=>x.UserType==UserType.User).Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
-                throw new Exception("Email đã tồn tại");
 
+            var users = await _unitOfWork.UserRepo.GetAllAsync();
+            if (users.Where(x => x.UserType == UserType.User).Any(u => u.Email.ToLowerInvariant() == item.Email.ToLowerInvariant()))
+                throw new Exception("Email đã tồn tại");
+            var loweredEmail = item.Email.ToLowerInvariant();
 
             var userId = Guid.NewGuid();
             var user = new User
             {
                 Id = userId,
                 FullName = item.FullName.ToLower(),
-                Email = item.Email.ToLower(),
+                Email = loweredEmail,
                 Password = BCrypt.Net.BCrypt.HashPassword(item.Password),
-                UserType = UserType.User 
+                UserType = UserType.User
             };
 
             _unitOfWork.UserRepo.Add(user);
 
-         
+
             var cart = new Cart
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-               
+
             };
             _unitOfWork.CartRepo.Add(cart);
 
-            
+
             await _unitOfWork.CompleteAsync();
 
             return userId;
@@ -335,19 +294,19 @@ namespace Service.SnapFood.Application.Service
                 throw new ArgumentException("Email không được để trống");
             if (!IsValidEmail(item.Email))
                 throw new ArgumentException("Email không hợp lệ");
-           
+
         }
 
         private void ValidateRegisterInput(RegisterDto item)
         {
-            
+
             if (string.IsNullOrWhiteSpace(item.Email))
                 throw new ArgumentException("Email không được để trống");
             if (!IsValidEmail(item.Email.ToLower()))
                 throw new ArgumentException("Email không hợp lệ");
             if (string.IsNullOrWhiteSpace(item.Password))
                 throw new ArgumentException("Mật khẩu không được để trống");
-            
+
         }
 
         private bool IsValidEmail(string email)
@@ -360,63 +319,100 @@ namespace Service.SnapFood.Application.Service
         #region Otp
         public async Task SendOtp(OtpConfirmDto otpConfirmDto)
         {
-            var user = _unitOfWork.UserRepo.FirstOrDefault(x => x.Email == otpConfirmDto.Email.ToLower());
-            if (user is null)
-            {
-                throw new Exception("Email không tồn tại trong hệ thống");
-            }
+            var loweredEmail = otpConfirmDto.Email.ToLowerInvariant();
+            var user = _unitOfWork.UserRepo.FirstOrDefault(x => x.Email.ToLower() == otpConfirmDto.Email.ToLower());
+            // Kiểm tra gửi liên tục dựa trên Email (không phụ thuộc user tồn tại)
+            var otpCheck = _unitOfWork.OtpConfirmRepository.FirstOrDefault(x =>
+                x.Email == loweredEmail &&
+                x.Created >= DateTime.Now.AddMinutes(-1)
+            );
 
-            var otpCheck = _unitOfWork.OtpConfirmRepository.FirstOrDefault(x => (x.UserId == user.Id) && (x.Created >= DateTime.Now.AddMinutes(-1)));
             if (otpCheck is not null)
             {
                 throw new Exception("Không thể gửi liên tục, vui lòng đợi");
             }
+
+            string fullName = user?.FullName ?? "Khách hàng";
+
             OtpConfirm otpConfirm = new OtpConfirm()
             {
-                UserId = user.Id,
+                UserId = user?.Id ?? Guid.Empty,
+                Email = loweredEmail,
                 OtpCode = GetRandom6DigitString()
             };
 
             _unitOfWork.OtpConfirmRepository.Add(otpConfirm);
             await _unitOfWork.CompleteAsync();
 
-            string subject = "Lấy lại mật khẩu Snap-Food";
+            string subject = user != null ? "Lấy lại mật khẩu Snap-Food" : "Xác thực đăng ký Snap-Food";
 
             string body = $@"
-                    <p>Xin chào <strong>{user.FullName}</strong>,</p>
-                    <p>Thông tin tài khoản của bạn đã được cập nhật.</p>
+                    <p>Xin chào <strong>{fullName}</strong>,</p>
+                    <p>{(user != null ? "Yêu cầu lấy lại mật khẩu" : "Yêu cầu xác thực đăng ký tài khoản")}</p>
 
-                    <h4>📋 Lấy lại mật khẩu Snap-Food:</h4>
+                    <h4>📋 Mã xác nhận:</h4>
                     <ul>
                         <li><strong>Mã xác nhận của bạn là:</strong> {otpConfirm.OtpCode}</li>
                         <li>Mã xác nhận chỉ tồn tại trong <strong>1 phút</strong></li>
-                       
-
                     </ul>
                     <p>Vui lòng không cung cấp mã xác nhận cho người lạ.</p>
                     <p>Trân trọng,<br>Hệ thống quản lý</p>
                     <p>-----------------------------------------------------------------</p>                   
                 ";
 
-            await _emailService.SendEmailAsync(user.Email, subject, body);
+            await _emailService.SendEmailAsync(loweredEmail, subject, body);
+        }
+
+        public async Task VerifyOtp(OtpConfirmDto item)
+        {
+            if (item == null || string.IsNullOrEmpty(item.Email) || string.IsNullOrEmpty(item.OtpCode))
+                throw new ArgumentException("Thông tin không hợp lệ");
+
+            var loweredEmail = item.Email.ToLowerInvariant();
+
+            var otpCheck = _unitOfWork.OtpConfirmRepository.FirstOrDefault(x =>
+                x.Email == loweredEmail &&
+                x.OtpCode == item.OtpCode.Trim() &&
+                x.Created >= DateTime.Now.AddMinutes(-1)
+            );
+
+            if (otpCheck == null)
+                throw new Exception("Mã OTP không chính xác hoặc đã hết hạn");
+
+            if (otpCheck.UserId == Guid.Empty)
+            {
+                // Registration
+                var users = await _unitOfWork.UserRepo.GetAllAsync();
+                if (users.Where(x => x.UserType == UserType.User).Any(u => u.Email.ToLowerInvariant() == loweredEmail))
+                    throw new Exception("Email đã tồn tại");
+            }
+            else
+            {
+                // Forgot password
+                var user = await _unitOfWork.UserRepo.GetByIdAsync(otpCheck.UserId);
+                if (user == null)
+                    throw new Exception("Không tìm thấy người dùng");
+            }
+
+            // Delete OTP
+            _unitOfWork.OtpConfirmRepository.Delete(otpCheck);
+            await _unitOfWork.CompleteAsync();
         }
 
 
-        
+
 
         public async Task LayLaiMatKhau(OtpConfirmDto otpConfirmDto)
         {
-            var user = _unitOfWork.UserRepo.FirstOrDefault(x => x.Email == otpConfirmDto.Email.ToLower());
-            if (user is null)
+            // Tìm OTP dựa trên Email
+            var loweredEmail = otpConfirmDto.Email.ToLowerInvariant();
+
+            var user = _unitOfWork.UserRepo.FirstOrDefault(x => x.Email == loweredEmail);
+            if (user == null)
             {
-                throw new Exception("Email không tồn tại trong hệ thống");
+                throw new Exception("Người dùng không tồn tại");
             }
 
-            var otpCheck = _unitOfWork.OtpConfirmRepository.FirstOrDefault(x => (x.UserId == user.Id) && (x.OtpCode== otpConfirmDto.OtpCode.Trim()) && (x.Created >= DateTime.Now.AddMinutes(-1)));
-            if (otpCheck is null)
-            {
-                throw new Exception("Mã xác nhận không chính xác");
-            }
             if (otpConfirmDto.PasswordMoi != otpConfirmDto.PasswordConfirmMoi)
             {
                 throw new Exception("Mật khẩu xác nhận không chính xác");
@@ -424,9 +420,8 @@ namespace Service.SnapFood.Application.Service
             user.Password = BCrypt.Net.BCrypt.HashPassword(otpConfirmDto.PasswordMoi.Trim());
             _unitOfWork.UserRepo.Update(user);
             await _unitOfWork.CompleteAsync();
-
         }
-        public  string GetRandom6DigitString()
+        public string GetRandom6DigitString()
         {
             Random random = new Random();
             int number = random.Next(0, 1000000); // từ 0 đến 999999

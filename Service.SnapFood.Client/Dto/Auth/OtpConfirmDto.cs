@@ -17,5 +17,6 @@ namespace Service.SnapFood.Client.Dto.Auth
         [Required(ErrorMessage = "Xác nhận mật khẩu không được để trống")]
         [Compare("PasswordMoi", ErrorMessage = "Mật khẩu xác nhận không khớp")]
         public string PasswordConfirmMoi { get; set; } = string.Empty;
+        public string RecaptchaToken { get; set; } = string.Empty;
     }
 }

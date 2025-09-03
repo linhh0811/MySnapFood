@@ -17,6 +17,7 @@ namespace Service.SnapFood.Application.Interfaces
         Task LayLaiMatKhau(OtpConfirmDto otpConfirmDto);
         Task<bool> ApproveAsync(Guid id);
         Task<bool> RejectAsync(Guid id);
+        Task VerifyOtp(OtpConfirmDto item);
 
     }
 }
