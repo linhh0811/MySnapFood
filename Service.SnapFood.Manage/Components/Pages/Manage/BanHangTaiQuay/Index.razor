@@ -323,13 +323,21 @@ else
                             }
                             <div class="mb-2">
                                 <label class="form-label">Tiền khách đưa:</label>
-                                <input type="number" class="form-control" @bind-value="KhachDuaInput" />
+                                <input type="number" min="0" class="form-control" @bind-value="KhachDuaInput" />
                             </div>
 
                             <!-- Tiền thối lại -->
                             <div class="d-flex justify-content-between fw-bold text-success mb-3">
                                 <span>Tiền thối lại:</span>
-                                <span>@TienThoiLai.ToString("N0") đ</span>
+                                @if (TienThoiLai <0)
+                                {
+                                    <span>Chưa đủ tiền</span>
+                                }
+                                else
+                                {
+                                    <span>@TienThoiLai.ToString("N0") đ</span>
+                                }
+
                             </div>
                         }
              

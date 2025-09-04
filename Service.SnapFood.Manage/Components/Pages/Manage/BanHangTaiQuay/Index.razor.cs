@@ -31,7 +31,7 @@ namespace Service.SnapFood.Manage.Components.Pages.Manage.BanHangTaiQuay
         public Guid CartSelect { get; set; }
         public PaymentType PhuongThucThanhToan { get; set; } = PaymentType.Cash;
         private decimal KhachDuaInput { get; set; } = 0;
-        private decimal TienThoiLai => Math.Max(KhachDuaInput - (totalPrice- totalPriceEndown), 0);
+        private decimal TienThoiLai => Math.Max(KhachDuaInput - (totalPrice- totalPriceEndown), -1);
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
