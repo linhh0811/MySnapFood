@@ -49,6 +49,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
         protected string ReceiverPhone { get; set; } = string.Empty;
         protected double KhoangCach = 0;
         protected decimal PhiVanChuyen = 0;
+        protected string TextPhiVanChuyen { get; set; } = string.Empty;
         private Guid SelectedDiscountCode;
 
        protected decimal DiscountCodeValue { get; set; }
@@ -116,6 +117,7 @@ namespace Service.SnapFood.Client.Components.Pages.Cart
                         KhoangCach = await AddressService.CalculateDistanceKmAsync(DistanceRequest) ?? 0;
 
                         PhiVanChuyen = (decimal)KhoangCach * ThongTinGiaoHang.PhiGiaoHang;
+                        TextPhiVanChuyen = $"Phí giao hàng: {ThongTinGiaoHang.PhiGiaoHang.ToString("N0")} đ / 1 km";
                     }
                    
 
