@@ -19,9 +19,13 @@ Thống kê doanh thu:
 🛠️ Công nghệ sử dụng
 
 Frontend: Blazor WebAssembly, Fluent UI
+
 Backend: .NET 8, ASP.NET Core Web API
+
 Database: SQL Server, Entity Framework Core
+
 UI Design: Draw.io
+
 Biểu đồ: ChartJs.Blazor
 
 🚀 Chức năng chính
