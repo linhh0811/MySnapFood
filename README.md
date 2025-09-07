@@ -37,7 +37,7 @@ Duyệt sản phẩm, combo
 
 Thêm sản phẩm vào giỏ hàng
 
-Đặt hàng & thanh toán (COD, dự kiến tích hợp Momo/VNPay)
+Đặt hàng & thanh toán
 
 Theo dõi trạng thái đơn hàng
 
