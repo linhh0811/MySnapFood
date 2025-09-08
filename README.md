@@ -1,19 +1,18 @@
 🍔 MySnapFood 
-Ứng dụng quản lý bán đồ ăn online/offline được xây dựng bằng Blazor WebAssembly + .NET 8, hỗ trợ khách hàng đặt món nhanh chóng, tiện lợi và giúp chủ cửa hàng quản lý sản phẩm, đơn hàng, doanh thu hiệu quả.
+Ứng dụng quản lý bán đồ ăn online/offline được xây dựng bằng Blazor WebAssembly + .NET 8,
+hỗ trợ khách hàng đặt món nhanh chóng, tiện lợi và giúp chủ cửa hàng quản lý sản phẩm, đơn hàng, doanh thu hiệu quả.
 
 📸 Demo giao diện
 
 ⚠️ Các ảnh dưới đây chỉ là demo theme/template.
 
-Trang chủ:im
+Trang chủ:[Giao diện chính](Giaodien.png)
 
 
-Màn hình quản lý sản phẩm:
+Màn hình quản lý sản phẩm: [Giao diện sản phẩm](Giaodiensanpham.png)
 
 
-Thống kê doanh thu:
-
-
+Thống kê doanh thu:[Giao diện thống kê](Giaodienthongke.png)
 
 
 
